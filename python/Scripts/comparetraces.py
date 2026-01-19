@@ -192,7 +192,7 @@ def aggregateByName(data):
 # Comparison Logic
 # -----------------------------------------------------------------------------
 
-def compareTraces(baselinePath, optimizedPath, trackName=None):
+def compareTraces(baselinePath, optimizedPath, trackName=None, minDeltaMs=0.0):
     '''
     Compare durations between baseline and optimized traces.
 
@@ -200,9 +200,10 @@ def compareTraces(baselinePath, optimizedPath, trackName=None):
         baselinePath: Path to baseline trace file or directory
         optimizedPath: Path to optimized trace file or directory
         trackName: Optional track name filter
+        minDeltaMs: Minimum absolute delta in ms to include (filters out noise)
 
     Returns:
-        List of comparison dicts sorted by improvement percentage,
+        List of comparison dicts sorted by absolute time saved (largest first),
         or DataFrame if pandas is available.
     '''
     baselineTrace = findTraceFile(baselinePath)
@@ -225,9 +226,14 @@ def compareTraces(baselinePath, optimizedPath, trackName=None):
             suffixes=('_baseline', '_optimized'),
             how='outer'
         )
-        merged['change_ms'] = merged['mean_ms_optimized'] - merged['mean_ms_baseline']
-        merged['change_pct'] = (merged['change_ms'] / merged['mean_ms_baseline']) * 100
-        merged = merged.sort_values('change_pct', ascending=True)
+        # delta_ms: negative = faster (good), positive = slower (bad)
+        merged['delta_ms'] = merged['mean_ms_optimized'] - merged['mean_ms_baseline']
+        merged['change_pct'] = (merged['delta_ms'] / merged['mean_ms_baseline']) * 100
+        # Filter by minimum absolute delta threshold
+        if minDeltaMs > 0:
+            merged = merged[merged['delta_ms'].abs() >= minDeltaMs]
+        # Sort by delta (most negative = biggest improvement first)
+        merged = merged.sort_values('delta_ms', ascending=True)
         return merged
     else:
         # Manual merge without pandas
@@ -236,20 +242,24 @@ def compareTraces(baselinePath, optimizedPath, trackName=None):
         for name in allNames:
             baseMs = baselineAgg.get(name, {}).get('mean_ms')
             optMs = optimizedAgg.get(name, {}).get('mean_ms')
-            changeMs = None
+            deltaMs = None
             changePct = None
             if baseMs is not None and optMs is not None:
-                changeMs = optMs - baseMs
-                changePct = (changeMs / baseMs) * 100 if baseMs != 0 else None
+                # delta_ms: negative = faster (good), positive = slower (bad)
+                deltaMs = optMs - baseMs
+                changePct = (deltaMs / baseMs) * 100 if baseMs != 0 else None
+            # Filter by minimum absolute delta threshold
+            if minDeltaMs > 0 and (deltaMs is None or abs(deltaMs) < minDeltaMs):
+                continue
             results.append({
                 'name': name,
                 'mean_ms_baseline': baseMs,
                 'mean_ms_optimized': optMs,
-                'change_ms': changeMs,
+                'delta_ms': deltaMs,
                 'change_pct': changePct
             })
-        # Sort by change_pct (None values at end)
-        results.sort(key=lambda x: (x['change_pct'] is None, x['change_pct'] or 0))
+        # Sort by delta (most negative = biggest improvement first)
+        results.sort(key=lambda x: (x['delta_ms'] is None, x['delta_ms'] or 0))
         return results
 
 
@@ -266,39 +276,40 @@ def _isna(val):
     return False
 
 
-def printTable(data, topN=30):
+def printTable(data):
     '''Print a formatted comparison table to stdout.'''
     print('\n' + '=' * 80)
-    print(f"{'Name':<45} {'Baseline':>10} {'Optimized':>10} {'Change':>10}")
+    print(f"{'Name':<40} {'Baseline':>10} {'Optimized':>10} {'Delta':>10} {'Change':>8}")
     print('=' * 80)
 
     # Handle both DataFrame and list of dicts
     if _have_pandas and hasattr(data, 'iterrows'):
-        rows = [row for _, row in data.head(topN).iterrows()]
+        rows = [row for _, row in data.iterrows()]
         totalLen = len(data)
     else:
-        rows = data[:topN]
+        rows = data
         totalLen = len(data)
 
     for row in rows:
         if hasattr(row, '__getitem__'):
-            name = str(row['name'])[:44]
+            name = str(row['name'])[:39]
             baseMs = row['mean_ms_baseline']
             optMs = row['mean_ms_optimized']
             changePct = row['change_pct']
+            deltaMs = row.get('delta_ms')
         else:
-            name = str(row.name)[:44]
+            name = str(row.name)[:39]
             baseMs = row.mean_ms_baseline
             optMs = row.mean_ms_optimized
             changePct = row.change_pct
+            deltaMs = getattr(row, 'delta_ms', None)
 
         baseline = f'{baseMs:.2f}ms' if not _isna(baseMs) else 'N/A'
         optimized = f'{optMs:.2f}ms' if not _isna(optMs) else 'N/A'
+        # negative delta = faster (optimization), positive = slower (regression)
+        delta = f'{deltaMs:+.2f}ms' if not _isna(deltaMs) else 'N/A'
         change = f'{changePct:+.1f}%' if not _isna(changePct) else 'N/A'
-        print(f'{name:<45} {baseline:>10} {optimized:>10} {change:>10}')
-
-    if totalLen > topN:
-        print(f'... and {totalLen - topN} more entries')
+        print(f'{name:<40} {baseline:>10} {optimized:>10} {delta:>10} {change:>8}')
 
     print('=' * 80)
 
@@ -343,14 +354,14 @@ def printTable(data, topN=30):
         print(f'\nOverall: mean {avgChange:+.1f}%, median {medianChange:+.1f}%')
 
 
-def createChart(data, outputPath, topN=25, title=None):
+def createChart(data, outputPath, title=None, minDeltaMs=0.0):
     '''
-    Create a horizontal bar chart of performance changes.
+    Create a paired before/after horizontal bar chart sorted by absolute time saved.
 
     Args:
         data: DataFrame or list of dicts with comparison results
+        minDeltaMs: Minimum delta threshold (shown in title)
         outputPath: Path to save the chart image
-        topN: Number of entries to show (top improvements + top regressions)
         title: Optional chart title
 
     Requires: matplotlib, pandas
@@ -366,58 +377,72 @@ def createChart(data, outputPath, topN=25, title=None):
         return
 
     df = data if hasattr(data, 'iterrows') else pd.DataFrame(data)
-
-    # Filter to top improvements and regressions
-    # Improvements have negative change_pct (faster), regressions have positive
-    topImproved = df.head(topN // 2)
-    topRegressed = df.tail(topN // 2)
-    chartDf = pd.concat([topImproved, topRegressed]).drop_duplicates()
+    
+    # Filter to rows with both values
+    chartDf = df.dropna(subset=['mean_ms_baseline', 'mean_ms_optimized']).copy()
 
     if chartDf.empty:
         logger.warning('No data to chart')
         return
 
-    # Invert sign: positive = improvement (speedup), negative = regression (slowdown)
-    # This makes the chart more intuitive: bars going right = good
-    chartDf = chartDf.copy()
-    chartDf['speedup_pct'] = -chartDf['change_pct']
+    # Reverse order so largest improvements appear at TOP of chart
+    # (matplotlib draws bars from bottom to top)
+    chartDf = chartDf.iloc[::-1].reset_index(drop=True)
 
-    # Sort descending: best improvements (most positive speedup) at top
-    chartDf = chartDf.sort_values('speedup_pct', ascending=True)
+    # Create display names with absolute delta and percentage
+    def make_label(row):
+        name = row['name'][:30] + '...' if len(row['name']) > 30 else row['name']
+        delta = row['delta_ms']
+        pct = row['change_pct']
+        if pd.notna(delta) and pd.notna(pct):
+            return f"{name} ({delta:+.1f}ms, {pct:+.1f}%)"
+        return name
 
-    # Truncate names for display
-    chartDf['display_name'] = chartDf['name'].apply(
-        lambda x: x[:35] + '...' if len(x) > 35 else x)
+    chartDf['display_name'] = chartDf.apply(make_label, axis=1)
 
     # Create figure
-    figHeight = max(8, len(chartDf) * 0.35)
-    fig, ax = plt.subplots(figsize=(12, figHeight))
+    figHeight = max(10, len(chartDf) * 0.5)
+    fig, ax = plt.subplots(figsize=(14, figHeight))
 
-    # Color by improvement/regression (green = speedup/positive, red = slowdown/negative)
-    colors = ['#2ecc71' if x > 0 else '#e74c3c' for x in chartDf['speedup_pct']]
+    y_pos = range(len(chartDf))
+    bar_height = 0.35
 
-    bars = ax.barh(chartDf['display_name'], chartDf['speedup_pct'], color=colors)
+    # Baseline bars (blue) - ABOVE (higher y position)
+    bars1 = ax.barh([y + bar_height/2 for y in y_pos], chartDf['mean_ms_baseline'],
+                    bar_height, label='Baseline', color='#3498db', alpha=0.8)
 
-    # Add value labels
-    for bar, pct in zip(bars, chartDf['speedup_pct']):
-        width = bar.get_width()
-        labelX = width + (1 if width >= 0 else -1)
-        ax.text(labelX, bar.get_y() + bar.get_height() / 2,
-                f'{pct:+.1f}%', va='center', ha='left' if width >= 0 else 'right',
-                fontsize=9)
+    # Optimized bars (green/red based on improvement) - BELOW (lower y position)
+    # delta < 0 = faster (green), delta > 0 = slower (red)
+    colors = ['#2ecc71' if d < 0 else '#e74c3c' for d in chartDf['delta_ms']]
+    bars2 = ax.barh([y - bar_height/2 for y in y_pos], chartDf['mean_ms_optimized'],
+                    bar_height, label='Optimized', color=colors, alpha=0.8)
 
-    ax.axvline(x=0, color='black', linewidth=0.5)
-    ax.set_xlabel('Speedup (%)')
+    # Add duration labels to the right of each bar
+    for i, (b, o, delta) in enumerate(zip(chartDf['mean_ms_baseline'],
+                                           chartDf['mean_ms_optimized'],
+                                           chartDf['delta_ms'])):
+        # Baseline duration at end of baseline bar
+        ax.text(b + 1, i + bar_height/2, f'{b:.1f}ms', va='center', fontsize=7,
+                color='#2980b9')
+        # Optimized duration at end of optimized bar
+        ax.text(o + 1, i - bar_height/2, f'{o:.1f}ms', va='center', fontsize=7,
+                color='#27ae60' if delta < 0 else '#c0392b')
+
+    ax.set_yticks(y_pos)
+    ax.set_yticklabels(chartDf['display_name'])
+    ax.set_xlabel('Time (ms)')
 
     if title:
         ax.set_title(title)
     else:
-        ax.set_title('Performance Comparison: Baseline vs Optimized\n(positive = faster)')
+        filterNote = f', filtered |Δ| ≥ {minDeltaMs:.1f}ms' if minDeltaMs > 0 else ''
+        ax.set_title(f'Absolute Duration Comparison: Baseline vs Optimized\n(sorted by time saved{filterNote})')
 
     # Legend
     legendElements = [
-        Patch(facecolor='#2ecc71', label='Faster'),
-        Patch(facecolor='#e74c3c', label='Slower')
+        Patch(facecolor='#3498db', label='Baseline'),
+        Patch(facecolor='#2ecc71', label='Optimized (faster)'),
+        Patch(facecolor='#e74c3c', label='Optimized (slower)')
     ]
     ax.legend(handles=legendElements, loc='lower right')
 
@@ -447,26 +472,26 @@ Examples:
                         help='Optimized trace file or directory')
     parser.add_argument('--track', '-t', type=str, default=None,
                         help='Filter by track name (e.g., GPU, ShaderGen)')
+    parser.add_argument('--min-delta-ms', type=float, default=0.0,
+                        help='Minimum absolute time difference in ms to include (filters out noise)')
     parser.add_argument('--chart', '-c', type=Path,
                         help='Output path for chart image (e.g., chart.png). Requires matplotlib.')
-    parser.add_argument('--top', '-n', type=int, default=30,
-                        help='Number of entries to show in table (default: 30)')
     parser.add_argument('--csv', type=Path,
                         help='Export full results to CSV file. Requires pandas.')
     parser.add_argument('--title', type=str,
                         help='Custom title for the chart')
-    parser.add_argument('--show', action='store_true',
-                        help='Display chart interactively (requires display)')
+    parser.add_argument('--open-matplotlib', action='store_true',
+                        help='Open interactive matplotlib window after saving chart')
 
     args = parser.parse_args()
 
     try:
-        data = compareTraces(args.baseline, args.optimized, args.track)
-        printTable(data, args.top)
+        data = compareTraces(args.baseline, args.optimized, args.track, args.min_delta_ms)
+        printTable(data)
 
         if args.chart:
-            createChart(data, args.chart, title=args.title)
-            if args.show and _have_matplotlib:
+            createChart(data, args.chart, title=args.title, minDeltaMs=args.min_delta_ms)
+            if args.open_matplotlib and _have_matplotlib:
                 plt.show()
 
         if args.csv:
@@ -488,4 +513,3 @@ Examples:
 
 if __name__ == '__main__':
     main()
-
