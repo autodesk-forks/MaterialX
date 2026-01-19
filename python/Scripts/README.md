@@ -31,5 +31,5 @@ pip install perfetto pandas matplotlib
 python comparetraces.py baseline.perfetto-trace optimized.perfetto-trace
 
 # Filter by track and export chart
-python comparetraces.py base/ opt/ --track GPU --output chart.png --csv results.csv
+python comparetraces.py base/ opt/ --track GPU --chart chart.png --csv results.csv
 ```

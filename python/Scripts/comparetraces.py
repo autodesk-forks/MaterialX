@@ -20,44 +20,48 @@ Examples:
     python comparetraces.py ./baseline_output/ ./optimized_output/
 
     # Specify track name and output chart
-    python comparetraces.py base.perfetto-trace opt.perfetto-trace --track GPU --output chart.png
+    python comparetraces.py base.perfetto-trace opt.perfetto-trace --track GPU --chart chart.png
 
     # Export results to CSV
     python comparetraces.py base.perfetto-trace opt.perfetto-trace --csv results.csv
 '''
 
 import argparse
+import logging
 import sys
 from pathlib import Path
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger('comparetraces')
 
 
 # -----------------------------------------------------------------------------
 # Dependency Checking
 # -----------------------------------------------------------------------------
 
-def checkDependencies():
-    '''Check that required dependencies are available.'''
-    missing = []
+# Required: perfetto (for reading traces)
+try:
+    from perfetto.trace_processor import TraceProcessor
+except ImportError:
+    logger.error('Required module not found. Install with: pip install perfetto')
+    raise
 
-    try:
-        from perfetto.trace_processor import TraceProcessor
-    except ImportError:
-        missing.append('perfetto')
+# Optional: pandas (for CSV export and data aggregation)
+_have_pandas = False
+try:
+    import pandas as pd
+    _have_pandas = True
+except ImportError:
+    logger.warning('pandas not found. CSV export and detailed statistics disabled.')
 
-    try:
-        import pandas
-    except ImportError:
-        missing.append('pandas')
-
-    try:
-        import matplotlib
-    except ImportError:
-        missing.append('matplotlib')
-
-    if missing:
-        print('Error: Missing required packages. Install with:')
-        print(f'  pip install {" ".join(missing)}')
-        sys.exit(1)
+# Optional: matplotlib (for chart generation)
+_have_matplotlib = False
+try:
+    import matplotlib.pyplot as plt
+    from matplotlib.patches import Patch
+    _have_matplotlib = True
+except ImportError:
+    logger.warning('matplotlib not found. Chart generation disabled.')
 
 
 # -----------------------------------------------------------------------------
@@ -100,11 +104,9 @@ def loadSliceDurations(tracePath, trackName=None):
         trackName: Optional track name filter (e.g., "GPU", "ShaderGen")
 
     Returns:
-        DataFrame with columns: [name, dur_ns, dur_ms, track]
+        List of dicts with keys: [name, dur_ns, dur_ms, track]
+        Or DataFrame if pandas is available.
     '''
-    from perfetto.trace_processor import TraceProcessor
-    import pandas as pd
-
     tp = TraceProcessor(trace=str(tracePath))
 
     # Build query with optional track filter
@@ -131,32 +133,59 @@ def loadSliceDurations(tracePath, trackName=None):
         '''
 
     result = tp.query(query)
-    df = result.as_pandas_dataframe()
 
-    if df.empty:
-        trackMsg = f' on track "{trackName}"' if trackName else ''
-        print(f'Warning: No slices found{trackMsg} in {tracePath}')
-        return pd.DataFrame(columns=['name', 'dur_ns', 'dur_ms', 'track'])
+    if _have_pandas:
+        df = result.as_pandas_dataframe()
+        if df.empty:
+            trackMsg = f' on track "{trackName}"' if trackName else ''
+            logger.warning(f'No slices found{trackMsg} in {tracePath}')
+            return pd.DataFrame(columns=['name', 'dur_ns', 'dur_ms', 'track'])
+        df['dur_ms'] = df['dur_ns'] / 1_000_000
+        return df
+    else:
+        # Return as list of dicts when pandas not available
+        rows = []
+        for row in result:
+            rows.append({
+                'name': row.name,
+                'dur_ns': row.dur_ns,
+                'dur_ms': row.dur_ns / 1_000_000,
+                'track': row.track
+            })
+        if not rows:
+            trackMsg = f' on track "{trackName}"' if trackName else ''
+            logger.warning(f'No slices found{trackMsg} in {tracePath}')
+        return rows
 
-    df['dur_ms'] = df['dur_ns'] / 1_000_000
-    return df
 
-
-def aggregateByName(df):
+def aggregateByName(data):
     '''
     Aggregate durations by slice name (averaging across multiple samples).
 
     Returns:
-        DataFrame with columns: [name, mean_ms, std_ms, count]
+        DataFrame with columns: [name, mean_ms, std_ms, count] if pandas available,
+        otherwise dict of {name: {'mean_ms': float, 'count': int}}.
     '''
-    import pandas as pd
-
-    if df.empty:
-        return pd.DataFrame(columns=['name', 'mean_ms', 'std_ms', 'count'])
-
-    agg = df.groupby('name')['dur_ms'].agg(['mean', 'std', 'count']).reset_index()
-    agg.columns = ['name', 'mean_ms', 'std_ms', 'count']
-    return agg
+    if _have_pandas:
+        df = data
+        if df.empty:
+            return pd.DataFrame(columns=['name', 'mean_ms', 'std_ms', 'count'])
+        agg = df.groupby('name')['dur_ms'].agg(['mean', 'std', 'count']).reset_index()
+        agg.columns = ['name', 'mean_ms', 'std_ms', 'count']
+        return agg
+    else:
+        # Manual aggregation without pandas
+        from collections import defaultdict
+        groups = defaultdict(list)
+        for row in data:
+            groups[row['name']].append(row['dur_ms'])
+        result = {}
+        for name, durations in groups.items():
+            result[name] = {
+                'mean_ms': sum(durations) / len(durations),
+                'count': len(durations)
+            }
+        return result
 
 
 # -----------------------------------------------------------------------------
@@ -173,101 +202,170 @@ def compareTraces(baselinePath, optimizedPath, trackName=None):
         trackName: Optional track name filter
 
     Returns:
-        DataFrame sorted by improvement percentage (most improved first)
+        List of comparison dicts sorted by improvement percentage,
+        or DataFrame if pandas is available.
     '''
-    import pandas as pd
-
     baselineTrace = findTraceFile(baselinePath)
     optimizedTrace = findTraceFile(optimizedPath)
 
-    print(f'Loading baseline: {baselineTrace}')
-    baselineDf = loadSliceDurations(baselineTrace, trackName)
-    baselineAgg = aggregateByName(baselineDf)
+    logger.info(f'Loading baseline: {baselineTrace}')
+    baselineData = loadSliceDurations(baselineTrace, trackName)
+    baselineAgg = aggregateByName(baselineData)
 
-    print(f'Loading optimized: {optimizedTrace}')
-    optimizedDf = loadSliceDurations(optimizedTrace, trackName)
-    optimizedAgg = aggregateByName(optimizedDf)
+    logger.info(f'Loading optimized: {optimizedTrace}')
+    optimizedData = loadSliceDurations(optimizedTrace, trackName)
+    optimizedAgg = aggregateByName(optimizedData)
 
-    # Merge on slice name
-    merged = pd.merge(
-        baselineAgg[['name', 'mean_ms']],
-        optimizedAgg[['name', 'mean_ms']],
-        on='name',
-        suffixes=('_baseline', '_optimized'),
-        how='outer'
-    )
-
-    # Calculate change
-    merged['change_ms'] = merged['mean_ms_optimized'] - merged['mean_ms_baseline']
-    merged['change_pct'] = (merged['change_ms'] / merged['mean_ms_baseline']) * 100
-
-    # Sort by improvement (most negative = biggest improvement)
-    merged = merged.sort_values('change_pct', ascending=True)
-
-    return merged
+    if _have_pandas:
+        # Merge on slice name using pandas
+        merged = pd.merge(
+            baselineAgg[['name', 'mean_ms']],
+            optimizedAgg[['name', 'mean_ms']],
+            on='name',
+            suffixes=('_baseline', '_optimized'),
+            how='outer'
+        )
+        merged['change_ms'] = merged['mean_ms_optimized'] - merged['mean_ms_baseline']
+        merged['change_pct'] = (merged['change_ms'] / merged['mean_ms_baseline']) * 100
+        merged = merged.sort_values('change_pct', ascending=True)
+        return merged
+    else:
+        # Manual merge without pandas
+        allNames = set(baselineAgg.keys()) | set(optimizedAgg.keys())
+        results = []
+        for name in allNames:
+            baseMs = baselineAgg.get(name, {}).get('mean_ms')
+            optMs = optimizedAgg.get(name, {}).get('mean_ms')
+            changeMs = None
+            changePct = None
+            if baseMs is not None and optMs is not None:
+                changeMs = optMs - baseMs
+                changePct = (changeMs / baseMs) * 100 if baseMs != 0 else None
+            results.append({
+                'name': name,
+                'mean_ms_baseline': baseMs,
+                'mean_ms_optimized': optMs,
+                'change_ms': changeMs,
+                'change_pct': changePct
+            })
+        # Sort by change_pct (None values at end)
+        results.sort(key=lambda x: (x['change_pct'] is None, x['change_pct'] or 0))
+        return results
 
 
 # -----------------------------------------------------------------------------
 # Output Formatting
 # -----------------------------------------------------------------------------
 
-def printTable(df, topN=30):
-    '''Print a formatted comparison table to stdout.'''
-    import pandas as pd
+def _isna(val):
+    '''Check if value is None or NaN.'''
+    if val is None:
+        return True
+    if _have_pandas:
+        return pd.isna(val)
+    return False
 
+
+def printTable(data, topN=30):
+    '''Print a formatted comparison table to stdout.'''
     print('\n' + '=' * 80)
     print(f"{'Name':<45} {'Baseline':>10} {'Optimized':>10} {'Change':>10}")
     print('=' * 80)
 
-    for _, row in df.head(topN).iterrows():
-        name = row['name'][:44]  # Truncate long names
-        baseline = f"{row['mean_ms_baseline']:.2f}ms" if pd.notna(row['mean_ms_baseline']) else 'N/A'
-        optimized = f"{row['mean_ms_optimized']:.2f}ms" if pd.notna(row['mean_ms_optimized']) else 'N/A'
-        change = f"{row['change_pct']:+.1f}%" if pd.notna(row['change_pct']) else 'N/A'
+    # Handle both DataFrame and list of dicts
+    if _have_pandas and hasattr(data, 'iterrows'):
+        rows = [row for _, row in data.head(topN).iterrows()]
+        totalLen = len(data)
+    else:
+        rows = data[:topN]
+        totalLen = len(data)
+
+    for row in rows:
+        if hasattr(row, '__getitem__'):
+            name = str(row['name'])[:44]
+            baseMs = row['mean_ms_baseline']
+            optMs = row['mean_ms_optimized']
+            changePct = row['change_pct']
+        else:
+            name = str(row.name)[:44]
+            baseMs = row.mean_ms_baseline
+            optMs = row.mean_ms_optimized
+            changePct = row.change_pct
+
+        baseline = f'{baseMs:.2f}ms' if not _isna(baseMs) else 'N/A'
+        optimized = f'{optMs:.2f}ms' if not _isna(optMs) else 'N/A'
+        change = f'{changePct:+.1f}%' if not _isna(changePct) else 'N/A'
         print(f'{name:<45} {baseline:>10} {optimized:>10} {change:>10}')
 
-    if len(df) > topN:
-        print(f'... and {len(df) - topN} more entries')
+    if totalLen > topN:
+        print(f'... and {totalLen - topN} more entries')
 
     print('=' * 80)
 
     # Summary statistics
-    improved = df[df['change_pct'] < 0]
-    regressed = df[df['change_pct'] > 0]
-    unchanged = df[df['change_pct'] == 0]
+    if _have_pandas and hasattr(data, 'iterrows'):
+        improved = data[data['change_pct'] < 0]
+        regressed = data[data['change_pct'] > 0]
+        unchanged = data[data['change_pct'] == 0]
+        nImproved, nRegressed, nUnchanged = len(improved), len(regressed), len(unchanged)
+        validRows = data.dropna(subset=['change_pct'])
+        validChanges = list(validRows['change_pct'])
+    else:
+        nImproved = sum(1 for r in data if r['change_pct'] is not None and r['change_pct'] < 0)
+        nRegressed = sum(1 for r in data if r['change_pct'] is not None and r['change_pct'] > 0)
+        nUnchanged = sum(1 for r in data if r['change_pct'] == 0)
+        validChanges = [r['change_pct'] for r in data if r['change_pct'] is not None]
 
-    print(f'\nSummary: {len(improved)} improved, {len(regressed)} regressed, '
-          f'{len(unchanged)} unchanged, {len(df)} total')
+    print(f'\nSummary: {nImproved} improved, {nRegressed} regressed, '
+          f'{nUnchanged} unchanged, {totalLen} total')
 
-    if not improved.empty:
-        best = improved.iloc[0]
-        print(f"Best improvement: {best['name']} ({best['change_pct']:.1f}%)")
+    if nImproved > 0:
+        if _have_pandas and hasattr(data, 'iterrows'):
+            best = improved.iloc[0]
+            print(f"Best improvement: {best['name']} ({best['change_pct']:.1f}%)")
+        else:
+            best = next(r for r in data if r['change_pct'] is not None and r['change_pct'] < 0)
+            print(f"Best improvement: {best['name']} ({best['change_pct']:.1f}%)")
 
-    if not regressed.empty:
-        worst = regressed.iloc[-1]
-        print(f"Worst regression: {worst['name']} ({worst['change_pct']:+.1f}%)")
+    if nRegressed > 0:
+        if _have_pandas and hasattr(data, 'iterrows'):
+            worst = regressed.iloc[-1]
+            print(f"Worst regression: {worst['name']} ({worst['change_pct']:+.1f}%)")
+        else:
+            worst = [r for r in data if r['change_pct'] is not None and r['change_pct'] > 0][-1]
+            print(f"Worst regression: {worst['name']} ({worst['change_pct']:+.1f}%)")
 
     # Overall statistics
-    validRows = df.dropna(subset=['change_pct'])
-    if not validRows.empty:
-        avgChange = validRows['change_pct'].mean()
-        medianChange = validRows['change_pct'].median()
+    if validChanges:
+        avgChange = sum(validChanges) / len(validChanges)
+        sortedChanges = sorted(validChanges)
+        medianChange = sortedChanges[len(sortedChanges) // 2]
         print(f'\nOverall: mean {avgChange:+.1f}%, median {medianChange:+.1f}%')
 
 
-def createChart(df, outputPath, topN=25, title=None):
+def createChart(data, outputPath, topN=25, title=None):
     '''
     Create a horizontal bar chart of performance changes.
 
     Args:
-        df: DataFrame with comparison results
+        data: DataFrame or list of dicts with comparison results
         outputPath: Path to save the chart image
         topN: Number of entries to show (top improvements + top regressions)
         title: Optional chart title
+
+    Requires: matplotlib, pandas
     '''
-    import pandas as pd
-    import matplotlib.pyplot as plt
-    from matplotlib.patches import Patch
+    if not _have_matplotlib:
+        logger.error('Cannot create chart: matplotlib not installed.')
+        logger.error('Install with: pip install matplotlib')
+        return
+
+    if not _have_pandas:
+        logger.error('Cannot create chart: pandas not installed.')
+        logger.error('Install with: pip install pandas')
+        return
+
+    df = data if hasattr(data, 'iterrows') else pd.DataFrame(data)
 
     # Filter to top improvements and regressions
     topImproved = df.head(topN // 2)
@@ -276,7 +374,7 @@ def createChart(df, outputPath, topN=25, title=None):
     chartDf = chartDf.sort_values('change_pct', ascending=True)
 
     if chartDf.empty:
-        print('Warning: No data to chart')
+        logger.warning('No data to chart')
         return
 
     # Truncate names for display
@@ -318,7 +416,7 @@ def createChart(df, outputPath, topN=25, title=None):
 
     plt.tight_layout()
     plt.savefig(outputPath, dpi=150, bbox_inches='tight')
-    print(f'\nChart saved to: {outputPath}')
+    logger.info(f'Chart saved to: {outputPath}')
 
 
 # -----------------------------------------------------------------------------
@@ -333,7 +431,7 @@ def main():
 Examples:
   %(prog)s baseline.perfetto-trace optimized.perfetto-trace
   %(prog)s ./baseline_dir/ ./optimized_dir/ --track GPU
-  %(prog)s base.perfetto-trace opt.perfetto-trace --output chart.png --csv results.csv
+  %(prog)s base.perfetto-trace opt.perfetto-trace --chart chart.png --csv results.csv
 ''')
 
     parser.add_argument('baseline', type=Path,
@@ -342,12 +440,12 @@ Examples:
                         help='Optimized trace file or directory')
     parser.add_argument('--track', '-t', type=str, default=None,
                         help='Filter by track name (e.g., GPU, ShaderGen)')
-    parser.add_argument('--output', '-o', type=Path,
-                        help='Output path for chart image (e.g., chart.png)')
+    parser.add_argument('--chart', '-c', type=Path,
+                        help='Output path for chart image (e.g., chart.png). Requires matplotlib.')
     parser.add_argument('--top', '-n', type=int, default=30,
                         help='Number of entries to show in table (default: 30)')
     parser.add_argument('--csv', type=Path,
-                        help='Export full results to CSV file')
+                        help='Export full results to CSV file. Requires pandas.')
     parser.add_argument('--title', type=str,
                         help='Custom title for the chart')
     parser.add_argument('--show', action='store_true',
@@ -355,28 +453,29 @@ Examples:
 
     args = parser.parse_args()
 
-    # Check dependencies before proceeding
-    checkDependencies()
-
     try:
-        df = compareTraces(args.baseline, args.optimized, args.track)
-        printTable(df, args.top)
+        data = compareTraces(args.baseline, args.optimized, args.track)
+        printTable(data, args.top)
 
-        if args.output:
-            createChart(df, args.output, title=args.title)
-            if args.show:
-                import matplotlib.pyplot as plt
+        if args.chart:
+            createChart(data, args.chart, title=args.title)
+            if args.show and _have_matplotlib:
                 plt.show()
 
         if args.csv:
-            df.to_csv(args.csv, index=False)
-            print(f'CSV exported to: {args.csv}')
+            if _have_pandas:
+                df = data if hasattr(data, 'to_csv') else pd.DataFrame(data)
+                df.to_csv(args.csv, index=False)
+                logger.info(f'CSV exported to: {args.csv}')
+            else:
+                logger.error('Cannot export CSV: pandas not installed.')
+                logger.error('Install with: pip install pandas')
 
     except FileNotFoundError as e:
-        print(f'Error: {e}')
+        logger.error(f'{e}')
         sys.exit(1)
     except Exception as e:
-        print(f'Error processing traces: {e}')
+        logger.error(f'Error processing traces: {e}')
         raise
 
 
