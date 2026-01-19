@@ -368,17 +368,24 @@ def createChart(data, outputPath, topN=25, title=None):
     df = data if hasattr(data, 'iterrows') else pd.DataFrame(data)
 
     # Filter to top improvements and regressions
+    # Improvements have negative change_pct (faster), regressions have positive
     topImproved = df.head(topN // 2)
     topRegressed = df.tail(topN // 2)
     chartDf = pd.concat([topImproved, topRegressed]).drop_duplicates()
-    chartDf = chartDf.sort_values('change_pct', ascending=True)
 
     if chartDf.empty:
         logger.warning('No data to chart')
         return
 
-    # Truncate names for display
+    # Invert sign: positive = improvement (speedup), negative = regression (slowdown)
+    # This makes the chart more intuitive: bars going right = good
     chartDf = chartDf.copy()
+    chartDf['speedup_pct'] = -chartDf['change_pct']
+
+    # Sort descending: best improvements (most positive speedup) at top
+    chartDf = chartDf.sort_values('speedup_pct', ascending=True)
+
+    # Truncate names for display
     chartDf['display_name'] = chartDf['name'].apply(
         lambda x: x[:35] + '...' if len(x) > 35 else x)
 
@@ -386,13 +393,13 @@ def createChart(data, outputPath, topN=25, title=None):
     figHeight = max(8, len(chartDf) * 0.35)
     fig, ax = plt.subplots(figsize=(12, figHeight))
 
-    # Color by improvement/regression
-    colors = ['#2ecc71' if x < 0 else '#e74c3c' for x in chartDf['change_pct']]
+    # Color by improvement/regression (green = speedup/positive, red = slowdown/negative)
+    colors = ['#2ecc71' if x > 0 else '#e74c3c' for x in chartDf['speedup_pct']]
 
-    bars = ax.barh(chartDf['display_name'], chartDf['change_pct'], color=colors)
+    bars = ax.barh(chartDf['display_name'], chartDf['speedup_pct'], color=colors)
 
     # Add value labels
-    for bar, pct in zip(bars, chartDf['change_pct']):
+    for bar, pct in zip(bars, chartDf['speedup_pct']):
         width = bar.get_width()
         labelX = width + (1 if width >= 0 else -1)
         ax.text(labelX, bar.get_y() + bar.get_height() / 2,
@@ -400,17 +407,17 @@ def createChart(data, outputPath, topN=25, title=None):
                 fontsize=9)
 
     ax.axvline(x=0, color='black', linewidth=0.5)
-    ax.set_xlabel('Time Change (%)')
+    ax.set_xlabel('Speedup (%)')
 
     if title:
         ax.set_title(title)
     else:
-        ax.set_title('Performance Comparison: Baseline vs Optimized\n(negative = faster)')
+        ax.set_title('Performance Comparison: Baseline vs Optimized\n(positive = faster)')
 
     # Legend
     legendElements = [
-        Patch(facecolor='#2ecc71', label='Improved'),
-        Patch(facecolor='#e74c3c', label='Regressed')
+        Patch(facecolor='#2ecc71', label='Faster'),
+        Patch(facecolor='#e74c3c', label='Slower')
     ]
     ax.legend(handles=legendElements, loc='lower right')
 
