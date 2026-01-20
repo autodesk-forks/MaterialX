@@ -97,7 +97,8 @@ class MX_GENSHADER_API GenOptions
         hwWriteEnvPrefilter(false),
         hwImplicitBitangents(true),
         oslImplicitSurfaceShaderConversion(true),
-        oslNetworkConnectCiWrapper(false)
+        oslNetworkConnectCiWrapper(false),
+        hwSkipOptionalNodes(true)
     {
     }
     virtual ~GenOptions() { }
@@ -212,6 +213,12 @@ class MX_GENSHADER_API GenOptions
     // for OSL Network targets.
     // Defaults to false.
     bool oslNetworkConnectCiWrapper;
+
+    /// Enables skipping optional nodes (e.g., sheen_bsdf) during shader generation
+    /// for hardware shader targets. When enabled, sheen nodes will be skipped
+    /// and layer nodes using sheen will pass through their base input directly.
+    /// Defaults to true.
+    bool hwSkipOptionalNodes;
 };
 
 MATERIALX_NAMESPACE_END

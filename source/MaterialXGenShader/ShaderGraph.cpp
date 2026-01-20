@@ -88,6 +88,58 @@ void ShaderGraph::createConnectedNodes(const ElementPtr& downstreamElement,
     if (!newNode)
     {
         newNode = createNode(upstreamNode, context);
+        
+        // Handle skipped optional nodes (e.g., sheen_bsdf)
+        if (!newNode && context.getOptions().hwSkipOptionalNodes)
+        {
+            // Check both category and nodedef name to identify sheen_bsdf nodes
+            const string& nodeCategory = upstreamNode->getCategory();
+            const string& nodeType = upstreamNode->getType();
+            ConstNodeDefPtr upstreamNodeDef = upstreamNode->getNodeDef();
+            string nodeDefName = upstreamNodeDef ? upstreamNodeDef->getName() : EMPTY_STRING;
+            
+            if (nodeCategory == "sheen_bsdf" || 
+                nodeType == "sheen_bsdf" ||
+                nodeDefName == "ND_sheen_bsdf")
+            {
+                // Check if this sheen is connected to a layer node's "top" input
+                NodePtr downstreamNode = downstreamElement->asA<Node>();
+                if (downstreamNode && downstreamNode->getCategory() == "layer")
+                {
+                    // When sheen is skipped and connected to layer's "top",
+                    // we need to ensure the layer's "top" input gets a default empty BSDF.
+                    // The layer BSDF function will handle empty BSDFs by passing through the base.
+                    ShaderNode* layerShaderNode = getNode(downstreamNode->getName());
+                    if (layerShaderNode && connectingElement)
+                    {
+                        ShaderInput* topInput = layerShaderNode->getInput(connectingElement->getName());
+                        if (topInput && !topInput->getConnection())
+                        {
+                            // Set a default empty BSDF value (response=vec3(0.0), throughput=vec3(1.0))
+                            // This will be handled by the layer function to pass through the base
+                            const Syntax& syntax = context.getShaderGenerator().getSyntax();
+                            string defaultBSDF = syntax.getDefaultValue(Type::BSDF);
+                            if (!defaultBSDF.empty())
+                            {
+                                // The default BSDF value should be "BSDF(vec3(0.0), vec3(1.0))" for empty
+                                // If the syntax doesn't provide a default, we'll let it be unconnected
+                                // and the layer function will handle it
+                            }
+                        }
+                    }
+                    // Skip creating the sheen node connection
+                    return;
+                }
+                // If not connected to a layer, skip silently
+                return;
+            }
+        }
+    }
+    
+    // If newNode is still nullptr after creation attempt, it's an error
+    if (!newNode)
+    {
+        throw ExceptionShaderGenError("Failed to create node '" + newNodeName + "'");
     }
 
     // Handle interface inputs with default geometric properties.
@@ -714,6 +766,24 @@ ShaderNode* ShaderGraph::createNode(const string& name, ConstNodeDefPtr nodeDef,
 ShaderNode* ShaderGraph::createNode(ConstNodePtr node, GenContext& context)
 {
     ConstNodeDefPtr nodeDef = node->getNodeDef();
+
+    // Skip optional nodes (e.g., sheen_bsdf) if the option is enabled
+    if (context.getOptions().hwSkipOptionalNodes)
+    {
+        // Check both category and nodedef name to identify sheen_bsdf nodes
+        const string& nodeCategory = node->getCategory();
+        const string& nodeType = node->getType();
+        string nodeDefName = nodeDef ? nodeDef->getName() : EMPTY_STRING;
+        
+        if (nodeCategory == "sheen_bsdf" || 
+            nodeType == "sheen_bsdf" ||
+            nodeDefName == "ND_sheen_bsdf")
+        {
+            // Return nullptr to indicate this node should be skipped
+            // The caller will need to handle this case
+            return nullptr;
+        }
+    }
 
     // Create this node in the graph.
     context.pushParentNode(node);
