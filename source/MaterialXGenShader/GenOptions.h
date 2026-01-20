@@ -97,6 +97,7 @@ class MX_GENSHADER_API GenOptions
         hwWriteEnvPrefilter(false),
         hwImplicitBitangents(true),
         optReplaceBsdfMixWithLinearCombination(false),
+        optPruneMixBsdf(false),
         optDumpShaderGraphDot(false),
         optMaxPassIterations(10),
         oslImplicitSurfaceShaderConversion(true),
@@ -210,6 +211,11 @@ class MX_GENSHADER_API GenOptions
     /// Analyse the graph of ShaderNodes and replace any ND_mix_bsdf nodes
     /// with a linear combination of their weighted inputs
     bool optReplaceBsdfMixWithLinearCombination;
+
+    /// Prune mix_bsdf nodes when the mix factor is a compile-time constant 0 or 1.
+    /// When mix=0, forwards the background input; when mix=1, forwards the foreground.
+    /// This eliminates dead branches in the shader graph.
+    bool optPruneMixBsdf;
 
     /// Enable dumping shader graph DOT files during optimization.
     /// When enabled, generates .dot files before/after each optimization pass.

@@ -97,5 +97,11 @@
          Default is false. Enable to test optimization impact on GPU performance.
     -->
     <input name="optReplaceBsdfMixWithLinearCombination" type="boolean" value="false" />
+
+    <!-- Prune mix_bsdf nodes when mix factor is compile-time constant 0 or 1.
+         When mix=0, forwards background input; when mix=1, forwards foreground.
+         Eliminates dead branches in the shader graph. Default is false.
+    -->
+    <input name="optPruneMixBsdf" type="boolean" value="false" />
   </nodedef>
 </materialx>

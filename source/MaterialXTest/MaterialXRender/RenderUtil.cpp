@@ -38,12 +38,18 @@ void ShaderRenderTester::getGenerationOptions(const GenShaderUtil::TestSuiteOpti
                                               const mx::GenOptions& originalOptions,
                                               std::vector<mx::GenOptions>& optionsList)
 {
+    // Apply all optimization flags from test options to gen options
+    auto applyOptimizationFlags = [&testOptions](mx::GenOptions& genOptions) {
+        genOptions.optReplaceBsdfMixWithLinearCombination = testOptions.optReplaceBsdfMixWithLinearCombination;
+        genOptions.optPruneMixBsdf = testOptions.optPruneMixBsdf;
+    };
+
     optionsList.clear();
     if (testOptions.shaderInterfaces & 1)
     {
         mx::GenOptions reducedOption = originalOptions;
         reducedOption.shaderInterfaceType = mx::SHADER_INTERFACE_REDUCED;
-        reducedOption.optReplaceBsdfMixWithLinearCombination = testOptions.optReplaceBsdfMixWithLinearCombination;
+        applyOptimizationFlags(reducedOption);
         optionsList.push_back(reducedOption);
     }
     // Always fallback to complete if no options specified.
@@ -51,7 +57,7 @@ void ShaderRenderTester::getGenerationOptions(const GenShaderUtil::TestSuiteOpti
     {
         mx::GenOptions completeOption = originalOptions;
         completeOption.shaderInterfaceType = mx::SHADER_INTERFACE_COMPLETE;
-        completeOption.optReplaceBsdfMixWithLinearCombination = testOptions.optReplaceBsdfMixWithLinearCombination;
+        applyOptimizationFlags(completeOption);
         optionsList.push_back(completeOption);
     }
 }

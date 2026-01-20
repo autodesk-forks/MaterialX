@@ -8,6 +8,7 @@
 #include <MaterialXGenShader/Exception.h>
 #include <MaterialXGenShader/GenContext.h>
 #include <MaterialXGenShader/ShaderGraphDebug.h>
+#include <MaterialXGenShader/ShaderGraphMixBsdfPruningPass.h>
 #include <MaterialXGenShader/ShaderGraphOptimizationPass.h>
 #include <MaterialXGenShader/ShaderGraphStandardPasses.h>
 #include <MaterialXGenShader/Util.h>
@@ -1008,11 +1009,10 @@ void ShaderGraph::optimize(GenContext& context)
         passManager.addPass(std::make_shared<PremultipliedAddPass>());
     }
     
-    // TODO: Add LobePruningPass when dark closures are implemented
-    // if (context.getOptions().optEnableLobePruning)
-    // {
-    //     passManager.addPass(std::make_shared<LobePruningPass>());
-    // }
+    if (context.getOptions().optPruneMixBsdf)
+    {
+        passManager.addPass(std::make_shared<MixBsdfPruningPass>());
+    }
     
     // Run all passes to fixed point (respecting configured iteration limit)
     passManager.runToFixedPoint(*this, context, context.getOptions().optMaxPassIterations);
