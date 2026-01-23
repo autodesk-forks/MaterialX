@@ -11,6 +11,8 @@
 MATERIALX_NAMESPACE_BEGIN
 
 const string WgslShaderGenerator::LIGHTDATA_TYPEVAR_STRING = "light_type";
+const string WgslShaderGenerator::TARGET = "glsl_wgsl";
+const string WgslShaderGenerator::VERSION = "450";
 
 WgslShaderGenerator::WgslShaderGenerator(TypeSystemPtr typeSystem) :
     VkShaderGenerator(typeSystem)
