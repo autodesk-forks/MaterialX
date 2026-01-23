@@ -119,7 +119,7 @@
       <input name="roughness" type="float" interfacename="diffuse_roughness" />
       <input name="normal" type="vector3" interfacename="normal" />
     </oren_nayar_diffuse_bsdf>
-    <translucent_bsdf name="translucent_bsdf" type="BSDF">
+    <translucent_bsdf name="translucent_bsdf" type="BSDF" optional="true">
       <input name="weight" type="float" interfacename="subsurface" />
       <input name="color" type="color3" nodename="coat_affected_subsurface_color" />
       <input name="normal" type="vector3" interfacename="normal" />
@@ -128,7 +128,7 @@
       <input name="in1" type="color3" interfacename="subsurface_radius" />
       <input name="in2" type="float" interfacename="subsurface_scale" />
     </multiply>
-    <subsurface_bsdf name="subsurface_bsdf" type="BSDF">
+    <subsurface_bsdf name="subsurface_bsdf" type="BSDF" optional="true">
       <input name="weight" type="float" interfacename="subsurface" />
       <input name="color" type="color3" nodename="coat_affected_subsurface_color" />
       <input name="radius" type="color3" nodename="subsurface_radius_scaled" />
@@ -156,7 +156,7 @@
     </add>
 
     <!-- Sheen Layer -->
-    <sheen_bsdf name="sheen_bsdf" type="BSDF">
+    <sheen_bsdf name="sheen_bsdf" type="BSDF" optional="true">
       <input name="weight" type="float" interfacename="sheen" />
       <input name="color" type="color3" interfacename="sheen_color" />
       <input name="roughness" type="float" interfacename="sheen_roughness" />
@@ -168,7 +168,7 @@
     </layer>
 
     <!-- Transmission Layer -->
-    <dielectric_bsdf name="transmission_bsdf" type="BSDF">
+    <dielectric_bsdf name="transmission_bsdf" type="BSDF" optional="true">
       <input name="weight" type="float" interfacename="transmission" />
       <input name="tint" type="color3" interfacename="transmission_color" />
       <input name="ior" type="float" interfacename="specular_IOR" />

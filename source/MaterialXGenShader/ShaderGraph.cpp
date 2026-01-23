@@ -89,24 +89,18 @@ void ShaderGraph::createConnectedNodes(const ElementPtr& downstreamElement,
     {
         newNode = createNode(upstreamNode, context);
         
-        // Handle skipped optional nodes (e.g., sheen_bsdf)
+        // Handle skipped optional nodes (marked with optional="true" attribute)
         if (!newNode && context.getOptions().hwSkipOptionalNodes)
         {
-            // Check both category and nodedef name to identify sheen_bsdf nodes
-            const string& nodeCategory = upstreamNode->getCategory();
-            const string& nodeType = upstreamNode->getType();
-            ConstNodeDefPtr upstreamNodeDef = upstreamNode->getNodeDef();
-            string nodeDefName = upstreamNodeDef ? upstreamNodeDef->getName() : EMPTY_STRING;
-            
-            if (nodeCategory == "sheen_bsdf" || 
-                nodeType == "sheen_bsdf" ||
-                nodeDefName == "ND_sheen_bsdf")
+            // Check if this node has the optional="true" attribute
+            if (upstreamNode->hasAttribute("optional") && 
+                upstreamNode->getAttribute("optional") == "true")
             {
-                // Check if this sheen is connected to a layer node's "top" input
+                // Check if this optional node is connected to a layer node's "top" input
                 NodePtr downstreamNode = downstreamElement->asA<Node>();
                 if (downstreamNode && downstreamNode->getCategory() == "layer")
                 {
-                    // When sheen is skipped and connected to layer's "top",
+                    // When optional node is skipped and connected to layer's "top",
                     // we need to ensure the layer's "top" input gets a default empty BSDF.
                     // The layer BSDF function will handle empty BSDFs by passing through the base.
                     ShaderNode* layerShaderNode = getNode(downstreamNode->getName());
@@ -127,7 +121,7 @@ void ShaderGraph::createConnectedNodes(const ElementPtr& downstreamElement,
                             }
                         }
                     }
-                    // Skip creating the sheen node connection
+                    // Skip creating the optional node connection
                     return;
                 }
                 // If not connected to a layer, skip silently
@@ -767,17 +761,12 @@ ShaderNode* ShaderGraph::createNode(ConstNodePtr node, GenContext& context)
 {
     ConstNodeDefPtr nodeDef = node->getNodeDef();
 
-    // Skip optional nodes (e.g., sheen_bsdf) if the option is enabled
+    // Skip optional nodes (marked with optional="true" attribute) if the option is enabled
     if (context.getOptions().hwSkipOptionalNodes)
     {
-        // Check both category and nodedef name to identify sheen_bsdf nodes
-        const string& nodeCategory = node->getCategory();
-        const string& nodeType = node->getType();
-        string nodeDefName = nodeDef ? nodeDef->getName() : EMPTY_STRING;
-        
-        if (nodeCategory == "sheen_bsdf" || 
-            nodeType == "sheen_bsdf" ||
-            nodeDefName == "ND_sheen_bsdf")
+        // Check if this node has the optional="true" attribute
+        if (node->hasAttribute("optional") && 
+            node->getAttribute("optional") == "true")
         {
             // Return nullptr to indicate this node should be skipped
             // The caller will need to handle this case

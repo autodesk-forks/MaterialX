@@ -214,9 +214,9 @@ class MX_GENSHADER_API GenOptions
     // Defaults to false.
     bool oslNetworkConnectCiWrapper;
 
-    /// Enables skipping optional nodes (e.g., sheen_bsdf) during shader generation
-    /// for hardware shader targets. When enabled, sheen nodes will be skipped
-    /// and layer nodes using sheen will pass through their base input directly.
+    /// Enables skipping optional nodes (marked with optional="true" attribute) during shader generation
+    /// for hardware shader targets. When enabled, nodes with optional="true" will be skipped
+    /// and layer nodes using optional nodes will pass through their base input directly.
     /// Defaults to true.
     bool hwSkipOptionalNodes;
 };
