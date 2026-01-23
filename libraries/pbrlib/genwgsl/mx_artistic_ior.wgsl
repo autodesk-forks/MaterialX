@@ -1,0 +1,44 @@
+fn mx_artistic_ior(reflectivity: vec3<f32>, edge_color: vec3<f32>, ior: ptr<function, vec3<f32>>, extinction: ptr<function, vec3<f32>>) {
+    var reflectivity_1: vec3<f32>;
+    var edge_color_1: vec3<f32>;
+    var r: vec3<f32>;
+    var r_sqrt: vec3<f32>;
+    var n_min: vec3<f32>;
+    var n_max: vec3<f32>;
+    var np1_: vec3<f32>;
+    var nm1_: vec3<f32>;
+    var k2_: vec3<f32>;
+
+    reflectivity_1 = reflectivity;
+    edge_color_1 = edge_color;
+    let _e7 = reflectivity_1;
+    r = clamp(_e7, vec3(0f), vec3(0.99f));
+    let _e14 = r;
+    r_sqrt = sqrt(_e14);
+    let _e18 = r;
+    let _e22 = r;
+    n_min = ((vec3(1f) - _e18) / (vec3(1f) + _e22));
+    let _e28 = r_sqrt;
+    let _e32 = r_sqrt;
+    n_max = ((vec3(1f) + _e28) / (vec3(1f) - _e32));
+    let _e37 = n_max;
+    let _e38 = n_min;
+    let _e39 = edge_color_1;
+    (*ior) = mix(_e37, _e38, _e39);
+    let _e41 = (*ior);
+    np1_ = (_e41 + vec3(1f));
+    let _e46 = (*ior);
+    nm1_ = (_e46 - vec3(1f));
+    let _e51 = np1_;
+    let _e52 = np1_;
+    let _e54 = r;
+    let _e56 = nm1_;
+    let _e57 = nm1_;
+    let _e61 = r;
+    k2_ = ((((_e51 * _e52) * _e54) - (_e56 * _e57)) / (vec3(1f) - _e61));
+    let _e66 = k2_;
+    k2_ = max(_e66, vec3(0f));
+    let _e70 = k2_;
+    (*extinction) = sqrt(_e70);
+    return;
+}
