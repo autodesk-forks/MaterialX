@@ -422,40 +422,40 @@
     </ifequal>
 
      <!-- ========== CONSTANT VALUES FOR UNUSED STANDARD_SURFACE INPUTS ========== -->
-    <constant name="diffuse_roughness_value" type="float">
+    <constant name="diffuse_roughness_constant_value" type="float">
       <input name="value" type="float" value="0.0" />
     </constant>
-    <constant name="transmission_scatter_value" type="color3">
+    <constant name="transmission_scatter_constant_value" type="color3">
       <input name="value" type="color3" value="0.0, 0.0, 0.0" />
     </constant>
-    <constant name="transmission_scatter_anisotropy_value" type="float">
+    <constant name="transmission_scatter_anisotropy_constant_value" type="float">
       <input name="value" type="float" value="0.0" />
     </constant>
-    <constant name="transmission_dispersion_value" type="float">
+    <constant name="transmission_dispersion_constant_value" type="float">
       <input name="value" type="float" value="0.0" />
     </constant>
-    <constant name="subsurface_anisotropy_value" type="float">
+    <constant name="subsurface_anisotropy_constant_value" type="float">
       <input name="value" type="float" value="0.0" />
     </constant>
-    <constant name="sheen_value" type="float">
+    <constant name="sheen_constant_value" type="float">
       <input name="value" type="float" value="0.0" />
     </constant>
-    <constant name="sheen_color_value" type="color3">
+    <constant name="sheen_color_constant_value" type="color3">
       <input name="value" type="color3" value="1.0, 1.0, 1.0" />
     </constant>
-    <constant name="sheen_roughness_value" type="float">
+    <constant name="sheen_roughness_constant_value" type="float">
       <input name="value" type="float" value="0.3" />
     </constant>
-    <constant name="coat_affect_color_value" type="float">
+    <constant name="coat_affect_color_constant_value" type="float">
       <input name="value" type="float" value="0.0" />
     </constant>
-    <constant name="coat_affect_roughness_value" type="float">
+    <constant name="coat_affect_roughness_constant_value" type="float">
       <input name="value" type="float" value="0.0" />
     </constant>
-    <constant name="thin_film_thickness_value" type="float">
+    <constant name="thin_film_thickness_constant_value" type="float">
       <input name="value" type="float" value="0.0" />
     </constant>
-    <constant name="thin_film_IOR_value" type="float">
+    <constant name="thin_film_IOR_constant_value" type="float">
       <input name="value" type="float" value="1.5" />
     </constant>
 
@@ -468,9 +468,9 @@
       <input name="metalness" type="float" nodename="switch_metalness" />
       <input name="base" type="float" nodename="base_value" />
       <input name="base_color" type="color3" nodename="switch_base_color" />
-      <input name="diffuse_roughness" type="float" nodename="diffuse_roughness_value" />
+      <input name="diffuse_roughness" type="float" nodename="diffuse_roughness_constant_value" />
       <input name="specular" type="float" nodename="switch_specular" />
-      <input name="specular_color" type="color3" nodename="specular_color_value" />
+      <input name="specular_color" type="color3" nodename="specular_color_constant_value" />
       <input name="specular_roughness" type="float" nodename="switch_specular_roughness" />
       <input name="specular_anisotropy" type="float" nodename="switch_specular_anisotropy" />
       <input name="specular_rotation" type="float" nodename="switch_specular_rotation" />
@@ -478,28 +478,28 @@
       <input name="transmission" type="float" nodename="switch_transmission" />
       <input name="transmission_color" type="color3" nodename="switch_transmission_color" />
       <input name="transmission_depth" type="float" nodename="switch_transmission_depth" />
-      <input name="transmission_scatter" type="color3" nodename="transmission_scatter_value" />
-      <input name="transmission_scatter_anisotropy" type="float" nodename="transmission_scatter_anisotropy_value" />
-      <input name="transmission_dispersion" type="float" nodename="transmission_dispersion_value" />
+      <input name="transmission_scatter" type="color3" nodename="transmission_scatter_constant_value" />
+      <input name="transmission_scatter_anisotropy" type="float" nodename="transmission_scatter_anisotropy_constant_value" />
+      <input name="transmission_dispersion" type="float" nodename="transmission_dispersion_constant_value" />
       <input name="transmission_extra_roughness" type="float" nodename="switch_transmission_extra_roughness" />
       <input name="subsurface" type="float" nodename="switch_subsurface" />
       <input name="subsurface_color" type="color3" nodename="switch_subsurface_color" />
       <input name="subsurface_radius" type="color3" nodename="switch_subsurface_radius" />
       <input name="subsurface_scale" type="float" nodename="switch_subsurface_scale" />
-      <input name="subsurface_anisotropy" type="float" nodename="subsurface_anisotropy_value" />
-      <input name="sheen" type="float" nodename="sheen_value" />
-      <input name="sheen_color" type="color3" nodename="sheen_color_value" />
-      <input name="sheen_roughness" type="float" nodename="sheen_roughness_value" />
+      <input name="subsurface_anisotropy" type="float" nodename="subsurface_anisotropy_constant_value" />
+      <input name="sheen" type="float" nodename="sheen_constant_value" />
+      <input name="sheen_color" type="color3" nodename="sheen_color_constant_value" />
+      <input name="sheen_roughness" type="float" nodename="sheen_roughness_constant_value" />
       <input name="coat" type="float" nodename="switch_coat" />
       <input name="coat_color" type="color3" nodename="coat_color_value" />
       <input name="coat_roughness" type="float" nodename="switch_coat_roughness" />
       <input name="coat_anisotropy" type="float" nodename="switch_coat_anisotropy" />
       <input name="coat_rotation" type="float" nodename="switch_coat_rotation" />
       <input name="coat_IOR" type="float" nodename="switch_coat_ior" />
-      <input name="coat_affect_color" type="float" nodename="coat_affect_color_value" />
-      <input name="coat_affect_roughness" type="float" nodename="coat_affect_roughness_value" />
-      <input name="thin_film_thickness" type="float" nodename="thin_film_thickness_value" />
-      <input name="thin_film_IOR" type="float" nodename="thin_film_IOR_value" />
+      <input name="coat_affect_color" type="float" nodename="coat_affect_color_constant_value" />
+      <input name="coat_affect_roughness" type="float" nodename="coat_affect_roughness_constant_value" />
+      <input name="thin_film_thickness" type="float" nodename="thin_film_thickness_constant_value" />
+      <input name="thin_film_IOR" type="float" nodename="thin_film_IOR_constant_value" />
       <input name="emission" type="float" nodename="switch_emission" />
       <input name="emission_color" type="color3" nodename="switch_emission_color" />
       <input name="thin_walled" type="boolean" nodename="switch_thin_walled" /> 
