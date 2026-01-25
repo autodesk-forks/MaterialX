@@ -1,7 +1,7 @@
 file(GLOB_RECURSE materialx_source "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 file(GLOB_RECURSE materialx_headers "${CMAKE_CURRENT_SOURCE_DIR}/*.h*")
 
-set(MTLX_MODULES MaterialXGenShader MaterialXCore)
+set(MTLX_MODULES MaterialXGenHw MaterialXCore)
 
 if(MATERIALX_BUILD_METASHADE)
     list(APPEND MTLX_MODULES MaterialXMetashade)

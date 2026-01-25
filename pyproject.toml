@@ -13,7 +13,7 @@ authors = [
   { name="Contributors to the MaterialX project", email="materialx-discussion@lists.aswf.io" },
 ]
 readme = "README.md"
-requires-python = ">=3.6"
+requires-python = ">=3.9"
 
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -56,15 +56,23 @@ logging.level = "DEBUG"
 # where the package is.
 wheel.packages = ["python/MaterialX"]
 
+sdist.include = [
+    "/documents",
+]
+
 sdist.exclude = [
     "/build",
     "/dist",
     "/resources",
     "/javascript",
-    "/documents",
     "/.github",
     "MANIFEST.in",
     "/source/JsMaterialX",
+]
+
+wheel.exclude = [
+    "/documents",
+    "documents/",
 ]
 
 [tool.scikit-build.metadata.version]
@@ -81,6 +89,8 @@ result = "{major}.{minor}.{build}"
 [tool.scikit-build.cmake.define]
 MATERIALX_BUILD_SHARED_LIBS = 'OFF' # Be explicit
 MATERIALX_BUILD_PYTHON = 'ON'
+MATERIALX_BUILD_DOCS = 'ON'
+MATERIALX_PYTHON_FORCE_REPLACE_DOCS = 'ON'
 MATERIALX_TEST_RENDER = 'OFF'
 MATERIALX_WARNINGS_AS_ERRORS = 'ON'
 MATERIALX_BUILD_TESTS = 'OFF'
