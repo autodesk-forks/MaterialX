@@ -1,0 +1,133 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Configure MaterialX",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--preset",
+                "default"
+            ],
+            "group": "build",
+            "problemMatcher": [],
+            "isBackground": false,
+            "options": {
+                "cwd": "${workspaceFolder}"
+            }
+        },
+        {
+            "label": "Configure MaterialX (Metashade)",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--preset",
+                "metashade"
+            ],
+            "group": "build",
+            "problemMatcher": [],
+            "isBackground": false,
+            "options": {
+                "cwd": "${workspaceFolder}"
+            }
+        },
+        {
+            "label": "Build MaterialX Debug",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "--preset",
+                "debug"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": [
+                "$msCompile",
+                "$gcc"
+            ],
+            "isBackground": false,
+            "dependsOn": "Configure MaterialX",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            }
+        },
+        {
+            "label": "Build MaterialX Debug (Metashade)",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "--preset",
+                "debug-metashade"
+            ],
+            "group": "build",
+            "problemMatcher": [
+                "$msCompile",
+                "$gcc"
+            ],
+            "isBackground": false,
+            "dependsOn": "Configure MaterialX (Metashade)",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            }
+        },
+        {
+            "label": "Install MaterialX Debug",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--install",
+                "build",
+                "--config",
+                "Debug"
+            ],
+            "group": "build",
+            "problemMatcher": [],
+            "isBackground": false,
+            "dependsOn": "Build MaterialX Debug",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            }
+        },
+        {
+            "label": "Build MaterialX Release (Metashade)",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "--preset",
+                "release-metashade"
+            ],
+            "group": "build",
+            "problemMatcher": [
+                "$msCompile",
+                "$gcc"
+            ],
+            "isBackground": false,
+            "dependsOn": "Configure MaterialX (Metashade)",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            }
+        },
+        {
+            "label": "Clean MaterialX",
+            "type": "shell",
+            "command": "cmake",
+            "args": [
+                "--build",
+                "build",
+                "--target",
+                "clean"
+            ],
+            "group": "build",
+            "problemMatcher": [],
+            "isBackground": false,
+            "options": {
+                "cwd": "${workspaceFolder}"
+            }
+        }
+    ]
+}

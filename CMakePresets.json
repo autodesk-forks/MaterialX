@@ -1,0 +1,64 @@
+{
+    "version": 3,
+    "configurePresets": [
+        {
+            "name": "windows-base",
+            "hidden": true,
+            "generator": "Visual Studio 17 2022",
+            "binaryDir": "${sourceDir}/build",
+            "cacheVariables": {
+                "CMAKE_INSTALL_PREFIX": "${sourceDir}/build/installed",
+                "MATERIALX_BUILD_VIEWER": "ON",
+                "MATERIALX_BUILD_GRAPH_EDITOR": "ON",
+                "MATERIALX_BUILD_PYTHON": "ON",
+                "MATERIALX_BUILD_TESTS": "ON",
+                "MATERIALX_BUILD_METASHADE": "OFF"
+            }
+        },
+        {
+            "name": "default",
+            "inherits": "windows-base",
+            "displayName": "Default (Windows)",
+            "description": "Default build options for Windows (No Metashade)"
+        },
+        {
+            "name": "metashade",
+            "inherits": "windows-base",
+            "displayName": "Metashade (Windows)",
+            "description": "Build with Metashade features enabled",
+            "cacheVariables": {
+                "MATERIALX_BUILD_METASHADE": "ON"
+            }
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "debug",
+            "configurePreset": "default",
+            "configuration": "Debug",
+            "displayName": "Debug Build",
+            "description": "Debug build (Default)"
+        },
+        {
+            "name": "debug-metashade",
+            "configurePreset": "metashade",
+            "configuration": "Debug",
+            "displayName": "Debug Build (Metashade)",
+            "description": "Debug build with Metashade"
+        },
+        {
+            "name": "release",
+            "configurePreset": "default",
+            "configuration": "Release",
+            "displayName": "Release Build",
+            "description": "Release build"
+        },
+        {
+            "name": "release-metashade",
+            "configurePreset": "metashade",
+            "configuration": "Release",
+            "displayName": "Release Build (Metashade)",
+            "description": "Release build with Metashade"
+        }
+    ]
+}

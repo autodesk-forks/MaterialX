@@ -1,0 +1,16 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Launch MaterialXView",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/bin/Debug/MaterialXView.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/resources/Materials/Examples/StandardSurface",
+            "environment": [],
+            "console": "integratedTerminal"
+        }
+    ]
+}
