@@ -13,6 +13,8 @@
 #include <MaterialXGenShader/ShaderGraphStandardPasses.h>
 #include <MaterialXGenShader/Util.h>
 
+#include <MaterialXTrace/Tracing.h>
+
 #include <cstdlib>
 #include <iostream>
 #include <queue>
@@ -435,6 +437,9 @@ void ShaderGraph::addUnitTransformNode(ShaderOutput* output, const UnitTransform
 
 ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const NodeGraph& nodeGraph, GenContext& context)
 {
+    MX_TRACE_FUNCTION(Tracing::Category::ShaderGen);
+    MX_TRACE_SCOPE(Tracing::Category::ShaderGen, nodeGraph.getName().c_str());
+
     NodeDefPtr nodeDef = nodeGraph.getNodeDef();
     if (!nodeDef)
     {
@@ -468,6 +473,9 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const NodeGraph& n
 
 ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name, ElementPtr element, GenContext& context)
 {
+    MX_TRACE_FUNCTION(Tracing::Category::ShaderGen);
+    MX_TRACE_SCOPE(Tracing::Category::ShaderGen, name.c_str());
+
     ShaderGraphPtr graph;
     ElementPtr root;
 
@@ -894,6 +902,9 @@ const ShaderNode* ShaderGraph::getNode(const string& name) const
 
 void ShaderGraph::finalize(GenContext& context)
 {
+    MX_TRACE_FUNCTION(Tracing::Category::ShaderGen);
+    MX_TRACE_SCOPE(Tracing::Category::ShaderGen, _name.c_str());
+
     // Allow node implementations to update the classification
     // on its node instances
     for (ShaderNode* node : getNodes())
@@ -1015,6 +1026,9 @@ void ShaderGraph::disconnect(ShaderNode* node) const
 
 void ShaderGraph::optimize(GenContext& context)
 {
+    MX_TRACE_FUNCTION(Tracing::Category::ShaderGen);
+    MX_TRACE_SCOPE(Tracing::Category::ShaderGen, _name.c_str());
+
     // Use the new pass manager infrastructure for iterative optimization
     ShaderGraphPassManager passManager;
     
