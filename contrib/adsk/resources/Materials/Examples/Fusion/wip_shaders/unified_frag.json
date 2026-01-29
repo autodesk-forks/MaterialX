@@ -1,0 +1,285 @@
+{
+    "label": "Unified Fragment Shader",
+    "fragmentShader": "./unified_frag.wgsl",
+    "uniforms": {
+        "u_envMatrix": {
+            "type": "mat4x4<f32>",
+            "binding": 1,
+            "value": [1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1],
+            "uiHints": { "hidden": true }
+        },
+        "u_envLightIntensity": {
+            "type": "f32",
+            "binding": 1,
+            "value": 1.0,
+            "uiHints": { "min": 0, "max": 10 }
+        },
+        "u_envRadianceMips": {
+            "type": "i32",
+            "binding": 1,
+            "value": 0,
+            "uiHints": { "hidden": true }
+        },
+        "u_envRadianceSamples": {
+            "type": "i32",
+            "binding": 1,
+            "value": 64,
+            "uiHints": { "min": 0, "max": 256 }
+        },
+        "u_refractionTwoSided": {
+            "type": "i32",
+            "binding": 1,
+            "value": 0,
+            "uiHints": { "hidden": true }
+        },
+        "u_viewPosition": {
+            "type": "vec3<f32>",
+            "binding": 1,
+            "value": [0, 0, 0],
+            "uiHints": { "hidden": true }
+        },
+        "u_numActiveLightSources": {
+            "type": "i32",
+            "binding": 1,
+            "value": 1,
+            "uiHints": { "min": 0, "max": 1 }
+        },
+        "u_envRadiance_texture": {
+            "type": "t",
+            "binding": 2,
+            "value": ""
+        },
+        "u_envRadiance_sampler": {
+            "type": "s",
+            "binding": 3,
+            "value": ""
+        },
+        "u_envIrradiance_texture": {
+            "type": "t",
+            "binding": 4,
+            "value": ""
+        },
+        "u_envIrradiance_sampler": {
+            "type": "s",
+            "binding": 5,
+            "value": ""
+        },
+        "backsurfaceshader_color": {
+            "type": "vec3<f32>",
+            "binding": 6,
+            "value": [0, 0, 0],
+            "uiHints": { "hidden": true }
+        },
+        "backsurfaceshader_transparency": {
+            "type": "vec3<f32>",
+            "binding": 6,
+            "value": [1, 1, 1],
+            "uiHints": { "hidden": true }
+        },
+        "displacementshader1_offset": {
+            "type": "vec3<f32>",
+            "binding": 6,
+            "value": [0, 0, 0],
+            "uiHints": { "hidden": true }
+        },
+        "displacementshader1_scale": {
+            "type": "f32",
+            "binding": 6,
+            "value": 1.0,
+            "uiHints": { "hidden": true }
+        },
+        "material_type": {
+            "type": "i32",
+            "binding": 6,
+            "value": 0,
+            "uiHints": { "min": 0, "max": 10 }
+        },
+        "surface_cutout": {
+            "type": "vec3<f32>",
+            "binding": 6,
+            "value": [1, 1, 1],
+            "uiHints": { "min": 0, "max": 1 }
+        },
+        "surface_albedo": {
+            "type": "vec3<f32>",
+            "binding": 6,
+            "value": [0.8, 0.8, 0.8],
+            "uiHints": { "min": 0, "max": 1 }
+        },
+        "surface_roughness": {
+            "type": "f32",
+            "binding": 6,
+            "value": 0.2,
+            "uiHints": { "min": 0, "max": 1 }
+        },
+        "surface_anisotropy": {
+            "type": "f32",
+            "binding": 6,
+            "value": 0.0,
+            "uiHints": { "min": 0, "max": 1 }
+        },
+        "surface_rotation": {
+            "type": "f32",
+            "binding": 6,
+            "value": 0.0,
+            "uiHints": { "min": 0, "max": 360 }
+        },
+        "metal_f0": {
+            "type": "vec3<f32>",
+            "binding": 6,
+            "value": [0.95, 0.64, 0.54],
+            "uiHints": { "min": 0, "max": 1 }
+        },
+        "opaque_albedo": {
+            "type": "vec3<f32>",
+            "binding": 6,
+            "value": [0.8, 0.8, 0.8],
+            "uiHints": { "min": 0, "max": 1 }
+        },
+        "opaque_f0": {
+            "type": "f32",
+            "binding": 6,
+            "value": 0.04,
+            "uiHints": { "min": 0, "max": 1 }
+        },
+        "opaque_translucency": {
+            "type": "i32",
+            "binding": 6,
+            "value": 0,
+            "uiHints": { "hidden": true }
+        },
+        "opaque_mfp_modifier": {
+            "type": "vec3<f32>",
+            "binding": 6,
+            "value": [1, 1, 1],
+            "uiHints": { "min": 0, "max": 10 }
+        },
+        "opaque_mfp": {
+            "type": "f32",
+            "binding": 6,
+            "value": 0.5,
+            "uiHints": { "min": 0, "max": 10 }
+        },
+        "opaque_emission": {
+            "type": "i32",
+            "binding": 6,
+            "value": 0,
+            "uiHints": { "hidden": true }
+        },
+        "opaque_luminance": {
+            "type": "f32",
+            "binding": 6,
+            "value": 0.0,
+            "uiHints": { "min": 0, "max": 100 }
+        },
+        "opaque_luminance_modifier": {
+            "type": "vec3<f32>",
+            "binding": 6,
+            "value": [1, 1, 1],
+            "uiHints": { "min": 0, "max": 1 }
+        },
+        "transparent_ior": {
+            "type": "f32",
+            "binding": 6,
+            "value": 1.5,
+            "uiHints": { "min": 1, "max": 3 }
+        },
+        "transparent_color": {
+            "type": "vec3<f32>",
+            "binding": 6,
+            "value": [1, 1, 1],
+            "uiHints": { "min": 0, "max": 1 }
+        },
+        "transparent_distance": {
+            "type": "f32",
+            "binding": 6,
+            "value": 0.0,
+            "uiHints": { "min": 0, "max": 100 }
+        },
+        "layered_f0": {
+            "type": "f32",
+            "binding": 6,
+            "value": 0.04,
+            "uiHints": { "min": 0, "max": 1 }
+        },
+        "layered_roughness": {
+            "type": "f32",
+            "binding": 6,
+            "value": 0.2,
+            "uiHints": { "min": 0, "max": 1 }
+        },
+        "layered_anisotropy": {
+            "type": "f32",
+            "binding": 6,
+            "value": 0.0,
+            "uiHints": { "min": 0, "max": 1 }
+        },
+        "layered_rotation": {
+            "type": "f32",
+            "binding": 6,
+            "value": 0.0,
+            "uiHints": { "min": 0, "max": 360 }
+        },
+        "layered_fraction": {
+            "type": "f32",
+            "binding": 6,
+            "value": 0.0,
+            "uiHints": { "min": 0, "max": 1 }
+        },
+        "layered_fraction_invert": {
+            "type": "i32",
+            "binding": 6,
+            "value": 0,
+            "uiHints": { "hidden": true }
+        },
+        "layered_diffuse": {
+            "type": "vec3<f32>",
+            "binding": 6,
+            "value": [0.8, 0.8, 0.8],
+            "uiHints": { "min": 0, "max": 1 }
+        },
+        "layered_bottom_f0": {
+            "type": "vec3<f32>",
+            "binding": 6,
+            "value": [0.04, 0.04, 0.04],
+            "uiHints": { "min": 0, "max": 1 }
+        },
+        "glazing_transmission_color": {
+            "type": "vec3<f32>",
+            "binding": 6,
+            "value": [1, 1, 1],
+            "uiHints": { "min": 0, "max": 1 }
+        },
+        "glazing_transmission_roughness": {
+            "type": "f32",
+            "binding": 6,
+            "value": 0.0,
+            "uiHints": { "min": 0, "max": 1 }
+        },
+        "glazing_f0": {
+            "type": "vec3<f32>",
+            "binding": 6,
+            "value": [0.04, 0.04, 0.04],
+            "uiHints": { "min": 0, "max": 1 }
+        },
+        "glazing_backface_culling": {
+            "type": "i32",
+            "binding": 6,
+            "value": 0,
+            "uiHints": { "hidden": true }
+        },
+        "u_lightData": {
+            "type": "array",
+            "binding": 7,
+            "value": [
+                {
+                    "direction": [0, 0, -1],
+                    "color": [1, 1, 1],
+                    "light_type": 1,
+                    "intensity": 1.0
+                }
+            ],
+            "uiHints": { "hidden": true }
+        }
+    }
+}
