@@ -5,6 +5,7 @@
 
 #include <MaterialXGenShader/Nodes/CompoundNode.h>
 #include <MaterialXGenShader/Exception.h>
+#include <MaterialXGenShader/NodeGraphTopology.h>
 #include <MaterialXGenShader/ShaderGenerator.h>
 #include <MaterialXGenShader/Util.h>
 
@@ -44,6 +45,15 @@ void CompoundNode::initialize(const InterfaceElement& element, GenContext& conte
     _functionName = graph.getName();
     context.getShaderGenerator().getSyntax().makeValidName(_functionName);
 
+    // Compute and store permutation key based on topology analysis
+    const vector<ConstNodePtr>& parentNodes = context.getParentNodes();
+    if (!parentNodes.empty())
+    {
+        ConstNodePtr currentNode = parentNodes.back();
+        const NodeGraphTopology& topology = NodeGraphTopologyCache::instance().analyze(graph);
+        _permutationKey = NodeGraphTopologyCache::instance().computePermutationKey(topology, currentNode);
+    }
+
     // For compounds we do not want to publish all internal inputs
     // so always use the reduced interface for this graph.
     const ShaderInterfaceType oldShaderInterfaceType = context.getOptions().shaderInterfaceType;
@@ -51,9 +61,8 @@ void CompoundNode::initialize(const InterfaceElement& element, GenContext& conte
     _rootGraph = ShaderGraph::create(nullptr, graph, context);
     context.getOptions().shaderInterfaceType = oldShaderInterfaceType;
 
-    // Set hash using the function name.
-    // TODO: Could be improved to include the full function signature.
-    _hash = std::hash<string>{}(_functionName);
+    // Set hash using the function name and permutation key.
+    _hash = std::hash<string>{}(_functionName + _permutationKey);
 }
 
 void CompoundNode::createVariables(const ShaderNode&, GenContext& context, Shader& shader) const

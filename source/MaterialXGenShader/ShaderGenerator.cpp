@@ -332,12 +332,12 @@ ShaderNodeImplPtr ShaderGenerator::getImplementation(const NodeDef& nodedef, Gen
             ConstNodePtr currentNode = parentNodes.back();
             
             // Analyze the NodeGraph topology (cached per NodeGraph definition)
-            const NodeGraphTopology::Analysis& analysis = 
-                NodeGraphTopology::instance().analyze(nodeGraph);
+            const NodeGraphTopology& topology = 
+                NodeGraphTopologyCache::instance().analyze(nodeGraph);
             
             // Compute permutation key based on constant input values
-            permutationKey = NodeGraphTopology::instance().computePermutationKey(
-                analysis, currentNode);
+            permutationKey = NodeGraphTopologyCache::instance().computePermutationKey(
+                topology, currentNode);
             
             if (!permutationKey.empty())
             {
@@ -345,8 +345,8 @@ ShaderNodeImplPtr ShaderGenerator::getImplementation(const NodeDef& nodedef, Gen
                 cacheKey = baseName + "_" + permutationKey;
                 
                 // Get nodes to skip for this permutation
-                skipNodes = NodeGraphTopology::instance().getNodesToSkip(
-                    analysis, permutationKey);
+                skipNodes = NodeGraphTopologyCache::instance().getNodesToSkip(
+                    topology, permutationKey);
             }
         }
     }

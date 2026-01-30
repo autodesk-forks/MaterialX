@@ -18,12 +18,9 @@
 MATERIALX_NAMESPACE_BEGIN
 
 /// @class NodeGraphTopology
-/// Analyzes a NodeGraph to identify "topological" inputs - inputs that when
-/// constant (0 or 1) can eliminate entire branches of the graph.
-///
-/// This analysis is cached per NodeGraph definition and used to:
-/// 1. Compute permutation keys for CompoundNode caching
-/// 2. Identify which nodes can be skipped during ShaderGraph construction
+/// Topology analysis result for a single NodeGraph.
+/// Identifies "topological" inputs - inputs that when constant (0 or 1)
+/// can eliminate entire branches of the graph.
 class MX_GENSHADER_API NodeGraphTopology
 {
   public:
@@ -35,43 +32,46 @@ class MX_GENSHADER_API NodeGraphTopology
         StringSet nodesAffectedAt1;    ///< Nodes to prune when value = 1
     };
 
-    /// Analysis result for a NodeGraph
-    struct Analysis
-    {
-        string nodeGraphName;
-        std::map<string, TopologicalInput> topologicalInputs;  ///< Keyed by input name
-        
-        bool empty() const { return topologicalInputs.empty(); }
-    };
+    string nodeGraphName;
+    std::map<string, TopologicalInput> topologicalInputs;  ///< Keyed by input name
+    
+    bool empty() const { return topologicalInputs.empty(); }
+};
 
-    NodeGraphTopology() = default;
-    ~NodeGraphTopology() = default;
+/// @class NodeGraphTopologyCache
+/// Caches NodeGraphTopology analyses per NodeGraph definition.
+/// Thread-safe singleton for use during shader generation.
+class MX_GENSHADER_API NodeGraphTopologyCache
+{
+  public:
+    NodeGraphTopologyCache() = default;
+    ~NodeGraphTopologyCache() = default;
 
     // Non-copyable, non-movable (singleton-like usage)
-    NodeGraphTopology(const NodeGraphTopology&) = delete;
-    NodeGraphTopology& operator=(const NodeGraphTopology&) = delete;
+    NodeGraphTopologyCache(const NodeGraphTopologyCache&) = delete;
+    NodeGraphTopologyCache& operator=(const NodeGraphTopologyCache&) = delete;
 
     /// Get the global instance
-    static NodeGraphTopology& instance();
+    static NodeGraphTopologyCache& instance();
 
     /// Analyze a NodeGraph and cache the result.
-    /// Returns the cached analysis (creates if not present).
-    const Analysis& analyze(const NodeGraph& nodeGraph);
+    /// Returns the cached topology (creates if not present).
+    const NodeGraphTopology& analyze(const NodeGraph& nodeGraph);
 
-    /// Get cached analysis for a NodeGraph, or nullptr if not analyzed.
-    const Analysis* getAnalysis(const string& nodeGraphName) const;
+    /// Get cached topology for a NodeGraph, or nullptr if not analyzed.
+    const NodeGraphTopology* getTopology(const string& nodeGraphName) const;
 
     /// Compute a permutation key based on constant input values.
-    /// @param analysis The topology analysis for the NodeGraph
+    /// @param topology The topology for the NodeGraph
     /// @param node The node instance (to read constant values from)
     /// @return A string key like "coat=0,sheen=x" or empty if no optimization possible
-    string computePermutationKey(const Analysis& analysis, ConstNodePtr node) const;
+    string computePermutationKey(const NodeGraphTopology& topology, ConstNodePtr node) const;
 
     /// Get the set of nodes to skip for a given permutation key.
-    /// @param analysis The topology analysis
+    /// @param topology The topology
     /// @param permutationKey The key from computePermutationKey()
     /// @return Set of node names that can be skipped
-    StringSet getNodesToSkip(const Analysis& analysis, const string& permutationKey) const;
+    StringSet getNodesToSkip(const NodeGraphTopology& topology, const string& permutationKey) const;
 
     /// Clear the cache (mainly for testing)
     void clearCache();
@@ -84,7 +84,7 @@ class MX_GENSHADER_API NodeGraphTopology
     void analyzeAffectedNodes(
         const NodePtr& node,
         const InputPtr& input,
-        TopologicalInput& topoInput,
+        NodeGraphTopology::TopologicalInput& topoInput,
         const NodeGraph& nodeGraph) const;
 
     /// Build reverse connection map for a NodeGraph
@@ -97,7 +97,7 @@ class MX_GENSHADER_API NodeGraphTopology
         StringSet& collected) const;
 
     mutable std::mutex _cacheMutex;
-    std::unordered_map<string, Analysis> _cache;  ///< Keyed by NodeGraph name
+    std::unordered_map<string, NodeGraphTopology> _cache;  ///< Keyed by NodeGraph name
 };
 
 MATERIALX_NAMESPACE_END

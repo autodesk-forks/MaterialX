@@ -31,9 +31,14 @@ class MX_GENSHADER_API CompoundNode : public ShaderNodeImpl
 
     ShaderGraph* getGraph() const override { return _rootGraph.get(); }
 
+    /// Return the permutation key for this compound node.
+    /// Includes topology-based optimization flags (e.g., "coat=0,sheen=x").
+    string getPermutationKey() const override { return _permutationKey; }
+
   protected:
     ShaderGraphPtr _rootGraph;
     string _functionName;
+    string _permutationKey;  ///< Topology-based permutation identifier
 };
 
 MATERIALX_NAMESPACE_END

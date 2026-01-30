@@ -35,13 +35,13 @@ const std::set<string> kLayerPbrNodes = {
 
 } // anonymous namespace
 
-NodeGraphTopology& NodeGraphTopology::instance()
+NodeGraphTopologyCache& NodeGraphTopologyCache::instance()
 {
-    static NodeGraphTopology theInstance;
+    static NodeGraphTopologyCache theInstance;
     return theInstance;
 }
 
-const NodeGraphTopology::Analysis& NodeGraphTopology::analyze(const NodeGraph& nodeGraph)
+const NodeGraphTopology& NodeGraphTopologyCache::analyze(const NodeGraph& nodeGraph)
 {
     const string& ngName = nodeGraph.getName();
 
@@ -56,8 +56,8 @@ const NodeGraphTopology::Analysis& NodeGraphTopology::analyze(const NodeGraph& n
     }
 
     // Not in cache - perform analysis
-    Analysis analysis;
-    analysis.nodeGraphName = ngName;
+    NodeGraphTopology topology;
+    topology.nodeGraphName = ngName;
 
     // Get the NodeDef for this NodeGraph
     NodeDefPtr nodeDef = nodeGraph.getNodeDef();
@@ -76,7 +76,7 @@ const NodeGraphTopology::Analysis& NodeGraphTopology::analyze(const NodeGraph& n
     {
         // Can't analyze without a NodeDef - cache empty result
         std::lock_guard<std::mutex> lock(_cacheMutex);
-        _cache[ngName] = analysis;
+        _cache[ngName] = topology;
         return _cache[ngName];
     }
 
@@ -92,12 +92,12 @@ const NodeGraphTopology::Analysis& NodeGraphTopology::analyze(const NodeGraph& n
             if (mixInput && isTopologicalInput(mixInput, nodeDef))
             {
                 const string& interfaceName = mixInput->getInterfaceName();
-                if (analysis.topologicalInputs.find(interfaceName) == analysis.topologicalInputs.end())
+                if (topology.topologicalInputs.find(interfaceName) == topology.topologicalInputs.end())
                 {
-                    TopologicalInput topoInput;
+                    NodeGraphTopology::TopologicalInput topoInput;
                     topoInput.name = interfaceName;
                     analyzeAffectedNodes(node, mixInput, topoInput, nodeGraph);
-                    analysis.topologicalInputs[interfaceName] = topoInput;
+                    topology.topologicalInputs[interfaceName] = topoInput;
                 }
             }
         }
@@ -109,12 +109,12 @@ const NodeGraphTopology::Analysis& NodeGraphTopology::analyze(const NodeGraph& n
                 if (input && isTopologicalInput(input, nodeDef))
                 {
                     const string& interfaceName = input->getInterfaceName();
-                    if (analysis.topologicalInputs.find(interfaceName) == analysis.topologicalInputs.end())
+                    if (topology.topologicalInputs.find(interfaceName) == topology.topologicalInputs.end())
                     {
-                        TopologicalInput topoInput;
+                        NodeGraphTopology::TopologicalInput topoInput;
                         topoInput.name = interfaceName;
                         analyzeAffectedNodes(node, input, topoInput, nodeGraph);
-                        analysis.topologicalInputs[interfaceName] = topoInput;
+                        topology.topologicalInputs[interfaceName] = topoInput;
                     }
                 }
             }
@@ -126,12 +126,12 @@ const NodeGraphTopology::Analysis& NodeGraphTopology::analyze(const NodeGraph& n
             if (weightInput && isTopologicalInput(weightInput, nodeDef))
             {
                 const string& interfaceName = weightInput->getInterfaceName();
-                if (analysis.topologicalInputs.find(interfaceName) == analysis.topologicalInputs.end())
+                if (topology.topologicalInputs.find(interfaceName) == topology.topologicalInputs.end())
                 {
-                    TopologicalInput topoInput;
+                    NodeGraphTopology::TopologicalInput topoInput;
                     topoInput.name = interfaceName;
                     analyzeAffectedNodes(node, weightInput, topoInput, nodeGraph);
-                    analysis.topologicalInputs[interfaceName] = topoInput;
+                    topology.topologicalInputs[interfaceName] = topoInput;
                 }
             }
         }
@@ -139,18 +139,18 @@ const NodeGraphTopology::Analysis& NodeGraphTopology::analyze(const NodeGraph& n
 
     // Cache and return
     std::lock_guard<std::mutex> lock(_cacheMutex);
-    _cache[ngName] = analysis;
+    _cache[ngName] = topology;
     return _cache[ngName];
 }
 
-const NodeGraphTopology::Analysis* NodeGraphTopology::getAnalysis(const string& nodeGraphName) const
+const NodeGraphTopology* NodeGraphTopologyCache::getTopology(const string& nodeGraphName) const
 {
     std::lock_guard<std::mutex> lock(_cacheMutex);
     auto it = _cache.find(nodeGraphName);
     return (it != _cache.end()) ? &it->second : nullptr;
 }
 
-bool NodeGraphTopology::isTopologicalInput(const InputPtr& input, const NodeDefPtr& nodeDef) const
+bool NodeGraphTopologyCache::isTopologicalInput(const InputPtr& input, const NodeDefPtr& nodeDef) const
 {
     // Must be connected to the NodeGraph interface
     if (!input->hasInterfaceName())
@@ -190,10 +190,10 @@ bool NodeGraphTopology::isTopologicalInput(const InputPtr& input, const NodeDefP
     }
 }
 
-void NodeGraphTopology::analyzeAffectedNodes(
+void NodeGraphTopologyCache::analyzeAffectedNodes(
     const NodePtr& node,
     const InputPtr& input,
-    TopologicalInput& topoInput,
+    NodeGraphTopology::TopologicalInput& topoInput,
     const NodeGraph& nodeGraph) const
 {
     const string& category = node->getCategory();
@@ -246,7 +246,7 @@ void NodeGraphTopology::analyzeAffectedNodes(
     }
 }
 
-std::map<string, StringSet> NodeGraphTopology::buildReverseConnectionMap(
+std::map<string, StringSet> NodeGraphTopologyCache::buildReverseConnectionMap(
     const NodeGraph& nodeGraph) const
 {
     std::map<string, StringSet> reverseMap;
@@ -266,7 +266,7 @@ std::map<string, StringSet> NodeGraphTopology::buildReverseConnectionMap(
     return reverseMap;
 }
 
-void NodeGraphTopology::collectUpstreamNodes(
+void NodeGraphTopologyCache::collectUpstreamNodes(
     const string& nodeName,
     const NodeGraph& nodeGraph,
     StringSet& collected) const
@@ -295,9 +295,9 @@ void NodeGraphTopology::collectUpstreamNodes(
     }
 }
 
-string NodeGraphTopology::computePermutationKey(const Analysis& analysis, ConstNodePtr node) const
+string NodeGraphTopologyCache::computePermutationKey(const NodeGraphTopology& topology, ConstNodePtr node) const
 {
-    if (analysis.empty())
+    if (topology.empty())
     {
         return EMPTY_STRING;
     }
@@ -306,7 +306,7 @@ string NodeGraphTopology::computePermutationKey(const Analysis& analysis, ConstN
     bool hasOptimization = false;
 
     // Iterate through topological inputs in sorted order (for stable keys)
-    for (const auto& pair : analysis.topologicalInputs)
+    for (const auto& pair : topology.topologicalInputs)
     {
         const string& inputName = pair.first;
         char flag = 'x';  // 'x' = not optimized (connected or intermediate value)
@@ -353,8 +353,8 @@ string NodeGraphTopology::computePermutationKey(const Analysis& analysis, ConstN
     return hasOptimization ? key : EMPTY_STRING;
 }
 
-StringSet NodeGraphTopology::getNodesToSkip(
-    const Analysis& analysis,
+StringSet NodeGraphTopologyCache::getNodesToSkip(
+    const NodeGraphTopology& topology,
     const string& permutationKey) const
 {
     StringSet nodesToSkip;
@@ -375,8 +375,8 @@ StringSet NodeGraphTopology::getNodesToSkip(
         string inputName = permutationKey.substr(pos, eqPos - pos);
         char flag = permutationKey[eqPos + 1];
 
-        auto it = analysis.topologicalInputs.find(inputName);
-        if (it != analysis.topologicalInputs.end())
+        auto it = topology.topologicalInputs.find(inputName);
+        if (it != topology.topologicalInputs.end())
         {
             if (flag == '0')
             {
@@ -400,7 +400,7 @@ StringSet NodeGraphTopology::getNodesToSkip(
     return nodesToSkip;
 }
 
-void NodeGraphTopology::clearCache()
+void NodeGraphTopologyCache::clearCache()
 {
     std::lock_guard<std::mutex> lock(_cacheMutex);
     _cache.clear();
