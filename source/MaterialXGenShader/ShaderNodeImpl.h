@@ -79,14 +79,19 @@ class MX_GENSHADER_API ShaderNodeImpl
     /// or returns nullptr otherwise.
     virtual ShaderGraph* getGraph() const;
 
-    /// Return a permutation key for this implementation.
-    /// The permutation key identifies a specific variant of this implementation
-    /// based on constant input values that affect the generated code topology.
-    /// By default returns the implementation name (no permutation).
-    /// Compound nodes can override this to return a topology-based key.
-    virtual string getPermutationKey() const
+    /// Compute and store the permutation key for this implementation.
+    /// Called before initialize() to determine the cache key.
+    /// The permutation key identifies a specific variant based on constant input values
+    /// that affect the generated code topology.
+    /// @param element The implementation element (NodeGraph or Implementation)
+    /// @param context The generation context (provides current node instance)
+    /// @return Empty string for no permutation, or a key like "coat=0,sheen=x"
+    virtual string computePermutationKey(const InterfaceElement& element, GenContext& context);
+
+    /// Return the stored permutation key (after computePermutationKey was called).
+    const string& getPermutationKey() const
     {
-        return _name;
+        return _permutationKey;
     }
 
     /// Returns true if an input is editable by users.
@@ -118,6 +123,7 @@ class MX_GENSHADER_API ShaderNodeImpl
 
   protected:
     string _name;
+    string _permutationKey;
     size_t _hash;
 };
 

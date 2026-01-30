@@ -28,6 +28,34 @@ void CompoundNode::addClassification(ShaderNode& node) const
     node.addClassification(_rootGraph->getClassification());
 }
 
+string CompoundNode::computePermutationKey(const InterfaceElement& element, GenContext& context)
+{
+    if (!element.isA<NodeGraph>())
+    {
+        _permutationKey = EMPTY_STRING;
+        return _permutationKey;
+    }
+
+    const NodeGraph& graph = static_cast<const NodeGraph&>(element);
+    
+    // Get the current node instance from context (if available)
+    const vector<ConstNodePtr>& parentNodes = context.getParentNodes();
+    if (parentNodes.empty())
+    {
+        _permutationKey = EMPTY_STRING;
+        return _permutationKey;
+    }
+
+    ConstNodePtr currentNode = parentNodes.back();
+    
+    // Analyze the NodeGraph topology (cached per NodeGraph definition)
+    const NodeGraphTopology& topology = NodeGraphTopologyCache::instance().analyze(graph);
+    
+    // Compute and store permutation key based on constant input values
+    _permutationKey = NodeGraphTopologyCache::instance().computePermutationKey(topology, currentNode);
+    return _permutationKey;
+}
+
 void CompoundNode::initialize(const InterfaceElement& element, GenContext& context)
 {
     MX_TRACE_FUNCTION(Tracing::Category::ShaderGen);
@@ -45,15 +73,6 @@ void CompoundNode::initialize(const InterfaceElement& element, GenContext& conte
     _functionName = graph.getName();
     context.getShaderGenerator().getSyntax().makeValidName(_functionName);
 
-    // Compute and store permutation key based on topology analysis
-    const vector<ConstNodePtr>& parentNodes = context.getParentNodes();
-    if (!parentNodes.empty())
-    {
-        ConstNodePtr currentNode = parentNodes.back();
-        const NodeGraphTopology& topology = NodeGraphTopologyCache::instance().analyze(graph);
-        _permutationKey = NodeGraphTopologyCache::instance().computePermutationKey(topology, currentNode);
-    }
-
     // For compounds we do not want to publish all internal inputs
     // so always use the reduced interface for this graph.
     const ShaderInterfaceType oldShaderInterfaceType = context.getOptions().shaderInterfaceType;
@@ -61,7 +80,7 @@ void CompoundNode::initialize(const InterfaceElement& element, GenContext& conte
     _rootGraph = ShaderGraph::create(nullptr, graph, context);
     context.getOptions().shaderInterfaceType = oldShaderInterfaceType;
 
-    // Set hash using the function name and permutation key.
+    // Hash includes function name and permutation key (already set via computePermutationKey)
     _hash = std::hash<string>{}(_functionName + _permutationKey);
 }
 

@@ -18,6 +18,7 @@ MATERIALX_NAMESPACE_BEGIN
 
 ShaderNodeImpl::ShaderNodeImpl() :
     _name(EMPTY_STRING),
+    _permutationKey(EMPTY_STRING),
     _hash(0)
 {
 }
@@ -31,7 +32,14 @@ void ShaderNodeImpl::initialize(const InterfaceElement& element, GenContext&)
     // Derived classes can override this to create other hashes,
     // e.g. to share the same hash between nodes that can share
     // the same function definition.
-    _hash = std::hash<string>{}(_name);
+    _hash = std::hash<string>{}(_name + _permutationKey);
+}
+
+string ShaderNodeImpl::computePermutationKey(const InterfaceElement& /*element*/, GenContext& /*context*/)
+{
+    // Default: no permutation optimization
+    _permutationKey = EMPTY_STRING;
+    return _permutationKey;
 }
 
 void ShaderNodeImpl::addInputs(ShaderNode&, GenContext&) const
