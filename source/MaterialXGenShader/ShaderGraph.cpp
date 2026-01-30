@@ -93,6 +93,16 @@ void ShaderGraph::createConnectedNodes(const ElementPtr& downstreamElement,
                                       upstreamElement->getName() + "'");
     }
     const string& newNodeName = upstreamNode->getName();
+
+    // Check if this node should be skipped (early pruning)
+    if (context.shouldSkipNode(newNodeName))
+    {
+        // TODO: For now, just trace that we would skip this node.
+        // Full implementation needs to handle downstream connections.
+        MX_TRACE_SCOPE(Tracing::Category::ShaderGen, ("SKIP:" + newNodeName).c_str());
+        // Continue for now - actual skipping requires more work
+    }
+
     ShaderNode* newNode = getNode(newNodeName);
     if (!newNode)
     {

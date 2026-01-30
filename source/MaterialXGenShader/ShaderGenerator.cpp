@@ -6,6 +6,7 @@
 #include <MaterialXGenShader/ShaderGenerator.h>
 
 #include <MaterialXGenShader/GenContext.h>
+#include <MaterialXGenShader/NodeGraphTopology.h>
 #include <MaterialXGenShader/ShaderNodeImpl.h>
 #include <MaterialXGenShader/Nodes/CompoundNode.h>
 #include <MaterialXGenShader/Nodes/SourceCodeNode.h>
@@ -314,15 +315,50 @@ ShaderNodeImplPtr ShaderGenerator::getImplementation(const NodeDef& nodedef, Gen
         return nullptr;
     }
 
-    const string& name = implElement->getName();
+    const string& baseName = implElement->getName();
+    string cacheKey = baseName;
+    string permutationKey;
+    StringSet skipNodes;
+
+    // For NodeGraph implementations, compute permutation-aware cache key
+    if (implElement->isA<NodeGraph>())
+    {
+        const NodeGraph& nodeGraph = *implElement->asA<NodeGraph>();
+        
+        // Get the current node instance from context (if available)
+        const vector<ConstNodePtr>& parentNodes = context.getParentNodes();
+        if (!parentNodes.empty())
+        {
+            ConstNodePtr currentNode = parentNodes.back();
+            
+            // Analyze the NodeGraph topology (cached per NodeGraph definition)
+            const NodeGraphTopology::Analysis& analysis = 
+                NodeGraphTopology::instance().analyze(nodeGraph);
+            
+            // Compute permutation key based on constant input values
+            permutationKey = NodeGraphTopology::instance().computePermutationKey(
+                analysis, currentNode);
+            
+            if (!permutationKey.empty())
+            {
+                // Use permutation-aware cache key
+                cacheKey = baseName + "_" + permutationKey;
+                
+                // Get nodes to skip for this permutation
+                skipNodes = NodeGraphTopology::instance().getNodesToSkip(
+                    analysis, permutationKey);
+            }
+        }
+    }
 
     // Check if it's created and cached already.
-    ShaderNodeImplPtr impl = context.findNodeImplementation(name);
+    ShaderNodeImplPtr impl = context.findNodeImplementation(cacheKey);
     if (impl)
     {
         return impl;
     }
 
+    // Create the implementation
     if (implElement->isA<NodeGraph>())
     {
         impl = createShaderNodeImplForNodeGraph(*implElement->asA<NodeGraph>());
@@ -330,14 +366,14 @@ ShaderNodeImplPtr ShaderGenerator::getImplementation(const NodeDef& nodedef, Gen
     else if (implElement->isA<Implementation>())
     {
         ImplementationPtr implementationElement = implElement->asA<Implementation>();
-        if (getColorManagementSystem() && getColorManagementSystem()->hasImplementation(name))
+        if (getColorManagementSystem() && getColorManagementSystem()->hasImplementation(baseName))
         {
-            impl = getColorManagementSystem()->createImplementation(name);
+            impl = getColorManagementSystem()->createImplementation(baseName);
         }
         else
         {
             // Try creating a new in the factory.
-            impl = _implFactory.create(name);
+            impl = _implFactory.create(baseName);
         }
         if (!impl)
         {
@@ -349,10 +385,19 @@ ShaderNodeImplPtr ShaderGenerator::getImplementation(const NodeDef& nodedef, Gen
         return nullptr;
     }
 
+    // Set skip nodes in context for ShaderGraph construction
+    if (!skipNodes.empty())
+    {
+        context.setSkipNodes(skipNodes);
+    }
+
     impl->initialize(*implElement, context);
 
-    // Cache it.
-    context.addNodeImplementation(name, impl);
+    // Clear skip nodes after initialization
+    context.clearSkipNodes();
+
+    // Cache it with the permutation-aware key.
+    context.addNodeImplementation(cacheKey, impl);
 
     return impl;
 }

@@ -8,12 +8,11 @@
 
 #include <MaterialXGenShader/Export.h>
 
+#include <MaterialXCore/Library.h>
 #include <MaterialXCore/Node.h>
 
 #include <map>
 #include <mutex>
-#include <set>
-#include <string>
 #include <unordered_map>
 
 MATERIALX_NAMESPACE_BEGIN
@@ -31,9 +30,9 @@ class MX_GENSHADER_API NodeGraphTopology
     /// Information about a single topological input
     struct TopologicalInput
     {
-        string name;                        ///< Input name on the NodeGraph interface
-        std::set<string> nodesAffectedAt0;  ///< Nodes to prune when value = 0
-        std::set<string> nodesAffectedAt1;  ///< Nodes to prune when value = 1
+        string name;                   ///< Input name on the NodeGraph interface
+        StringSet nodesAffectedAt0;    ///< Nodes to prune when value = 0
+        StringSet nodesAffectedAt1;    ///< Nodes to prune when value = 1
     };
 
     /// Analysis result for a NodeGraph
@@ -72,7 +71,7 @@ class MX_GENSHADER_API NodeGraphTopology
     /// @param analysis The topology analysis
     /// @param permutationKey The key from computePermutationKey()
     /// @return Set of node names that can be skipped
-    std::set<string> getNodesToSkip(const Analysis& analysis, const string& permutationKey) const;
+    StringSet getNodesToSkip(const Analysis& analysis, const string& permutationKey) const;
 
     /// Clear the cache (mainly for testing)
     void clearCache();
@@ -89,13 +88,13 @@ class MX_GENSHADER_API NodeGraphTopology
         const NodeGraph& nodeGraph) const;
 
     /// Build reverse connection map for a NodeGraph
-    std::map<string, std::set<string>> buildReverseConnectionMap(const NodeGraph& nodeGraph) const;
+    std::map<string, StringSet> buildReverseConnectionMap(const NodeGraph& nodeGraph) const;
 
     /// Recursively find all upstream nodes from a given node
     void collectUpstreamNodes(
         const string& nodeName,
         const NodeGraph& nodeGraph,
-        std::set<string>& collected) const;
+        StringSet& collected) const;
 
     mutable std::mutex _cacheMutex;
     std::unordered_map<string, Analysis> _cache;  ///< Keyed by NodeGraph name

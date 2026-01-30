@@ -204,6 +204,30 @@ class MX_GENSHADER_API GenContext
         return _applicationVariableHandler;
     }
 
+    /// Set nodes to skip during ShaderGraph construction (for early pruning)
+    void setSkipNodes(const StringSet& nodes)
+    {
+        _skipNodes = nodes;
+    }
+
+    /// Get nodes to skip during ShaderGraph construction
+    const StringSet& getSkipNodes() const
+    {
+        return _skipNodes;
+    }
+
+    /// Clear the skip nodes set
+    void clearSkipNodes()
+    {
+        _skipNodes.clear();
+    }
+
+    /// Check if a node should be skipped
+    bool shouldSkipNode(const string& nodeName) const
+    {
+        return _skipNodes.count(nodeName) > 0;
+    }
+
   protected:
     GenContext() = delete;
 
@@ -220,6 +244,8 @@ class MX_GENSHADER_API GenContext
     vector<ConstNodePtr> _parentNodes;
 
     ApplicationVariableHandler _applicationVariableHandler;
+
+    StringSet _skipNodes;  ///< Nodes to skip during ShaderGraph construction (early pruning)
 };
 
 /// A RAII class for overriding port variable names.

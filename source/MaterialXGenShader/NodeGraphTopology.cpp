@@ -7,6 +7,7 @@
 
 #include <MaterialXCore/Definition.h>
 #include <MaterialXCore/Document.h>
+#include <MaterialXCore/Library.h>
 
 MATERIALX_NAMESPACE_BEGIN
 
@@ -245,10 +246,10 @@ void NodeGraphTopology::analyzeAffectedNodes(
     }
 }
 
-std::map<string, std::set<string>> NodeGraphTopology::buildReverseConnectionMap(
+std::map<string, StringSet> NodeGraphTopology::buildReverseConnectionMap(
     const NodeGraph& nodeGraph) const
 {
-    std::map<string, std::set<string>> reverseMap;
+    std::map<string, StringSet> reverseMap;
 
     for (const NodePtr& node : nodeGraph.getNodes())
     {
@@ -268,7 +269,7 @@ std::map<string, std::set<string>> NodeGraphTopology::buildReverseConnectionMap(
 void NodeGraphTopology::collectUpstreamNodes(
     const string& nodeName,
     const NodeGraph& nodeGraph,
-    std::set<string>& collected) const
+    StringSet& collected) const
 {
     // Avoid cycles
     if (collected.count(nodeName))
@@ -352,11 +353,11 @@ string NodeGraphTopology::computePermutationKey(const Analysis& analysis, ConstN
     return hasOptimization ? key : EMPTY_STRING;
 }
 
-std::set<string> NodeGraphTopology::getNodesToSkip(
+StringSet NodeGraphTopology::getNodesToSkip(
     const Analysis& analysis,
     const string& permutationKey) const
 {
-    std::set<string> nodesToSkip;
+    StringSet nodesToSkip;
 
     if (permutationKey.empty())
     {
