@@ -21,6 +21,9 @@ MATERIALX_NAMESPACE_BEGIN
 /// Topology analysis result for a single NodeGraph.
 /// Identifies "topological" inputs - inputs that when constant (0 or 1)
 /// can eliminate entire branches of the graph.
+///
+/// TODO: Move computePermutationKey() and getNodesToSkip() from NodeGraphTopologyCache
+/// to this class - they operate on topology data and semantically belong here.
 class MX_GENSHADER_API NodeGraphTopology
 {
   public:
@@ -41,6 +44,9 @@ class MX_GENSHADER_API NodeGraphTopology
 /// @class NodeGraphTopologyCache
 /// Caches NodeGraphTopology analyses per NodeGraph definition.
 /// Thread-safe singleton for use during shader generation.
+///
+/// TODO: Add MX_TRACE instrumentation to analyze(), computePermutationKey(),
+/// and getNodesToSkip() to measure string operation overhead.
 class MX_GENSHADER_API NodeGraphTopologyCache
 {
   public:

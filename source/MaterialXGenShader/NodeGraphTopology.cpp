@@ -41,6 +41,7 @@ NodeGraphTopologyCache& NodeGraphTopologyCache::instance()
     return theInstance;
 }
 
+// TODO: Add MX_TRACE instrumentation to measure analysis overhead
 const NodeGraphTopology& NodeGraphTopologyCache::analyze(const NodeGraph& nodeGraph)
 {
     const string& ngName = nodeGraph.getName();
@@ -295,6 +296,7 @@ void NodeGraphTopologyCache::collectUpstreamNodes(
     }
 }
 
+// TODO: Add MX_TRACE instrumentation to measure string operation overhead
 string NodeGraphTopologyCache::computePermutationKey(const NodeGraphTopology& topology, ConstNodePtr node) const
 {
     if (topology.empty())
@@ -353,6 +355,7 @@ string NodeGraphTopologyCache::computePermutationKey(const NodeGraphTopology& to
     return hasOptimization ? key : EMPTY_STRING;
 }
 
+// TODO: Add MX_TRACE instrumentation to measure string parsing overhead
 StringSet NodeGraphTopologyCache::getNodesToSkip(
     const NodeGraphTopology& topology,
     const string& permutationKey) const
