@@ -42,6 +42,12 @@ string ShaderNodeImpl::computePermutationKey(const InterfaceElement& /*element*/
     return _permutationKey;
 }
 
+StringSet ShaderNodeImpl::computeSkipNodes(const InterfaceElement& /*element*/, GenContext& /*context*/) const
+{
+    // Default: no nodes to skip
+    return StringSet();
+}
+
 void ShaderNodeImpl::addInputs(ShaderNode&, GenContext&) const
 {
 }

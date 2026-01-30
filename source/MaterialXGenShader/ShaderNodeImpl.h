@@ -94,6 +94,13 @@ class MX_GENSHADER_API ShaderNodeImpl
         return _permutationKey;
     }
 
+    /// Compute the set of nodes to skip during graph construction.
+    /// Called after computePermutationKey() and before initialize().
+    /// @param element The implementation element
+    /// @param context The generation context
+    /// @return Set of node names to skip, or empty set
+    virtual StringSet computeSkipNodes(const InterfaceElement& element, GenContext& context) const;
+
     /// Returns true if an input is editable by users.
     /// Editable inputs are allowed to be published as shader uniforms
     /// and hence must be presentable in a user interface.

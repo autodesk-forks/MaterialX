@@ -6,7 +6,6 @@
 #include <MaterialXGenShader/ShaderGenerator.h>
 
 #include <MaterialXGenShader/GenContext.h>
-#include <MaterialXGenShader/NodeGraphTopology.h>
 #include <MaterialXGenShader/ShaderNodeImpl.h>
 #include <MaterialXGenShader/Nodes/CompoundNode.h>
 #include <MaterialXGenShader/Nodes/SourceCodeNode.h>
@@ -363,14 +362,8 @@ ShaderNodeImplPtr ShaderGenerator::getImplementation(const NodeDef& nodedef, Gen
         return cachedImpl;
     }
 
-    // For NodeGraph impls with permutation, compute skip nodes
-    StringSet skipNodes;
-    if (!permutationKey.empty() && implElement->isA<NodeGraph>())
-    {
-        const NodeGraph& nodeGraph = *implElement->asA<NodeGraph>();
-        const NodeGraphTopology& topology = NodeGraphTopologyCache::instance().analyze(nodeGraph);
-        skipNodes = NodeGraphTopologyCache::instance().getNodesToSkip(topology, permutationKey);
-    }
+    // Compute skip nodes via virtual method (allows type-specific logic)
+    StringSet skipNodes = impl->computeSkipNodes(*implElement, context);
 
     // Set skip nodes in context for ShaderGraph construction
     if (!skipNodes.empty())

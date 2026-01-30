@@ -56,6 +56,18 @@ string CompoundNode::computePermutationKey(const InterfaceElement& element, GenC
     return _permutationKey;
 }
 
+StringSet CompoundNode::computeSkipNodes(const InterfaceElement& element, GenContext& /*context*/) const
+{
+    if (_permutationKey.empty() || !element.isA<NodeGraph>())
+    {
+        return StringSet();
+    }
+
+    const NodeGraph& graph = static_cast<const NodeGraph&>(element);
+    const NodeGraphTopology& topology = NodeGraphTopologyCache::instance().analyze(graph);
+    return NodeGraphTopologyCache::instance().getNodesToSkip(topology, _permutationKey);
+}
+
 void CompoundNode::initialize(const InterfaceElement& element, GenContext& context)
 {
     MX_TRACE_FUNCTION(Tracing::Category::ShaderGen);

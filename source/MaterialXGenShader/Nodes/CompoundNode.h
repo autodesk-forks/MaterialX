@@ -23,6 +23,9 @@ class MX_GENSHADER_API CompoundNode : public ShaderNodeImpl
     /// Identifies which branches can be pruned based on constant input values.
     string computePermutationKey(const InterfaceElement& element, GenContext& context) override;
 
+    /// Compute nodes to skip based on the permutation key.
+    StringSet computeSkipNodes(const InterfaceElement& element, GenContext& context) const override;
+
     void initialize(const InterfaceElement& element, GenContext& context) override;
 
     void addClassification(ShaderNode& node) const override;
