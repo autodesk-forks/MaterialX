@@ -4,13 +4,15 @@
     "cmake.configureOnEdit": false,
     "cmake.automaticReconfigure": false,
     "python.testing.pytestArgs": [
-        "python/MaterialXTest"
+        "python/MaterialXTest",
+        "python/External/metashade/tests"
     ],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true,
     "python.testing.cwd": "${workspaceFolder}",
     "python.analysis.extraPaths": [
         "${workspaceFolder}/build/python",
-        "${workspaceFolder}/python"
+        "${workspaceFolder}/python",
+        "${workspaceFolder}/python/External/metashade"
     ]
 }
