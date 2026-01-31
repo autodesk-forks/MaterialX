@@ -5,19 +5,19 @@
             "name": "MaterialX Viewer Debug",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "${workspaceFolder}/build/bin/Debug/MaterialXView.exe",
+            "program": "${workspaceFolder}/build/installed/bin/MaterialXView.exe",
             "args": [
                 "--material",
                 "${workspaceFolder}/build/installed/libraries/bxdf/standard_surface.mtlx",
                 "--mesh",
-                "${workspaceFolder}/resources/Geometry/sphere.obj",
+                "${workspaceFolder}/build/installed/resources/Geometry/sphere.obj",
                 "--envRad",
-                "${workspaceFolder}/resources/Lights/san_giuseppe_bridge.hdr",
+                "${workspaceFolder}/build/installed/resources/Lights/san_giuseppe_bridge.hdr",
                 "--library",
                 "${workspaceFolder}/build/installed/libraries"
             ],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/build/bin/Debug",
+            "cwd": "${workspaceFolder}/build/installed/bin",
             "environment": [
                 {
                     "name": "MATERIALX_SEARCH_PATH",
