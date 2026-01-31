@@ -7,3 +7,6 @@
 [submodule "source/MaterialXGraphEditor/External/ImGuiNodeEditor"]
 	path = source/MaterialXGraphEditor/External/ImGuiNodeEditor
 	url = https://github.com/thedmd/imgui-node-editor
+[submodule "python/External/metashade"]
+	path = python/External/metashade
+	url = https://github.com/metashade/metashade.git
