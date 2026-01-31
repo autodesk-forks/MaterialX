@@ -2,15 +2,54 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch MaterialXView",
+            "name": "MaterialX Viewer Debug",
             "type": "cppvsdbg",
             "request": "launch",
             "program": "${workspaceFolder}/build/bin/Debug/MaterialXView.exe",
-            "args": [],
+            "args": [
+                "--material",
+                "${workspaceFolder}/build/installed/libraries/bxdf/standard_surface.mtlx",
+                "--mesh",
+                "${workspaceFolder}/resources/Geometry/sphere.obj",
+                "--envRad",
+                "${workspaceFolder}/resources/Lights/san_giuseppe_bridge.hdr",
+                "--library",
+                "${workspaceFolder}/build/installed/libraries"
+            ],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}/resources/Materials/Examples/StandardSurface",
-            "environment": [],
-            "console": "integratedTerminal"
+            "cwd": "${workspaceFolder}/build/bin/Debug",
+            "environment": [
+                {
+                    "name": "MATERIALX_SEARCH_PATH",
+                    "value": "${workspaceFolder}/build/installed/libraries"
+                },
+                {
+                    "name": "PYTHONPATH",
+                    "value": "${workspaceFolder}/python/External"
+                }
+            ],
+            "console": "internalConsole"
+        },
+        {
+            "name": "MaterialX Graph Editor Debug",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/bin/Debug/MaterialXGraphEditor.exe",
+            "args": [
+                "--library",
+                "${workspaceFolder}/build/installed/libraries",
+                "--library",
+                "${workspaceFolder}/python/External/metashade/tests/ref/mtlx"
+            ],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}/build/bin/Debug",
+            "environment": [
+                {
+                    "name": "PYTHONPATH",
+                    "value": "${workspaceFolder}/python/External"
+                }
+            ],
+            "console": "internalConsole"
         }
     ]
 }
