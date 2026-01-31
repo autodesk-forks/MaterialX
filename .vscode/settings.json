@@ -1,5 +1,8 @@
 {
     "cmake.sourceDirectory": "${workspaceFolder}",
+    "cmake.configureOnOpen": false,
+    "cmake.configureOnEdit": false,
+    "cmake.automaticReconfigure": false,
     "python.testing.pytestArgs": [
         "python/MaterialXTest"
     ],
