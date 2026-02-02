@@ -52,7 +52,7 @@ string CompoundNode::computePermutationKey(const InterfaceElement& element, GenC
     const NodeGraphTopology& topology = NodeGraphTopologyCache::instance().analyze(graph);
     
     // Compute and store permutation key based on constant input values
-    _permutationKey = NodeGraphTopologyCache::instance().computePermutationKey(topology, currentNode);
+    _permutationKey = topology.computePermutationKey(currentNode);
     return _permutationKey;
 }
 
@@ -65,7 +65,7 @@ StringSet CompoundNode::computeSkipNodes(const InterfaceElement& element, GenCon
 
     const NodeGraph& graph = static_cast<const NodeGraph&>(element);
     const NodeGraphTopology& topology = NodeGraphTopologyCache::instance().analyze(graph);
-    return NodeGraphTopologyCache::instance().getNodesToSkip(topology, _permutationKey);
+    return topology.getNodesToSkip(_permutationKey);
 }
 
 void CompoundNode::initialize(const InterfaceElement& element, GenContext& context)

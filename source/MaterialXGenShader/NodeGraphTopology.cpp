@@ -9,6 +9,8 @@
 #include <MaterialXCore/Document.h>
 #include <MaterialXCore/Library.h>
 
+#include <MaterialXTrace/Tracing.h>
+
 MATERIALX_NAMESPACE_BEGIN
 
 namespace
@@ -41,10 +43,11 @@ NodeGraphTopologyCache& NodeGraphTopologyCache::instance()
     return theInstance;
 }
 
-// TODO: Add MX_TRACE instrumentation to measure analysis overhead
 const NodeGraphTopology& NodeGraphTopologyCache::analyze(const NodeGraph& nodeGraph)
 {
+    MX_TRACE_FUNCTION(Tracing::Category::ShaderGen);
     const string& ngName = nodeGraph.getName();
+    MX_TRACE_SCOPE(Tracing::Category::ShaderGen, ngName.c_str());
 
     // Check cache first (with lock)
     {
@@ -296,10 +299,11 @@ void NodeGraphTopologyCache::collectUpstreamNodes(
     }
 }
 
-// TODO: Add MX_TRACE instrumentation to measure string operation overhead
-string NodeGraphTopologyCache::computePermutationKey(const NodeGraphTopology& topology, ConstNodePtr node) const
+string NodeGraphTopology::computePermutationKey(ConstNodePtr node) const
 {
-    if (topology.empty())
+    MX_TRACE_FUNCTION(Tracing::Category::ShaderGen);
+
+    if (empty())
     {
         return EMPTY_STRING;
     }
@@ -308,7 +312,7 @@ string NodeGraphTopologyCache::computePermutationKey(const NodeGraphTopology& to
     bool hasOptimization = false;
 
     // Iterate through topological inputs in sorted order (for stable keys)
-    for (const auto& pair : topology.topologicalInputs)
+    for (const auto& pair : topologicalInputs)
     {
         const string& inputName = pair.first;
         char flag = 'x';  // 'x' = not optimized (connected or intermediate value)
@@ -355,11 +359,10 @@ string NodeGraphTopologyCache::computePermutationKey(const NodeGraphTopology& to
     return hasOptimization ? key : EMPTY_STRING;
 }
 
-// TODO: Add MX_TRACE instrumentation to measure string parsing overhead
-StringSet NodeGraphTopologyCache::getNodesToSkip(
-    const NodeGraphTopology& topology,
-    const string& permutationKey) const
+StringSet NodeGraphTopology::getNodesToSkip(const string& permutationKey) const
 {
+    MX_TRACE_FUNCTION(Tracing::Category::ShaderGen);
+
     StringSet nodesToSkip;
 
     if (permutationKey.empty())
@@ -378,8 +381,8 @@ StringSet NodeGraphTopologyCache::getNodesToSkip(
         string inputName = permutationKey.substr(pos, eqPos - pos);
         char flag = permutationKey[eqPos + 1];
 
-        auto it = topology.topologicalInputs.find(inputName);
-        if (it != topology.topologicalInputs.end())
+        auto it = topologicalInputs.find(inputName);
+        if (it != topologicalInputs.end())
         {
             if (flag == '0')
             {

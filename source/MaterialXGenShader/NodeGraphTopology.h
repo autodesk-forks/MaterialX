@@ -21,9 +21,6 @@ MATERIALX_NAMESPACE_BEGIN
 /// Topology analysis result for a single NodeGraph.
 /// Identifies "topological" inputs - inputs that when constant (0 or 1)
 /// can eliminate entire branches of the graph.
-///
-/// TODO: Move computePermutationKey() and getNodesToSkip() from NodeGraphTopologyCache
-/// to this class - they operate on topology data and semantically belong here.
 class MX_GENSHADER_API NodeGraphTopology
 {
   public:
@@ -39,14 +36,21 @@ class MX_GENSHADER_API NodeGraphTopology
     std::map<string, TopologicalInput> topologicalInputs;  ///< Keyed by input name
     
     bool empty() const { return topologicalInputs.empty(); }
+
+    /// Compute a permutation key based on constant input values.
+    /// @param node The node instance (to read constant values from)
+    /// @return A string key like "coat=0,sheen=x" or empty if no optimization possible
+    string computePermutationKey(ConstNodePtr node) const;
+
+    /// Get the set of nodes to skip for a given permutation key.
+    /// @param permutationKey The key from computePermutationKey()
+    /// @return Set of node names that can be skipped
+    StringSet getNodesToSkip(const string& permutationKey) const;
 };
 
 /// @class NodeGraphTopologyCache
 /// Caches NodeGraphTopology analyses per NodeGraph definition.
 /// Thread-safe singleton for use during shader generation.
-///
-/// TODO: Add MX_TRACE instrumentation to analyze(), computePermutationKey(),
-/// and getNodesToSkip() to measure string operation overhead.
 class MX_GENSHADER_API NodeGraphTopologyCache
 {
   public:
@@ -66,18 +70,6 @@ class MX_GENSHADER_API NodeGraphTopologyCache
 
     /// Get cached topology for a NodeGraph, or nullptr if not analyzed.
     const NodeGraphTopology* getTopology(const string& nodeGraphName) const;
-
-    /// Compute a permutation key based on constant input values.
-    /// @param topology The topology for the NodeGraph
-    /// @param node The node instance (to read constant values from)
-    /// @return A string key like "coat=0,sheen=x" or empty if no optimization possible
-    string computePermutationKey(const NodeGraphTopology& topology, ConstNodePtr node) const;
-
-    /// Get the set of nodes to skip for a given permutation key.
-    /// @param topology The topology
-    /// @param permutationKey The key from computePermutationKey()
-    /// @return Set of node names that can be skipped
-    StringSet getNodesToSkip(const NodeGraphTopology& topology, const string& permutationKey) const;
 
     /// Clear the cache (mainly for testing)
     void clearCache();
