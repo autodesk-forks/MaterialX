@@ -412,4 +412,22 @@ void NodeGraphTopologyCache::clearCache()
     _cache.clear();
 }
 
+//
+// NodeGraphPermutation methods
+//
+
+NodeGraphPermutation::NodeGraphPermutation(const NodeGraphTopology& topology, ConstNodePtr node)
+{
+    MX_TRACE_FUNCTION(Tracing::Category::ShaderGen);
+
+    // Compute permutation key from topology + node's constant input values
+    _key = topology.computePermutationKey(node);
+
+    // Compute nodes to skip based on the permutation key
+    if (!_key.empty())
+    {
+        _skipNodes = topology.getNodesToSkip(_key);
+    }
+}
+
 MATERIALX_NAMESPACE_END

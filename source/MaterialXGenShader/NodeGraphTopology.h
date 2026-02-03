@@ -48,6 +48,34 @@ class MX_GENSHADER_API NodeGraphTopology
     StringSet getNodesToSkip(const string& permutationKey) const;
 };
 
+/// @class NodeGraphPermutation
+/// Represents a specific permutation of a NodeGraph based on call-site input values.
+/// Created from a shared NodeGraphTopology and a specific node instance.
+/// Lightweight object used for cache key computation before ShaderNodeImpl creation.
+class MX_GENSHADER_API NodeGraphPermutation
+{
+  public:
+    /// Construct a permutation from topology analysis and a node instance.
+    /// Computes the permutation key and skip nodes based on constant input values.
+    /// @param topology The shared topology analysis for this NodeGraph
+    /// @param node The node instance (call site) to read input values from
+    NodeGraphPermutation(const NodeGraphTopology& topology, ConstNodePtr node);
+
+    /// Return the permutation key (e.g., "coat=0,sheen=x").
+    /// Empty string means no optimization possible.
+    const string& getKey() const { return _key; }
+
+    /// Return the set of nodes to skip for this permutation.
+    const StringSet& getSkipNodes() const { return _skipNodes; }
+
+    /// Check if this permutation has any optimizations.
+    bool hasOptimizations() const { return !_skipNodes.empty(); }
+
+  private:
+    string _key;
+    StringSet _skipNodes;
+};
+
 /// @class NodeGraphTopologyCache
 /// Caches NodeGraphTopology analyses per NodeGraph definition.
 /// Thread-safe singleton for use during shader generation.

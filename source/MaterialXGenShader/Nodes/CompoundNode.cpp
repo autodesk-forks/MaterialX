@@ -5,7 +5,6 @@
 
 #include <MaterialXGenShader/Nodes/CompoundNode.h>
 #include <MaterialXGenShader/Exception.h>
-#include <MaterialXGenShader/NodeGraphTopology.h>
 #include <MaterialXGenShader/ShaderGenerator.h>
 #include <MaterialXGenShader/Util.h>
 
@@ -17,55 +16,20 @@
 
 MATERIALX_NAMESPACE_BEGIN
 
-ShaderNodeImplPtr CompoundNode::create()
+ShaderNodeImplPtr CompoundNode::create(std::unique_ptr<NodeGraphPermutation> permutation)
 {
-    return std::make_shared<CompoundNode>();
+    return std::shared_ptr<CompoundNode>(new CompoundNode(std::move(permutation)));
+}
+
+CompoundNode::CompoundNode(std::unique_ptr<NodeGraphPermutation> permutation) :
+    _permutation(std::move(permutation))
+{
 }
 
 void CompoundNode::addClassification(ShaderNode& node) const
 {
     // Add classification from the graph implementation.
     node.addClassification(_rootGraph->getClassification());
-}
-
-string CompoundNode::computePermutationKey(const InterfaceElement& element, GenContext& context)
-{
-    if (!element.isA<NodeGraph>())
-    {
-        _permutationKey = EMPTY_STRING;
-        return _permutationKey;
-    }
-
-    const NodeGraph& graph = static_cast<const NodeGraph&>(element);
-    
-    // Get the current node instance from context (if available)
-    const vector<ConstNodePtr>& parentNodes = context.getParentNodes();
-    if (parentNodes.empty())
-    {
-        _permutationKey = EMPTY_STRING;
-        return _permutationKey;
-    }
-
-    ConstNodePtr currentNode = parentNodes.back();
-    
-    // Analyze the NodeGraph topology (cached per NodeGraph definition)
-    const NodeGraphTopology& topology = NodeGraphTopologyCache::instance().analyze(graph);
-    
-    // Compute and store permutation key based on constant input values
-    _permutationKey = topology.computePermutationKey(currentNode);
-    return _permutationKey;
-}
-
-StringSet CompoundNode::computeSkipNodes(const InterfaceElement& element, GenContext& /*context*/) const
-{
-    if (_permutationKey.empty() || !element.isA<NodeGraph>())
-    {
-        return StringSet();
-    }
-
-    const NodeGraph& graph = static_cast<const NodeGraph&>(element);
-    const NodeGraphTopology& topology = NodeGraphTopologyCache::instance().analyze(graph);
-    return topology.getNodesToSkip(_permutationKey);
 }
 
 void CompoundNode::initialize(const InterfaceElement& element, GenContext& context)
@@ -85,6 +49,12 @@ void CompoundNode::initialize(const InterfaceElement& element, GenContext& conte
     _functionName = graph.getName();
     context.getShaderGenerator().getSyntax().makeValidName(_functionName);
 
+    // Set skip nodes from permutation (if any) for ShaderGraph construction
+    if (_permutation && _permutation->hasOptimizations())
+    {
+        context.setSkipNodes(_permutation->getSkipNodes());
+    }
+
     // For compounds we do not want to publish all internal inputs
     // so always use the reduced interface for this graph.
     const ShaderInterfaceType oldShaderInterfaceType = context.getOptions().shaderInterfaceType;
@@ -92,8 +62,12 @@ void CompoundNode::initialize(const InterfaceElement& element, GenContext& conte
     _rootGraph = ShaderGraph::create(nullptr, graph, context);
     context.getOptions().shaderInterfaceType = oldShaderInterfaceType;
 
-    // Hash includes function name and permutation key (already set via computePermutationKey)
-    _hash = std::hash<string>{}(_functionName + _permutationKey);
+    // Clear skip nodes after graph construction
+    context.clearSkipNodes();
+
+    // Hash includes function name and permutation key (if any)
+    const string& permKey = _permutation ? _permutation->getKey() : EMPTY_STRING;
+    _hash = std::hash<string>{}(_functionName + permKey);
 }
 
 void CompoundNode::createVariables(const ShaderNode&, GenContext& context, Shader& shader) const

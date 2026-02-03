@@ -6,6 +6,7 @@
 #include <MaterialXGenShader/ShaderGenerator.h>
 
 #include <MaterialXGenShader/GenContext.h>
+#include <MaterialXGenShader/NodeGraphTopology.h>
 #include <MaterialXGenShader/ShaderNodeImpl.h>
 #include <MaterialXGenShader/Nodes/CompoundNode.h>
 #include <MaterialXGenShader/Nodes/SourceCodeNode.h>
@@ -293,9 +294,11 @@ bool ShaderGenerator::implementationRegistered(const string& name) const
     return _implFactory.classRegistered(name);
 }
 
-ShaderNodeImplPtr ShaderGenerator::createShaderNodeImplForNodeGraph(const NodeGraph& /*nodegraph*/) const
+ShaderNodeImplPtr ShaderGenerator::createShaderNodeImplForNodeGraph(
+    const NodeGraph& /*nodegraph*/,
+    std::unique_ptr<NodeGraphPermutation> permutation) const
 {
-    return CompoundNode::create();
+    return CompoundNode::create(std::move(permutation));
 }
 
 ShaderNodeImplPtr ShaderGenerator::createShaderNodeImplForImplementation(const Implementation& /*implementation*/) const
@@ -316,11 +319,48 @@ ShaderNodeImplPtr ShaderGenerator::getImplementation(const NodeDef& nodedef, Gen
 
     const string& baseName = implElement->getName();
 
-    // Create the implementation (lightweight, not yet initialized)
+    // For NodeGraphs, compute permutation BEFORE creating ShaderNodeImpl
+    // This avoids creating an impl just to compute the cache key
+    std::unique_ptr<NodeGraphPermutation> permutation;
+
+    if (implElement->isA<NodeGraph>())
+    {
+        const NodeGraph& graph = *implElement->asA<NodeGraph>();
+
+        // Get the current node instance from context (if available)
+        const vector<ConstNodePtr>& parentNodes = context.getParentNodes();
+        if (!parentNodes.empty())
+        {
+            ConstNodePtr currentNode = parentNodes.back();
+
+            // Get shared topology (cached per NodeGraph definition)
+            const NodeGraphTopology& topology = NodeGraphTopologyCache::instance().analyze(graph);
+
+            // Create permutation for this specific call site
+            permutation = std::make_unique<NodeGraphPermutation>(topology, currentNode);
+        }
+    }
+
+    // Build cache key
+    string cacheKey = baseName;
+    if (permutation && !permutation->getKey().empty())
+    {
+        cacheKey = baseName + "_" + permutation->getKey();
+    }
+
+    // Check if it's created and cached already.
+    ShaderNodeImplPtr cachedImpl = context.findNodeImplementation(cacheKey);
+    if (cachedImpl)
+    {
+        return cachedImpl;
+    }
+
+    // Cache miss - create the implementation
     ShaderNodeImplPtr impl;
     if (implElement->isA<NodeGraph>())
     {
-        impl = createShaderNodeImplForNodeGraph(*implElement->asA<NodeGraph>());
+        // Pass permutation to CompoundNode (transfers ownership)
+        impl = createShaderNodeImplForNodeGraph(*implElement->asA<NodeGraph>(), std::move(permutation));
     }
     else if (implElement->isA<Implementation>())
     {
@@ -343,38 +383,7 @@ ShaderNodeImplPtr ShaderGenerator::getImplementation(const NodeDef& nodedef, Gen
         return nullptr;
     }
 
-    // Compute permutation key via virtual method (allows type-specific logic)
-    // This also stores the key in the impl for later use
-    string permutationKey = impl->computePermutationKey(*implElement, context);
-    
-    // Build cache key
-    string cacheKey = baseName;
-    if (!permutationKey.empty())
-    {
-        cacheKey = baseName + "_" + permutationKey;
-    }
-
-    // Check if it's created and cached already.
-    ShaderNodeImplPtr cachedImpl = context.findNodeImplementation(cacheKey);
-    if (cachedImpl)
-    {
-        // Discard the newly created impl and return the cached one
-        return cachedImpl;
-    }
-
-    // Compute skip nodes via virtual method (allows type-specific logic)
-    StringSet skipNodes = impl->computeSkipNodes(*implElement, context);
-
-    // Set skip nodes in context for ShaderGraph construction
-    if (!skipNodes.empty())
-    {
-        context.setSkipNodes(skipNodes);
-    }
-
     impl->initialize(*implElement, context);
-
-    // Clear skip nodes after initialization
-    context.clearSkipNodes();
 
     // Cache it with the permutation-aware key.
     context.addNodeImplementation(cacheKey, impl);

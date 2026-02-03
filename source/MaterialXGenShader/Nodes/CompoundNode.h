@@ -7,9 +7,12 @@
 #define MATERIALX_COMPOUNDNODE_H
 
 #include <MaterialXGenShader/GenContext.h>
+#include <MaterialXGenShader/NodeGraphTopology.h>
 #include <MaterialXGenShader/ShaderNodeImpl.h>
 #include <MaterialXGenShader/ShaderGraph.h>
 #include <MaterialXGenShader/Shader.h>
+
+#include <memory>
 
 MATERIALX_NAMESPACE_BEGIN
 
@@ -17,14 +20,9 @@ MATERIALX_NAMESPACE_BEGIN
 class MX_GENSHADER_API CompoundNode : public ShaderNodeImpl
 {
   public:
-    static ShaderNodeImplPtr create();
-
-    /// Compute permutation key based on NodeGraph topology analysis.
-    /// Identifies which branches can be pruned based on constant input values.
-    string computePermutationKey(const InterfaceElement& element, GenContext& context) override;
-
-    /// Compute nodes to skip based on the permutation key.
-    StringSet computeSkipNodes(const InterfaceElement& element, GenContext& context) const override;
+    /// Create a CompoundNode with a permutation (may be nullptr).
+    /// @param permutation The permutation for this instance (ownership transferred)
+    static ShaderNodeImplPtr create(std::unique_ptr<NodeGraphPermutation> permutation);
 
     void initialize(const InterfaceElement& element, GenContext& context) override;
 
@@ -38,9 +36,15 @@ class MX_GENSHADER_API CompoundNode : public ShaderNodeImpl
 
     ShaderGraph* getGraph() const override { return _rootGraph.get(); }
 
+    /// Return the permutation (if any) for this compound node.
+    const NodeGraphPermutation* getPermutation() const { return _permutation.get(); }
+
   protected:
+    explicit CompoundNode(std::unique_ptr<NodeGraphPermutation> permutation);
+
     ShaderGraphPtr _rootGraph;
     string _functionName;
+    std::unique_ptr<NodeGraphPermutation> _permutation;
 };
 
 MATERIALX_NAMESPACE_END

@@ -9,6 +9,7 @@
 #include <MaterialXGenHw/HwLightShaders.h>
 #include <MaterialXGenHw/Nodes/HwLightCompoundNode.h>
 #include <MaterialXGenShader/Exception.h>
+#include <MaterialXGenShader/NodeGraphTopology.h>
 #include <MaterialXGenShader/Nodes/CompoundNode.h>
 #include <MaterialXGenShader/GenContext.h>
 #include <MaterialXGenShader/Shader.h>
@@ -395,7 +396,9 @@ void HwShaderGenerator::addStageLightingUniforms(GenContext& context, ShaderStag
         numActiveLights->setValue(Value::createValue<int>(0));
     }
 }
-ShaderNodeImplPtr HwShaderGenerator::createShaderNodeImplForNodeGraph(const NodeGraph& nodegraph) const
+ShaderNodeImplPtr HwShaderGenerator::createShaderNodeImplForNodeGraph(
+    const NodeGraph& nodegraph,
+    std::unique_ptr<NodeGraphPermutation> permutation) const
 {
     vector<OutputPtr> outputs = nodegraph.getActiveOutputs();
     if (outputs.empty())
@@ -408,9 +411,10 @@ ShaderNodeImplPtr HwShaderGenerator::createShaderNodeImplForNodeGraph(const Node
     // Use a compound implementation.
     if (outputType == Type::LIGHTSHADER)
     {
+        // HwLightCompoundNode doesn't support permutations (light shaders don't have lobe weights)
         return HwLightCompoundNode::create();
     }
-    return CompoundNode::create();
+    return CompoundNode::create(std::move(permutation));
 }
 
 void HwShaderGenerator::emitClosureDataArg(const ShaderNode& node, GenContext& /*context*/, ShaderStage& stage) const

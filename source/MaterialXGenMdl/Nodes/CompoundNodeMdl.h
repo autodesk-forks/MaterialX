@@ -30,7 +30,8 @@ using GenUserDataStringPtr = std::shared_ptr<GenUserDataString>;
 class MX_GENMDL_API CompoundNodeMdl : public CompoundNode
 {
   public:
-    static ShaderNodeImplPtr create();
+    /// Create with permutation (may be nullptr).
+    static ShaderNodeImplPtr create(std::unique_ptr<NodeGraphPermutation> permutation);
 
     void initialize(const InterfaceElement& element, GenContext& context) override;
     void emitFunctionDefinition(const ShaderNode& node, GenContext& context, ShaderStage& stage) const override;
@@ -40,6 +41,8 @@ class MX_GENMDL_API CompoundNodeMdl : public CompoundNode
     bool unrollReturnStructMembers() const { return _unrollReturnStructMembers; }
 
   protected:
+    explicit CompoundNodeMdl(std::unique_ptr<NodeGraphPermutation> permutation);
+
     void emitFunctionSignature(const ShaderNode& node, GenContext& context, ShaderStage& stage) const;
 
     string _returnStruct;
