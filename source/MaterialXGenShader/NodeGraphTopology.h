@@ -21,6 +21,7 @@ MATERIALX_NAMESPACE_BEGIN
 /// Topology analysis result for a single NodeGraph.
 /// Identifies "topological" inputs - inputs that when constant (0 or 1)
 /// can eliminate entire branches of the graph.
+/// The analysis is performed in the constructor for better encapsulation.
 class MX_GENSHADER_API NodeGraphTopology
 {
   public:
@@ -32,10 +33,17 @@ class MX_GENSHADER_API NodeGraphTopology
         StringSet nodesAffectedAt1;    ///< Nodes to prune when value = 1
     };
 
-    string nodeGraphName;
-    std::map<string, TopologicalInput> topologicalInputs;  ///< Keyed by input name
+    /// Construct and analyze a NodeGraph's topology.
+    /// @param nodeGraph The NodeGraph to analyze
+    explicit NodeGraphTopology(const NodeGraph& nodeGraph);
+
+    /// Default constructor for empty topology (used internally)
+    NodeGraphTopology() = default;
+
+    const string& getNodeGraphName() const { return _nodeGraphName; }
+    const std::map<string, TopologicalInput>& getTopologicalInputs() const { return _topologicalInputs; }
     
-    bool empty() const { return topologicalInputs.empty(); }
+    bool empty() const { return _topologicalInputs.empty(); }
 
     /// Compute a permutation key based on constant input values.
     /// @param node The node instance (to read constant values from)
@@ -46,6 +54,26 @@ class MX_GENSHADER_API NodeGraphTopology
     /// @param permutationKey The key from computePermutationKey()
     /// @return Set of node names that can be skipped
     StringSet getNodesToSkip(const string& permutationKey) const;
+
+  private:
+    /// Check if an input qualifies as "topological" (can gate branches)
+    static bool isTopologicalInput(const InputPtr& input, const NodeDefPtr& nodeDef);
+
+    /// Analyze which nodes are affected when a mix/multiply/bsdf input is 0 or 1
+    void analyzeAffectedNodes(
+        const NodePtr& node,
+        const InputPtr& input,
+        TopologicalInput& topoInput,
+        const NodeGraph& nodeGraph);
+
+    /// Recursively find all upstream nodes from a given node
+    static void collectUpstreamNodes(
+        const string& nodeName,
+        const NodeGraph& nodeGraph,
+        StringSet& collected);
+
+    string _nodeGraphName;
+    std::map<string, TopologicalInput> _topologicalInputs;  ///< Keyed by input name
 };
 
 /// @class NodeGraphPermutation
@@ -79,6 +107,7 @@ class MX_GENSHADER_API NodeGraphPermutation
 /// @class NodeGraphTopologyCache
 /// Caches NodeGraphTopology analyses per NodeGraph definition.
 /// Thread-safe singleton for use during shader generation.
+/// The cache only manages storage/lookup; analysis logic lives in NodeGraphTopology.
 class MX_GENSHADER_API NodeGraphTopologyCache
 {
   public:
@@ -92,7 +121,7 @@ class MX_GENSHADER_API NodeGraphTopologyCache
     /// Get the global instance
     static NodeGraphTopologyCache& instance();
 
-    /// Analyze a NodeGraph and cache the result.
+    /// Get or create the topology for a NodeGraph.
     /// Returns the cached topology (creates if not present).
     const NodeGraphTopology& analyze(const NodeGraph& nodeGraph);
 
@@ -103,25 +132,6 @@ class MX_GENSHADER_API NodeGraphTopologyCache
     void clearCache();
 
   private:
-    /// Check if an input qualifies as "topological" (can gate branches)
-    bool isTopologicalInput(const InputPtr& input, const NodeDefPtr& nodeDef) const;
-
-    /// Analyze which nodes are affected when a mix/multiply/bsdf input is 0 or 1
-    void analyzeAffectedNodes(
-        const NodePtr& node,
-        const InputPtr& input,
-        NodeGraphTopology::TopologicalInput& topoInput,
-        const NodeGraph& nodeGraph) const;
-
-    /// Build reverse connection map for a NodeGraph
-    std::map<string, StringSet> buildReverseConnectionMap(const NodeGraph& nodeGraph) const;
-
-    /// Recursively find all upstream nodes from a given node
-    void collectUpstreamNodes(
-        const string& nodeName,
-        const NodeGraph& nodeGraph,
-        StringSet& collected) const;
-
     mutable std::mutex _cacheMutex;
     std::unordered_map<string, NodeGraphTopology> _cache;  ///< Keyed by NodeGraph name
 };
