@@ -337,7 +337,7 @@ ShaderNodeImplPtr ShaderGenerator::getImplementation(const NodeDef& nodedef, Gen
             const NodeGraphTopology& topology = NodeGraphTopologyCache::instance().analyze(graph);
 
             // Create permutation for this specific call site
-            permutation = std::make_unique<NodeGraphPermutation>(topology, currentNode);
+            permutation = std::make_unique<NodeGraphPermutation>(topology, *currentNode);
         }
     }
 

@@ -249,7 +249,7 @@ void NodeGraphTopology::collectUpstreamNodes(
     }
 }
 
-string NodeGraphTopology::computePermutationKey(ConstNodePtr node) const
+string NodeGraphTopology::computePermutationKey(const Node& node) const
 {
     MX_TRACE_FUNCTION(Tracing::Category::ShaderGen);
 
@@ -268,7 +268,7 @@ string NodeGraphTopology::computePermutationKey(ConstNodePtr node) const
         char flag = 'x';  // 'x' = not optimized (connected or intermediate value)
 
         // Check if this input is connected on the node instance
-        InputPtr nodeInput = node->getInput(inputName);
+        InputPtr nodeInput = node.getInput(inputName);
         if (nodeInput)
         {
             // If connected to another node, can't optimize
@@ -414,7 +414,7 @@ void NodeGraphTopologyCache::clearCache()
 // NodeGraphPermutation implementation
 //
 
-NodeGraphPermutation::NodeGraphPermutation(const NodeGraphTopology& topology, ConstNodePtr node)
+NodeGraphPermutation::NodeGraphPermutation(const NodeGraphTopology& topology, const Node& node)
 {
     MX_TRACE_FUNCTION(Tracing::Category::ShaderGen);
 

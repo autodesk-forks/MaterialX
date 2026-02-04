@@ -48,7 +48,7 @@ class MX_GENSHADER_API NodeGraphTopology
     /// Compute a permutation key based on constant input values.
     /// @param node The node instance (to read constant values from)
     /// @return A string key like "coat=0,sheen=x" or empty if no optimization possible
-    string computePermutationKey(ConstNodePtr node) const;
+    string computePermutationKey(const Node& node) const;
 
     /// Get the set of nodes to skip for a given permutation key.
     /// @param permutationKey The key from computePermutationKey()
@@ -87,7 +87,7 @@ class MX_GENSHADER_API NodeGraphPermutation
     /// Computes the permutation key and skip nodes based on constant input values.
     /// @param topology The shared topology analysis for this NodeGraph
     /// @param node The node instance (call site) to read input values from
-    NodeGraphPermutation(const NodeGraphTopology& topology, ConstNodePtr node);
+    NodeGraphPermutation(const NodeGraphTopology& topology, const Node& node);
 
     /// Return the permutation key (e.g., "coat=0,sheen=x").
     /// Empty string means no optimization possible.
