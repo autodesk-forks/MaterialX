@@ -31,7 +31,7 @@
          2 = run complete only.
          3 = run complete + reduced.
     -->
-    <input name="shaderInterfaces" type="integer" value="1" />
+    <input name="shaderInterfaces" type="integer" value="2" />
 
     <!-- Rendered image size if render validation test enabled -->
     <input name="renderSize" type="vector2" value="512, 512" />
@@ -59,12 +59,10 @@
     <input name="irradianceIBLPath" type="string" value="resources/Lights/irradiance/san_giuseppe_bridge.hdr" />
 
     <!-- List of extra library paths for generator and render tests -->
-    <!-- Load adsklib for Prism material node definitions (adsk:opaque, adsk:layered, etc.) -->
-    <input name="extraLibraryPaths" type="string" value="contrib/adsk/libraries/adsklib" />
+    <input name="extraLibraryPaths" type="string" value="" />
 
     <!-- List of document paths for render tests -->
-    <!-- Prism materials from USD test directory -->
-    <input name="renderTestPaths" type="string" value="C:/Users/penenkp/dev/USD/pxr/usdImaging/usdImagingGL/testenv.adsk/testUsdImagingGLPrismSubset" />
+    <input name="renderTestPaths" type="string" value="resources/Materials/Examples/StandardSurface,resources/Materials/TestSuite/stdlib/convolution,resources/Materials/TestSuite/stdlib/color_management,resources/Materials/TestSuite/stdlib/procedural,resources/Materials/TestSuite/pbrlib/surfaceshader,resources/Materials/TestSuite/nprlib,resources/Materials/TestSuite/pbrlib/bsdf" />
 
     <!-- Enable reference quality rendering.
          This option enables higher sample counts and supersampling in render tests,
@@ -79,31 +77,25 @@
          Supports absolute paths or paths relative to the test working directory.
          The directory will be created if it doesn't exist.
     -->
-    <input name="outputDirectory" type="string" value="C:/Users/penenkp/dev/TestAssets/Prism_MtlX_optimized" />
+    <input name="outputDirectory" type="string" value="" />
 
     <!-- Enable Perfetto tracing during render tests (requires MATERIALX_BUILD_TRACING).
          When enabled, generates .perfetto-trace files in outputDirectory.
          Default is false to avoid overhead when not profiling.
     -->
-    <input name="enableTracing" type="boolean" value="true" />
+    <input name="enableTracing" type="boolean" value="false" />
 
     <!-- Number of frames to render per material for GPU timing.
          Default is 1. Set higher (e.g., 5-10) for statistical validity.
          First frame often includes driver shader compilation overhead;
          analyze in Python to discard warmup frames and compute averages.
     -->
-    <input name="framesPerMaterial" type="integer" value="10" />
+    <input name="framesPerMaterial" type="integer" value="1" />
 
     <!-- Enable mix_bsdf to linear combination optimization (Lee's optimization).
          Transforms mix(A, B, weight) into add(A * (1-weight), B * weight) for BSDFs.
          Default is false. Enable to test optimization impact on GPU performance.
     -->
     <input name="optReplaceBsdfMixWithLinearCombination" type="boolean" value="false" />
-
-    <!-- Prune mix_bsdf nodes when mix factor is compile-time constant 0 or 1.
-         When mix=0, forwards background input; when mix=1, forwards foreground.
-         Eliminates dead branches in the shader graph. Default is false.
-    -->
-    <input name="optPruneMixBsdf" type="boolean" value="true" />
   </nodedef>
 </materialx>
