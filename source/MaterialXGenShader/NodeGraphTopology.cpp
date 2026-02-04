@@ -381,10 +381,17 @@ const NodeGraphTopology& NodeGraphTopologyCache::analyze(const NodeGraph& nodeGr
         }
     }
 
-    // Not in cache - create topology (analysis happens in constructor)
+    // Not in cache - create topology outside lock to allow parallel construction
+    // of *different* topologies. This creates a race where two threads may both
+    // construct a topology for the same NodeGraph. This is safe because:
+    // 1. emplace() won't overwrite - it returns the existing element if key exists
+    // 2. Topology construction is cheap (~0.03ms), so the wasted work is minimal
+    // If contention on the same NodeGraph becomes a problem, we could hold the
+    // lock during construction (serializing all constructions) or use per-key
+    // synchronization (e.g., std::shared_future).
     NodeGraphTopology topology(nodeGraph);
 
-    // Cache and return
+    // Cache and return (emplace returns existing element if another thread won the race)
     std::lock_guard<std::mutex> lock(_cacheMutex);
     auto result = _cache.emplace(ngName, std::move(topology));
     return result.first->second;
