@@ -249,22 +249,25 @@ void NodeGraphTopology::collectUpstreamNodes(
     }
 }
 
-string NodeGraphTopology::computePermutationKey(const Node& node) const
+std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const Node& node) const
 {
     MX_TRACE_FUNCTION(Tracing::Category::ShaderGen);
 
     if (empty())
     {
-        return EMPTY_STRING;
+        return nullptr;
     }
 
     string key;
+    StringSet skipNodes;
     bool hasOptimization = false;
 
     // Iterate through topological inputs in sorted order (for stable keys)
+    // Compute key and skip nodes in a single pass
     for (const auto& pair : _topologicalInputs)
     {
         const string& inputName = pair.first;
+        const TopologicalInput& topoInput = pair.second;
         char flag = 'x';  // 'x' = not optimized (connected or intermediate value)
 
         // Check if this input is connected on the node instance
@@ -284,19 +287,17 @@ string NodeGraphTopology::computePermutationKey(const Node& node) const
                 {
                     flag = '0';
                     hasOptimization = true;
+                    skipNodes.insert(topoInput.nodesAffectedAt0.begin(),
+                                     topoInput.nodesAffectedAt0.end());
                 }
                 else if (value == 1.0f)
                 {
                     flag = '1';
                     hasOptimization = true;
+                    skipNodes.insert(topoInput.nodesAffectedAt1.begin(),
+                                     topoInput.nodesAffectedAt1.end());
                 }
             }
-        }
-        else
-        {
-            // No input specified - use default from NodeDef
-            // For now, treat as 'x' (could look up default value)
-            flag = 'x';
         }
 
         if (!key.empty())
@@ -306,54 +307,13 @@ string NodeGraphTopology::computePermutationKey(const Node& node) const
         key += inputName + "=" + flag;
     }
 
-    return hasOptimization ? key : EMPTY_STRING;
-}
-
-StringSet NodeGraphTopology::getNodesToSkip(const string& permutationKey) const
-{
-    MX_TRACE_FUNCTION(Tracing::Category::ShaderGen);
-
-    StringSet nodesToSkip;
-
-    if (permutationKey.empty())
+    if (!hasOptimization)
     {
-        return nodesToSkip;
+        return nullptr;
     }
 
-    // Parse the permutation key and collect affected nodes
-    // Key format: "inputName=flag,inputName=flag,..."
-    size_t pos = 0;
-    while (pos < permutationKey.size())
-    {
-        size_t eqPos = permutationKey.find('=', pos);
-        if (eqPos == string::npos) break;
-
-        string inputName = permutationKey.substr(pos, eqPos - pos);
-        char flag = permutationKey[eqPos + 1];
-
-        auto it = _topologicalInputs.find(inputName);
-        if (it != _topologicalInputs.end())
-        {
-            if (flag == '0')
-            {
-                nodesToSkip.insert(
-                    it->second.nodesAffectedAt0.begin(),
-                    it->second.nodesAffectedAt0.end());
-            }
-            else if (flag == '1')
-            {
-                nodesToSkip.insert(
-                    it->second.nodesAffectedAt1.begin(),
-                    it->second.nodesAffectedAt1.end());
-            }
-        }
-
-        // Move to next entry
-        size_t commaPos = permutationKey.find(',', eqPos);
-        pos = (commaPos == string::npos) ? permutationKey.size() : commaPos + 1;
-    }
-
-    return nodesToSkip;
+    return std::unique_ptr<NodeGraphPermutation>(
+        new NodeGraphPermutation(std::move(key), std::move(skipNodes)));
 }
 
 //
@@ -408,24 +368,6 @@ void NodeGraphTopologyCache::clearCache()
 {
     std::lock_guard<std::mutex> lock(_cacheMutex);
     _cache.clear();
-}
-
-//
-// NodeGraphPermutation implementation
-//
-
-NodeGraphPermutation::NodeGraphPermutation(const NodeGraphTopology& topology, const Node& node)
-{
-    MX_TRACE_FUNCTION(Tracing::Category::ShaderGen);
-
-    // Compute permutation key from topology + node's constant input values
-    _key = topology.computePermutationKey(node);
-
-    // Compute nodes to skip based on the permutation key
-    if (!_key.empty())
-    {
-        _skipNodes = topology.getNodesToSkip(_key);
-    }
 }
 
 MATERIALX_NAMESPACE_END

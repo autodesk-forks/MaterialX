@@ -12,10 +12,14 @@
 #include <MaterialXCore/Node.h>
 
 #include <map>
+#include <memory>
 #include <mutex>
 #include <unordered_map>
 
 MATERIALX_NAMESPACE_BEGIN
+
+// Forward declaration
+class NodeGraphPermutation;
 
 /// @class NodeGraphTopology
 /// Topology analysis result for a single NodeGraph.
@@ -45,15 +49,11 @@ class MX_GENSHADER_API NodeGraphTopology
     
     bool empty() const { return _topologicalInputs.empty(); }
 
-    /// Compute a permutation key based on constant input values.
-    /// @param node The node instance (to read constant values from)
-    /// @return A string key like "coat=0,sheen=x" or empty if no optimization possible
-    string computePermutationKey(const Node& node) const;
-
-    /// Get the set of nodes to skip for a given permutation key.
-    /// @param permutationKey The key from computePermutationKey()
-    /// @return Set of node names that can be skipped
-    StringSet getNodesToSkip(const string& permutationKey) const;
+    /// Create a permutation for a specific node instance.
+    /// Computes the permutation key and skip nodes in a single pass.
+    /// @param node The node instance (call site) to read input values from
+    /// @return The permutation, or nullptr if no optimization is possible
+    std::unique_ptr<NodeGraphPermutation> createPermutation(const Node& node) const;
 
   private:
     /// Check if an input qualifies as "topological" (can gate branches)
@@ -78,19 +78,14 @@ class MX_GENSHADER_API NodeGraphTopology
 
 /// @class NodeGraphPermutation
 /// Represents a specific permutation of a NodeGraph based on call-site input values.
-/// Created from a shared NodeGraphTopology and a specific node instance.
+/// Created via NodeGraphTopology::createPermutation().
 /// Lightweight object used for cache key computation before ShaderNodeImpl creation.
 class MX_GENSHADER_API NodeGraphPermutation
 {
-  public:
-    /// Construct a permutation from topology analysis and a node instance.
-    /// Computes the permutation key and skip nodes based on constant input values.
-    /// @param topology The shared topology analysis for this NodeGraph
-    /// @param node The node instance (call site) to read input values from
-    NodeGraphPermutation(const NodeGraphTopology& topology, const Node& node);
+    friend class NodeGraphTopology;
 
+  public:
     /// Return the permutation key (e.g., "coat=0,sheen=x").
-    /// Empty string means no optimization possible.
     const string& getKey() const { return _key; }
 
     /// Return the set of nodes to skip for this permutation.
@@ -100,6 +95,10 @@ class MX_GENSHADER_API NodeGraphPermutation
     bool hasOptimizations() const { return !_skipNodes.empty(); }
 
   private:
+    /// Private constructor - use NodeGraphTopology::createPermutation() instead.
+    NodeGraphPermutation(string key, StringSet skipNodes)
+        : _key(std::move(key)), _skipNodes(std::move(skipNodes)) {}
+
     string _key;
     StringSet _skipNodes;
 };
