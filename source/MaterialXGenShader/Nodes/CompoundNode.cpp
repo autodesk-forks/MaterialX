@@ -49,21 +49,12 @@ void CompoundNode::initialize(const InterfaceElement& element, GenContext& conte
     _functionName = graph.getName();
     context.getShaderGenerator().getSyntax().makeValidName(_functionName);
 
-    // Set skip nodes from permutation (if any) for ShaderGraph construction
-    if (_permutation && _permutation->hasOptimizations())
-    {
-        context.setSkipNodes(_permutation->getSkipNodes());
-    }
-
     // For compounds we do not want to publish all internal inputs
     // so always use the reduced interface for this graph.
     const ShaderInterfaceType oldShaderInterfaceType = context.getOptions().shaderInterfaceType;
     context.getOptions().shaderInterfaceType = SHADER_INTERFACE_REDUCED;
-    _rootGraph = ShaderGraph::create(nullptr, graph, context);
+    _rootGraph = ShaderGraph::create(nullptr, graph, context, _permutation.get());
     context.getOptions().shaderInterfaceType = oldShaderInterfaceType;
-
-    // Clear skip nodes after graph construction
-    context.clearSkipNodes();
 
     // Hash includes function name and permutation key (if any)
     const string& permKey = _permutation ? _permutation->getKey() : EMPTY_STRING;
