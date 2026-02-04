@@ -253,7 +253,7 @@ std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const
 {
     MX_TRACE_FUNCTION(Tracing::Category::ShaderGen);
 
-    if (empty())
+    if (_topologicalInputs.empty())
     {
         return nullptr;
     }

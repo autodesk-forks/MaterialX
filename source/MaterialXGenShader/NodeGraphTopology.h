@@ -40,15 +40,7 @@ class MX_GENSHADER_API NodeGraphTopology
     /// Construct and analyze a NodeGraph's topology.
     /// @param nodeGraph The NodeGraph to analyze
     explicit NodeGraphTopology(const NodeGraph& nodeGraph);
-
-    /// Default constructor for empty topology (used internally)
-    NodeGraphTopology() = default;
-
-    const string& getNodeGraphName() const { return _nodeGraphName; }
-    const std::map<string, TopologicalInput>& getTopologicalInputs() const { return _topologicalInputs; }
     
-    bool empty() const { return _topologicalInputs.empty(); }
-
     /// Create a permutation for a specific node instance.
     /// Computes the permutation key and skip nodes in a single pass.
     /// @param node The node instance (call site) to read input values from
