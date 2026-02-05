@@ -26,7 +26,7 @@ analyzing both performance traces and rendered images.
 
 - **Performance traces**: Loads Perfetto `.perfetto-trace` files (requires `MATERIALX_BUILD_TRACING=ON`),
   computes timing deltas, identifies improvements and regressions
-- **Rendered images**: Pixel-wise RMSE comparison to detect visual differences
+- **Rendered images**: NVIDIA FLIP perceptual comparison (approximates human perception)
 - **Charts**: Generates bar charts showing before/after timing comparison
 
 ### Installation
@@ -35,8 +35,8 @@ analyzing both performance traces and rendered images.
 # Core dependencies
 pip install perfetto pandas matplotlib
 
-# For image comparison
-pip install pillow numpy
+# For image comparison (NVIDIA FLIP)
+pip install flip-evaluator
 ```
 
 ### Usage
@@ -68,7 +68,8 @@ python diff_test_results.py baseline/ optimized/ --csv results.csv
 | `--min-delta-ms` | Minimum absolute time difference to include (filters noise) |
 | `--chart`, `-c` | Output path for chart image (requires matplotlib) |
 | `--csv` | Export trace results to CSV file (requires pandas) |
-| `--image-threshold` | RMSE threshold for image differences (default: 0.001) |
+| `--image-threshold` | FLIP threshold for image differences (default: 0.05) |
+| `--ppd` | Pixels per degree for FLIP (default: 70) |
 | `--show-opt OPT_NAME` | Highlight materials affected by optimization |
 
 ### Optimization Tracking

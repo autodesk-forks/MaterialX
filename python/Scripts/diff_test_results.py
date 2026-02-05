@@ -4,7 +4,11 @@ Compare test results between baseline and optimized MaterialX test runs.
 
 This script supports comparing:
   - Performance traces (Perfetto .perfetto-trace files)
-  - Rendered images (PNG files)
+  - Rendered images using NVIDIA FLIP perceptual comparison
+
+FLIP (A Difference Evaluator for Alternating Images) approximates human
+perception of differences when flipping between images. A FLIP score of 0
+means identical, 1 means maximally different.
 
 Usage:
     python diff_test_results.py <baseline_dir> <optimized_dir> [options]
@@ -20,7 +24,7 @@ Examples:
     python diff_test_results.py ./baseline/ ./optimized/
 
     # With options
-    python diff_test_results.py ./baseline/ ./optimized/ --min-delta-ms 1.0 --image-threshold 0.001
+    python diff_test_results.py ./baseline/ ./optimized/ --min-delta-ms 1.0 --image-threshold 0.05
 '''
 
 import argparse
@@ -44,14 +48,13 @@ try:
 except ImportError:
     logger.debug('perfetto not found. Trace comparison disabled.')
 
-# Optional: PIL/numpy (for image comparison)
-_have_imaging = False
+# Optional: FLIP (for perceptual image comparison)
+_have_flip = False
 try:
-    from PIL import Image
-    import numpy as np
-    _have_imaging = True
+    import flip_evaluator as flip
+    _have_flip = True
 except ImportError:
-    logger.debug('PIL/numpy not found. Image comparison disabled.')
+    logger.debug('flip-evaluator not found. Install with: pip install flip-evaluator')
 
 # Optional: pandas (for CSV export and data aggregation)
 _have_pandas = False
@@ -554,61 +557,79 @@ def findImages(directory, pattern='**/*.png'):
     return list(directory.glob(pattern))
 
 
-def computeImageDiff(img1Path, img2Path):
+def computeImageDiff(img1Path, img2Path, ppd=70.0):
     '''
-    Compute difference metrics between two images.
+    Compute FLIP perceptual difference metrics between two images.
+    
+    FLIP (A Difference Evaluator for Alternating Images) is a perceptual
+    image comparison metric from NVIDIA that approximates human perception
+    of differences when flipping between images.
+    
+    Args:
+        img1Path: Path to reference (baseline) image
+        img2Path: Path to test (optimized) image
+        ppd: Pixels per degree (viewing distance). Default 70 assumes
+             a 0.7m viewing distance for a 1080p 24" monitor.
     
     Returns:
-        dict with keys: rmse, max_diff, pct_diff_pixels, identical
+        dict with keys: mean_flip, max_flip, pct_diff_pixels, identical
     '''
-    img1 = Image.open(img1Path).convert('RGB')
-    img2 = Image.open(img2Path).convert('RGB')
+    import numpy as np
     
-    # Check dimensions match
-    if img1.size != img2.size:
+    # FLIP evaluate() accepts file paths directly as strings
+    # Returns: (error_map, mean_error, params)
+    # error_map is HxWx3 if applyMagma=True (colored heatmap), HxW if False
+    try:
+        flipMap, meanFlip, _ = flip.evaluate(
+            str(img1Path),
+            str(img2Path),
+            "LDR",  # Low dynamic range (PNG images)
+            inputsRGB=True,
+            applyMagma=False,  # Get raw FLIP values, not colored heatmap
+            computeMeanError=True,
+            parameters={"ppd": ppd}
+        )
+    except Exception as e:
         return {
-            'error': f'Size mismatch: {img1.size} vs {img2.size}',
+            'error': str(e),
             'identical': False
         }
     
-    arr1 = np.array(img1, dtype=np.float32) / 255.0
-    arr2 = np.array(img2, dtype=np.float32) / 255.0
+    # flipMap is a numpy array with per-pixel FLIP values in [0, 1]
+    flipMap = np.array(flipMap)
     
-    diff = arr1 - arr2
+    # Maximum FLIP value
+    maxFlip = float(flipMap.max())
     
-    # Root Mean Square Error
-    rmse = np.sqrt(np.mean(diff ** 2))
-    
-    # Maximum absolute difference
-    maxDiff = np.max(np.abs(diff))
-    
-    # Percentage of pixels with any difference (above tiny threshold)
-    pixelDiffs = np.any(np.abs(diff) > 1e-6, axis=2)
-    pctDiffPixels = 100.0 * np.sum(pixelDiffs) / pixelDiffs.size
+    # Percentage of pixels with perceptible difference (FLIP > 0.01)
+    # 0.01 is a reasonable threshold for "just noticeable difference"
+    diffPixels = flipMap > 0.01
+    pctDiffPixels = 100.0 * diffPixels.sum() / diffPixels.size
     
     return {
-        'rmse': rmse,
-        'max_diff': maxDiff,
+        'mean_flip': float(meanFlip),
+        'max_flip': maxFlip,
         'pct_diff_pixels': pctDiffPixels,
-        'identical': rmse < 1e-10
+        'identical': meanFlip < 1e-6
     }
 
 
-def compareImages(baselineDir, optimizedDir, threshold=0.001):
+def compareImages(baselineDir, optimizedDir, threshold=0.05, ppd=70.0):
     '''
-    Compare all matching images between two directories.
+    Compare all matching images between two directories using FLIP.
     
     Args:
         baselineDir: Path to baseline images
         optimizedDir: Path to optimized images
-        threshold: RMSE threshold above which to report differences
+        threshold: FLIP threshold above which to report differences (default: 0.05)
+        ppd: Pixels per degree for FLIP calculation (default: 70)
         
     Returns:
         List of comparison results
     '''
-    if not _have_imaging:
-        logger.error('Cannot compare images: PIL/numpy not installed.')
-        logger.error('Install with: pip install pillow numpy')
+    if not _have_flip:
+        logger.error('Cannot compare images: flip-evaluator not installed.')
+        logger.error('Install with: pip install flip-evaluator')
         return None
 
     baselineDir = Path(baselineDir)
@@ -632,7 +653,7 @@ def compareImages(baselineDir, optimizedDir, threshold=0.001):
             continue
         
         matched += 1
-        metrics = computeImageDiff(baselineImg, optimizedImg)
+        metrics = computeImageDiff(baselineImg, optimizedImg, ppd)
         metrics['name'] = relPath.stem
         metrics['path'] = str(relPath)
         results.append(metrics)
@@ -641,21 +662,21 @@ def compareImages(baselineDir, optimizedDir, threshold=0.001):
     return results
 
 
-def printImageTable(results, threshold=0.001):
-    '''Print a formatted image comparison table.'''
+def printImageTable(results, threshold=0.05):
+    '''Print a formatted FLIP image comparison table.'''
     if results is None:
         return False
         
     print('\n' + '=' * 85)
-    print(f"{'Image':<40} {'RMSE':>10} {'Max Diff':>10} {'% Diff':>10} {'Status':>8}")
+    print(f"{'Image':<40} {'Mean FLIP':>10} {'Max FLIP':>10} {'% Diff':>10} {'Status':>8}")
     print('=' * 85)
     
     identical = 0
     different = 0
     errors = 0
     
-    # Sort by RMSE (highest first)
-    sortedResults = sorted(results, key=lambda x: x.get('rmse', 0), reverse=True)
+    # Sort by mean FLIP (highest first)
+    sortedResults = sorted(results, key=lambda x: x.get('mean_flip', 0), reverse=True)
     
     for r in sortedResults:
         name = r['name'][:38]
@@ -665,25 +686,25 @@ def printImageTable(results, threshold=0.001):
             errors += 1
             continue
             
-        rmse = r['rmse']
-        maxDiff = r['max_diff']
+        meanFlip = r['mean_flip']
+        maxFlip = r['max_flip']
         pctDiff = r['pct_diff_pixels']
         
         if r['identical']:
             status = 'OK'
             identical += 1
-        elif rmse < threshold:
+        elif meanFlip < threshold:
             status = 'OK'
             identical += 1
         else:
             status = 'DIFF'
             different += 1
         
-        print(f"{name:<40} {rmse:>10.6f} {maxDiff:>10.4f} {pctDiff:>9.2f}% {status:>8}")
+        print(f"{name:<40} {meanFlip:>10.6f} {maxFlip:>10.4f} {pctDiff:>9.2f}% {status:>8}")
     
     print('=' * 85)
-    print(f'\nImage Summary: {identical} identical, {different} different, {errors} errors')
-    print(f'Threshold: RMSE < {threshold}')
+    print(f'\nImage Summary (FLIP): {identical} identical, {different} different, {errors} errors')
+    print(f'Threshold: mean FLIP < {threshold}')
     
     if different > 0:
         print(f'\n*** WARNING: {different} images differ above threshold! ***')
@@ -733,10 +754,12 @@ Examples:
     traceGroup.add_argument('--show-opt', type=str, metavar='OPT_NAME',
                             help='Highlight materials affected by optimization pass')
     
-    # Image options
+    # Image options (FLIP perceptual comparison)
     imageGroup = parser.add_argument_group('image options')
-    imageGroup.add_argument('--image-threshold', type=float, default=0.001,
-                            help='RMSE threshold for image differences (default: 0.001)')
+    imageGroup.add_argument('--image-threshold', type=float, default=0.05,
+                            help='FLIP threshold for image differences (default: 0.05)')
+    imageGroup.add_argument('--ppd', type=float, default=70.0,
+                            help='Pixels per degree for FLIP (default: 70, ~0.7m from 24" 1080p)')
     
     # Output options
     outputGroup = parser.add_argument_group('output options')
@@ -799,17 +822,18 @@ Examples:
                         logger.error('Cannot export CSV: pandas not installed.')
 
         # -------------------------
-        # Image Comparison
+        # Image Comparison (FLIP)
         # -------------------------
         if doImages:
             print('\n' + '=' * 85)
-            print('RENDERED IMAGE COMPARISON')
+            print('RENDERED IMAGE COMPARISON (FLIP)')
             print('=' * 85)
             
-            if not _have_imaging:
-                logger.warning('Skipping images: PIL/numpy not installed (pip install pillow numpy)')
+            if not _have_flip:
+                logger.warning('Skipping images: flip-evaluator not installed (pip install flip-evaluator)')
             else:
-                imageResults = compareImages(args.baseline, args.optimized, args.image_threshold)
+                imageResults = compareImages(args.baseline, args.optimized, 
+                                             args.image_threshold, args.ppd)
                 imagesMatch = printImageTable(imageResults, args.image_threshold)
                 if not imagesMatch:
                     allPassed = False
