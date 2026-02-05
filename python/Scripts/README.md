@@ -56,6 +56,9 @@ python diff_test_results.py baseline/ optimized/ --min-delta-ms 1 --chart chart.
 
 # Export trace results to CSV
 python diff_test_results.py baseline/ optimized/ --csv results.csv
+
+# Generate HTML report with side-by-side images and FLIP heatmaps
+python diff_test_results.py baseline/ optimized/ --report report.html
 ```
 
 ### Options
@@ -71,6 +74,7 @@ python diff_test_results.py baseline/ optimized/ --csv results.csv
 | `--image-threshold` | FLIP threshold for image differences (default: 0.05) |
 | `--ppd` | Pixels per degree for FLIP (default: 70) |
 | `--show-opt OPT_NAME` | Highlight materials affected by optimization |
+| `--report PATH` | Generate HTML report with side-by-side image comparison |
 
 ### Optimization Tracking
 

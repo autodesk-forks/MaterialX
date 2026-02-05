@@ -557,7 +557,7 @@ def findImages(directory, pattern='**/*.png'):
     return list(directory.glob(pattern))
 
 
-def computeImageDiff(img1Path, img2Path, ppd=70.0):
+def computeImageDiff(img1Path, img2Path, ppd=70.0, heatmapPath=None):
     '''
     Compute FLIP perceptual difference metrics between two images.
     
@@ -570,9 +570,10 @@ def computeImageDiff(img1Path, img2Path, ppd=70.0):
         img2Path: Path to test (optimized) image
         ppd: Pixels per degree (viewing distance). Default 70 assumes
              a 0.7m viewing distance for a 1080p 24" monitor.
+        heatmapPath: Optional path to save FLIP heatmap image (magma colormap)
     
     Returns:
-        dict with keys: mean_flip, max_flip, pct_diff_pixels, identical
+        dict with keys: mean_flip, max_flip, pct_diff_pixels, identical, heatmap_path
     '''
     import numpy as np
     
@@ -585,7 +586,7 @@ def computeImageDiff(img1Path, img2Path, ppd=70.0):
             str(img2Path),
             "LDR",  # Low dynamic range (PNG images)
             inputsRGB=True,
-            applyMagma=False,  # Get raw FLIP values, not colored heatmap
+            applyMagma=False,  # Get raw FLIP values for metrics
             computeMeanError=True,
             parameters={"ppd": ppd}
         )
@@ -606,15 +607,41 @@ def computeImageDiff(img1Path, img2Path, ppd=70.0):
     diffPixels = flipMap > 0.01
     pctDiffPixels = 100.0 * diffPixels.sum() / diffPixels.size
     
-    return {
+    result = {
         'mean_flip': float(meanFlip),
         'max_flip': maxFlip,
         'pct_diff_pixels': pctDiffPixels,
-        'identical': meanFlip < 1e-6
+        'identical': meanFlip < 1e-6,
+        'heatmap_path': None
     }
+    
+    # Save heatmap if requested
+    if heatmapPath:
+        try:
+            # Re-run with magma colormap for visualization
+            heatmapImg, _, _ = flip.evaluate(
+                str(img1Path),
+                str(img2Path),
+                "LDR",
+                inputsRGB=True,
+                applyMagma=True,  # Get colored heatmap
+                computeMeanError=False,
+                parameters={"ppd": ppd}
+            )
+            # Save as PNG
+            from PIL import Image
+            heatmapArr = np.array(heatmapImg)
+            if heatmapArr.max() <= 1.0:
+                heatmapArr = (heatmapArr * 255).astype(np.uint8)
+            Image.fromarray(heatmapArr).save(heatmapPath)
+            result['heatmap_path'] = str(heatmapPath)
+        except Exception as e:
+            logger.warning(f'Failed to save heatmap: {e}')
+    
+    return result
 
 
-def compareImages(baselineDir, optimizedDir, threshold=0.05, ppd=70.0):
+def compareImages(baselineDir, optimizedDir, threshold=0.05, ppd=70.0, reportDir=None):
     '''
     Compare all matching images between two directories using FLIP.
     
@@ -623,9 +650,10 @@ def compareImages(baselineDir, optimizedDir, threshold=0.05, ppd=70.0):
         optimizedDir: Path to optimized images
         threshold: FLIP threshold above which to report differences (default: 0.05)
         ppd: Pixels per degree for FLIP calculation (default: 70)
+        reportDir: Optional directory to save FLIP heatmaps for HTML report
         
     Returns:
-        List of comparison results
+        List of comparison results with paths for report generation
     '''
     if not _have_flip:
         logger.error('Cannot compare images: flip-evaluator not installed.')
@@ -634,6 +662,12 @@ def compareImages(baselineDir, optimizedDir, threshold=0.05, ppd=70.0):
 
     baselineDir = Path(baselineDir)
     optimizedDir = Path(optimizedDir)
+    
+    # Create heatmap directory if generating report
+    heatmapDir = None
+    if reportDir:
+        heatmapDir = Path(reportDir) / 'heatmaps'
+        heatmapDir.mkdir(parents=True, exist_ok=True)
     
     baselineImages = findImages(baselineDir)
     logger.info(f'Found {len(baselineImages)} images in baseline')
@@ -653,9 +687,18 @@ def compareImages(baselineDir, optimizedDir, threshold=0.05, ppd=70.0):
             continue
         
         matched += 1
-        metrics = computeImageDiff(baselineImg, optimizedImg, ppd)
+        
+        # Determine heatmap path if saving for report
+        heatmapPath = None
+        if heatmapDir:
+            heatmapPath = heatmapDir / f'{relPath.stem}_flip.png'
+        
+        metrics = computeImageDiff(baselineImg, optimizedImg, ppd, heatmapPath)
         metrics['name'] = relPath.stem
         metrics['path'] = str(relPath)
+        # Store absolute paths for HTML report
+        metrics['baseline_path'] = str(baselineImg.absolute())
+        metrics['optimized_path'] = str(optimizedImg.absolute())
         results.append(metrics)
     
     logger.info(f'Compared {matched} image pairs, {missing} missing')
@@ -715,6 +758,233 @@ def printImageTable(results, threshold=0.05):
 
 
 # =============================================================================
+# HTML REPORT GENERATION
+# =============================================================================
+
+def generateHtmlReport(reportPath, traceData=None, imageResults=None, 
+                       chartPath=None, threshold=0.05):
+    '''
+    Generate an HTML report with performance chart and image comparisons.
+    
+    Args:
+        reportPath: Path to output HTML file
+        traceData: Trace comparison results (DataFrame or list of dicts)
+        imageResults: Image comparison results from compareImages()
+        chartPath: Path to performance chart image (optional)
+        threshold: FLIP threshold used for pass/fail
+    '''
+    reportPath = Path(reportPath)
+    reportDir = reportPath.parent
+    reportDir.mkdir(parents=True, exist_ok=True)
+    
+    # Convert paths to be relative to report directory for portability
+    def relPath(absPath):
+        if absPath is None:
+            return None
+        try:
+            return str(Path(absPath).relative_to(reportDir))
+        except ValueError:
+            # Path is not relative to report dir, use absolute with file:// prefix
+            return 'file:///' + str(Path(absPath)).replace('\\', '/')
+    
+    html = []
+    html.append('''<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MaterialX Test Comparison Report</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0; padding: 20px; background: #f5f5f5;
+        }
+        .container { max-width: 1800px; margin: 0 auto; }
+        h1, h2 { color: #333; }
+        h1 { border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+        
+        /* Summary cards */
+        .summary { display: flex; gap: 20px; margin-bottom: 30px; flex-wrap: wrap; }
+        .card { 
+            background: white; border-radius: 8px; padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1); flex: 1; min-width: 200px;
+        }
+        .card h3 { margin: 0 0 10px 0; color: #666; font-size: 14px; text-transform: uppercase; }
+        .card .value { font-size: 32px; font-weight: bold; }
+        .card .value.good { color: #27ae60; }
+        .card .value.bad { color: #e74c3c; }
+        .card .value.neutral { color: #3498db; }
+        
+        /* Chart */
+        .chart-container { background: white; border-radius: 8px; padding: 20px; margin-bottom: 30px; }
+        .chart-container img { max-width: 100%; height: auto; }
+        
+        /* Trace table */
+        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
+        th { background: #3498db; color: white; }
+        tr:hover { background: #f8f9fa; }
+        .improved { color: #27ae60; }
+        .regressed { color: #e74c3c; }
+        
+        /* Image comparison grid */
+        .image-grid { display: grid; gap: 20px; }
+        .image-row {
+            display: grid; grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px; background: white; border-radius: 8px; padding: 15px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .image-row.failed { border-left: 4px solid #e74c3c; }
+        .image-row.passed { border-left: 4px solid #27ae60; }
+        .image-cell { text-align: center; }
+        .image-cell img { max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 4px; }
+        .image-cell .label { font-size: 12px; color: #666; margin-top: 5px; }
+        .image-header { 
+            grid-column: 1 / -1; display: flex; justify-content: space-between;
+            align-items: center; padding-bottom: 10px; border-bottom: 1px solid #eee;
+        }
+        .image-header h3 { margin: 0; }
+        .image-header .metrics { font-size: 14px; color: #666; }
+        .status-badge {
+            display: inline-block; padding: 4px 12px; border-radius: 20px;
+            font-size: 12px; font-weight: bold;
+        }
+        .status-badge.pass { background: #d4edda; color: #155724; }
+        .status-badge.fail { background: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>MaterialX Test Comparison Report</h1>
+''')
+    
+    # Summary cards
+    traceImproved = 0
+    traceRegressed = 0
+    imgPassed = 0
+    imgFailed = 0
+    
+    if traceData is not None:
+        if _have_pandas and hasattr(traceData, 'iterrows'):
+            traceImproved = len(traceData[traceData['change_pct'] < 0])
+            traceRegressed = len(traceData[traceData['change_pct'] > 0])
+        else:
+            traceImproved = sum(1 for r in traceData if r.get('change_pct', 0) and r['change_pct'] < 0)
+            traceRegressed = sum(1 for r in traceData if r.get('change_pct', 0) and r['change_pct'] > 0)
+    
+    if imageResults:
+        for r in imageResults:
+            if 'error' not in r:
+                if r['identical'] or r['mean_flip'] < threshold:
+                    imgPassed += 1
+                else:
+                    imgFailed += 1
+    
+    html.append(f'''
+    <div class="summary">
+        <div class="card">
+            <h3>Trace Improvements</h3>
+            <div class="value good">{traceImproved}</div>
+        </div>
+        <div class="card">
+            <h3>Trace Regressions</h3>
+            <div class="value {'bad' if traceRegressed > 0 else 'neutral'}">{traceRegressed}</div>
+        </div>
+        <div class="card">
+            <h3>Images Passed</h3>
+            <div class="value good">{imgPassed}</div>
+        </div>
+        <div class="card">
+            <h3>Images Failed</h3>
+            <div class="value {'bad' if imgFailed > 0 else 'neutral'}">{imgFailed}</div>
+        </div>
+    </div>
+''')
+    
+    # Performance chart
+    if chartPath and Path(chartPath).exists():
+        chartRel = relPath(chartPath)
+        html.append(f'''
+    <h2>Performance Comparison</h2>
+    <div class="chart-container">
+        <img src="{chartRel}" alt="Performance Chart">
+    </div>
+''')
+    
+    # Image comparisons
+    if imageResults:
+        html.append('''
+    <h2>Image Comparisons (FLIP)</h2>
+    <p>FLIP score: 0 = identical, 1 = maximally different. Threshold: ''' + f'{threshold}' + '''</p>
+    <div class="image-grid">
+''')
+        # Sort by mean_flip descending (worst first)
+        sortedImages = sorted(imageResults, key=lambda x: x.get('mean_flip', 0), reverse=True)
+        
+        for r in sortedImages:
+            if 'error' in r:
+                continue
+            
+            passed = r['identical'] or r['mean_flip'] < threshold
+            statusClass = 'passed' if passed else 'failed'
+            statusBadge = 'pass' if passed else 'fail'
+            statusText = 'PASS' if passed else 'FAIL'
+            
+            baselineRel = relPath(r.get('baseline_path'))
+            optimizedRel = relPath(r.get('optimized_path'))
+            heatmapRel = relPath(r.get('heatmap_path'))
+            
+            html.append(f'''
+        <div class="image-row {statusClass}">
+            <div class="image-header">
+                <h3>{r['name']}</h3>
+                <div class="metrics">
+                    Mean FLIP: {r['mean_flip']:.4f} | Max: {r['max_flip']:.4f} | {r['pct_diff_pixels']:.1f}% pixels differ
+                    <span class="status-badge {statusBadge}">{statusText}</span>
+                </div>
+            </div>
+            <div class="image-cell">
+                <img src="{baselineRel}" alt="Baseline">
+                <div class="label">Baseline</div>
+            </div>
+            <div class="image-cell">
+                <img src="{optimizedRel}" alt="Optimized">
+                <div class="label">Optimized</div>
+            </div>
+            <div class="image-cell">
+''')
+            if heatmapRel:
+                html.append(f'''                <img src="{heatmapRel}" alt="FLIP Heatmap">
+                <div class="label">FLIP Heatmap</div>
+''')
+            else:
+                html.append('''                <div style="padding: 50px; color: #999;">No heatmap</div>
+''')
+            html.append('''            </div>
+        </div>
+''')
+        
+        html.append('    </div>\n')
+    
+    # Footer
+    html.append('''
+    <footer style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px;">
+        Generated by diff_test_results.py | NVIDIA FLIP for perceptual image comparison
+    </footer>
+</div>
+</body>
+</html>
+''')
+    
+    # Write HTML file
+    with open(reportPath, 'w', encoding='utf-8') as f:
+        f.write(''.join(html))
+    
+    logger.info(f'HTML report saved to: {reportPath}')
+
+
+# =============================================================================
 # MAIN ENTRY POINT
 # =============================================================================
 
@@ -767,6 +1037,8 @@ Examples:
                              help='Export trace results to CSV file')
     outputGroup.add_argument('--title', type=str,
                              help='Custom title for the chart')
+    outputGroup.add_argument('--report', type=Path,
+                             help='Generate HTML report with side-by-side image comparison')
 
     args = parser.parse_args()
 
@@ -775,6 +1047,19 @@ Examples:
     doImages = args.images or (not args.traces and not args.images)
     
     allPassed = True
+    traceData = None
+    imageResults = None
+    chartPath = None
+    
+    # Determine report directory for saving heatmaps
+    reportDir = None
+    if args.report:
+        reportDir = args.report.parent
+        # If generating report, auto-generate chart if not specified
+        if not args.chart:
+            chartPath = reportDir / 'chart.png'
+        else:
+            chartPath = args.chart
 
     try:
         # -------------------------
@@ -807,8 +1092,10 @@ Examples:
                 
                 printTraceTable(traceData, optimizedMaterials)
 
-                if args.chart and traceData is not None:
-                    createTraceChart(traceData, args.chart, title=args.title,
+                # Generate chart (for report or if explicitly requested)
+                actualChartPath = chartPath or args.chart
+                if actualChartPath and traceData is not None:
+                    createTraceChart(traceData, actualChartPath, title=args.title,
                                      minDeltaMs=args.min_delta_ms,
                                      optimizedMaterials=optimizedMaterials,
                                      optimizationName=args.show_opt)
@@ -833,10 +1120,23 @@ Examples:
                 logger.warning('Skipping images: flip-evaluator not installed (pip install flip-evaluator)')
             else:
                 imageResults = compareImages(args.baseline, args.optimized, 
-                                             args.image_threshold, args.ppd)
+                                             args.image_threshold, args.ppd,
+                                             reportDir=reportDir)
                 imagesMatch = printImageTable(imageResults, args.image_threshold)
                 if not imagesMatch:
                     allPassed = False
+
+        # -------------------------
+        # HTML Report Generation
+        # -------------------------
+        if args.report:
+            generateHtmlReport(
+                args.report,
+                traceData=traceData,
+                imageResults=imageResults,
+                chartPath=chartPath,
+                threshold=args.image_threshold
+            )
 
         # -------------------------
         # Final Summary
