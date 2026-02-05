@@ -323,7 +323,7 @@ ShaderNodeImplPtr ShaderGenerator::getImplementation(const NodeDef& nodedef, Gen
     // This avoids creating an impl just to compute the cache key
     std::unique_ptr<NodeGraphPermutation> permutation;
 
-    if (implElement->isA<NodeGraph>())
+    if (context.getOptions().optEarlyPruning && implElement->isA<NodeGraph>())
     {
         const NodeGraph& graph = *implElement->asA<NodeGraph>();
 

@@ -98,6 +98,7 @@ class MX_GENSHADER_API GenOptions
         hwImplicitBitangents(true),
         optReplaceBsdfMixWithLinearCombination(false),
         optPruneMixBsdf(false),
+        optEarlyPruning(false),
         optDumpShaderGraphDot(false),
         optMaxPassIterations(10),
         oslImplicitSurfaceShaderConversion(true),
@@ -216,6 +217,16 @@ class MX_GENSHADER_API GenOptions
     /// When mix=0, forwards the background input; when mix=1, forwards the foreground.
     /// This eliminates dead branches in the shader graph.
     bool optPruneMixBsdf;
+
+    /// Enable early pruning during ShaderGraph construction.
+    /// When enabled, performs topology analysis on NodeGraphs to identify
+    /// "permutation-defining" inputs (e.g., mix weights). If these inputs
+    /// are constant 0 or 1 at a call site, the corresponding dead branches
+    /// are skipped during ShaderGraph creation, avoiding unnecessary node
+    /// instantiation. This is more efficient than post-creation pruning
+    /// but creates more ShaderNodeImpl permutations.
+    /// Defaults to false.
+    bool optEarlyPruning;
 
     /// Enable dumping shader graph DOT files during optimization.
     /// When enabled, generates .dot files before/after each optimization pass.

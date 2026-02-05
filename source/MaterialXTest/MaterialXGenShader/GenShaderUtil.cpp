@@ -1009,6 +1009,7 @@ void TestSuiteOptions::print(std::ostream& output) const
     output << "\tFrames Per Material: " << framesPerMaterial << std::endl;
     output << "\toptReplaceBsdfMixWithLinearCombination: " << optReplaceBsdfMixWithLinearCombination << std::endl;
     output << "\toptPruneMixBsdf: " << optPruneMixBsdf << std::endl;
+    output << "\toptEarlyPruning: " << optEarlyPruning << std::endl;
 }
 
 bool TestSuiteOptions::readOptions(const std::string& optionFile)
@@ -1039,6 +1040,7 @@ bool TestSuiteOptions::readOptions(const std::string& optionFile)
     const std::string FRAMES_PER_MATERIAL_STRING("framesPerMaterial");
     const std::string OPT_REPLACE_BSDF_MIX_STRING("optReplaceBsdfMixWithLinearCombination");
     const std::string OPT_PRUNE_MIX_BSDF_STRING("optPruneMixBsdf");
+    const std::string OPT_EARLY_PRUNING_STRING("optEarlyPruning");
 
     overrideFiles.clear();
     dumpGeneratedCode = false;
@@ -1166,6 +1168,10 @@ bool TestSuiteOptions::readOptions(const std::string& optionFile)
                     else if (name == OPT_PRUNE_MIX_BSDF_STRING)
                     {
                         optPruneMixBsdf = val->asA<bool>();
+                    }
+                    else if (name == OPT_EARLY_PRUNING_STRING)
+                    {
+                        optEarlyPruning = val->asA<bool>();
                     }
                 }
             }

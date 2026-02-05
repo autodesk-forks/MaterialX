@@ -138,6 +138,9 @@ class TestSuiteOptions
     // Prune mix_bsdf nodes when mix factor is compile-time constant 0 or 1.
     bool optPruneMixBsdf = false;
 
+    // Enable early pruning during ShaderGraph construction.
+    bool optEarlyPruning = false;
+
     // Helper to resolve output path for an artifact.
     // If outputDirectory is set, returns outputDirectory/filename.
     // Otherwise returns the original path unchanged.

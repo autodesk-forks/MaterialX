@@ -42,6 +42,7 @@ void ShaderRenderTester::getGenerationOptions(const GenShaderUtil::TestSuiteOpti
     auto applyOptimizationFlags = [&testOptions](mx::GenOptions& genOptions) {
         genOptions.optReplaceBsdfMixWithLinearCombination = testOptions.optReplaceBsdfMixWithLinearCombination;
         genOptions.optPruneMixBsdf = testOptions.optPruneMixBsdf;
+        genOptions.optEarlyPruning = testOptions.optEarlyPruning;
     };
 
     optionsList.clear();
