@@ -1,29 +1,26 @@
 #!/usr/bin/env python
 '''
-Compare performance data between two Perfetto trace files.
+Compare test results between baseline and optimized MaterialX test runs.
 
-This script analyzes trace data from MaterialX performance tests, comparing
-baseline and optimized runs to identify improvements and regressions.
+This script supports comparing:
+  - Performance traces (Perfetto .perfetto-trace files)
+  - Rendered images (PNG files)
 
 Usage:
-    python comparetraces.py <baseline> <optimized> [options]
-
-Arguments can be either:
-  - Direct paths to .perfetto-trace files
-  - Directories (will search for *.perfetto-trace files)
+    python diff_test_results.py <baseline_dir> <optimized_dir> [options]
 
 Examples:
-    # Compare two trace files directly
-    python comparetraces.py baseline.perfetto-trace optimized.perfetto-trace
+    # Compare traces only
+    python diff_test_results.py ./baseline/ ./optimized/ --traces
 
-    # Compare traces in directories (finds *.perfetto-trace files)
-    python comparetraces.py ./baseline_output/ ./optimized_output/
+    # Compare images only  
+    python diff_test_results.py ./baseline/ ./optimized/ --images
 
-    # Specify track name and output chart
-    python comparetraces.py base.perfetto-trace opt.perfetto-trace --track GPU --chart chart.png
+    # Compare both (default)
+    python diff_test_results.py ./baseline/ ./optimized/
 
-    # Export results to CSV
-    python comparetraces.py base.perfetto-trace opt.perfetto-trace --csv results.csv
+    # With options
+    python diff_test_results.py ./baseline/ ./optimized/ --min-delta-ms 1.0 --image-threshold 0.001
 '''
 
 import argparse
@@ -32,19 +29,29 @@ import sys
 from pathlib import Path
 
 logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger('comparetraces')
+logger = logging.getLogger('diff_test_results')
 
 
 # -----------------------------------------------------------------------------
 # Dependency Checking
 # -----------------------------------------------------------------------------
 
-# Required: perfetto (for reading traces)
+# Optional: perfetto (for reading traces)
+_have_perfetto = False
 try:
     from perfetto.trace_processor import TraceProcessor
+    _have_perfetto = True
 except ImportError:
-    logger.error('Required module not found. Install with: pip install perfetto')
-    raise
+    logger.debug('perfetto not found. Trace comparison disabled.')
+
+# Optional: PIL/numpy (for image comparison)
+_have_imaging = False
+try:
+    from PIL import Image
+    import numpy as np
+    _have_imaging = True
+except ImportError:
+    logger.debug('PIL/numpy not found. Image comparison disabled.')
 
 # Optional: pandas (for CSV export and data aggregation)
 _have_pandas = False
@@ -52,7 +59,7 @@ try:
     import pandas as pd
     _have_pandas = True
 except ImportError:
-    logger.warning('pandas not found. CSV export and detailed statistics disabled.')
+    logger.debug('pandas not found. CSV export disabled.')
 
 # Optional: matplotlib (for chart generation)
 _have_matplotlib = False
@@ -61,12 +68,12 @@ try:
     from matplotlib.patches import Patch
     _have_matplotlib = True
 except ImportError:
-    logger.warning('matplotlib not found. Chart generation disabled.')
+    logger.debug('matplotlib not found. Chart generation disabled.')
 
 
-# -----------------------------------------------------------------------------
-# Trace Loading
-# -----------------------------------------------------------------------------
+# =============================================================================
+# TRACE COMPARISON
+# =============================================================================
 
 def findTraceFile(path):
     '''
@@ -188,10 +195,6 @@ def aggregateByName(data):
         return result
 
 
-# -----------------------------------------------------------------------------
-# Optimization Detection
-# -----------------------------------------------------------------------------
-
 def loadOptimizationEvents(tracePath, optimizationName=None):
     '''
     Load optimization events from a Perfetto trace.
@@ -236,10 +239,6 @@ def loadOptimizationEvents(tracePath, optimizationName=None):
     return optimizedMaterials
 
 
-# -----------------------------------------------------------------------------
-# Comparison Logic
-# -----------------------------------------------------------------------------
-
 def compareTraces(baselinePath, optimizedPath, trackName=None, minDeltaMs=0.0):
     '''
     Compare durations between baseline and optimized traces.
@@ -254,14 +253,19 @@ def compareTraces(baselinePath, optimizedPath, trackName=None, minDeltaMs=0.0):
         List of comparison dicts sorted by absolute time saved (largest first),
         or DataFrame if pandas is available.
     '''
+    if not _have_perfetto:
+        logger.error('Cannot compare traces: perfetto not installed.')
+        logger.error('Install with: pip install perfetto')
+        return None
+
     baselineTrace = findTraceFile(baselinePath)
     optimizedTrace = findTraceFile(optimizedPath)
 
-    logger.info(f'Loading baseline: {baselineTrace}')
+    logger.info(f'Loading baseline trace: {baselineTrace}')
     baselineData = loadSliceDurations(baselineTrace, trackName)
     baselineAgg = aggregateByName(baselineData)
 
-    logger.info(f'Loading optimized: {optimizedTrace}')
+    logger.info(f'Loading optimized trace: {optimizedTrace}')
     optimizedData = loadSliceDurations(optimizedTrace, trackName)
     optimizedAgg = aggregateByName(optimizedData)
 
@@ -311,10 +315,6 @@ def compareTraces(baselinePath, optimizedPath, trackName=None, minDeltaMs=0.0):
         return results
 
 
-# -----------------------------------------------------------------------------
-# Output Formatting
-# -----------------------------------------------------------------------------
-
 def _isna(val):
     '''Check if value is None or NaN.'''
     if val is None:
@@ -324,13 +324,16 @@ def _isna(val):
     return False
 
 
-def printTable(data, optimizedMaterials=None):
-    '''Print a formatted comparison table to stdout.
+def printTraceTable(data, optimizedMaterials=None):
+    '''Print a formatted trace comparison table to stdout.
     
     Args:
         data: Comparison data (DataFrame or list of dicts)
         optimizedMaterials: Optional set of material names affected by optimization
     '''
+    if data is None:
+        return
+        
     if optimizedMaterials is None:
         optimizedMaterials = set()
     
@@ -390,7 +393,7 @@ def printTable(data, optimizedMaterials=None):
         nUnchanged = sum(1 for r in data if r['change_pct'] == 0)
         validChanges = [r['change_pct'] for r in data if r['change_pct'] is not None]
 
-    print(f'\nSummary: {nImproved} improved, {nRegressed} regressed, '
+    print(f'\nTrace Summary: {nImproved} improved, {nRegressed} regressed, '
           f'{nUnchanged} unchanged, {totalLen} total')
 
     if nImproved > 0:
@@ -421,8 +424,8 @@ def printTable(data, optimizedMaterials=None):
         print(f'\n* = affected by optimization ({len(optimizedMaterials)} materials)')
 
 
-def createChart(data, outputPath, title=None, minDeltaMs=0.0,
-                optimizedMaterials=None, optimizationName=None):
+def createTraceChart(data, outputPath, title=None, minDeltaMs=0.0,
+                     optimizedMaterials=None, optimizationName=None):
     '''
     Create a paired before/after horizontal bar chart sorted by absolute time saved.
 
@@ -436,6 +439,9 @@ def createChart(data, outputPath, title=None, minDeltaMs=0.0,
 
     Requires: matplotlib, pandas
     '''
+    if data is None:
+        return
+        
     if optimizedMaterials is None:
         optimizedMaterials = set()
     if not _have_matplotlib:
@@ -533,89 +539,298 @@ def createChart(data, outputPath, title=None, minDeltaMs=0.0,
 
     plt.tight_layout()
     plt.savefig(outputPath, dpi=150, bbox_inches='tight')
-    logger.info(f'Chart saved to: {outputPath}')
+    logger.info(f'Trace chart saved to: {outputPath}')
 
 
-# -----------------------------------------------------------------------------
-# Main Entry Point
-# -----------------------------------------------------------------------------
+# =============================================================================
+# IMAGE COMPARISON
+# =============================================================================
+
+def findImages(directory, pattern='**/*.png'):
+    '''Find all PNG images in a directory recursively.'''
+    directory = Path(directory)
+    if not directory.exists():
+        raise FileNotFoundError(f'Directory not found: {directory}')
+    return list(directory.glob(pattern))
+
+
+def computeImageDiff(img1Path, img2Path):
+    '''
+    Compute difference metrics between two images.
+    
+    Returns:
+        dict with keys: rmse, max_diff, pct_diff_pixels, identical
+    '''
+    img1 = Image.open(img1Path).convert('RGB')
+    img2 = Image.open(img2Path).convert('RGB')
+    
+    # Check dimensions match
+    if img1.size != img2.size:
+        return {
+            'error': f'Size mismatch: {img1.size} vs {img2.size}',
+            'identical': False
+        }
+    
+    arr1 = np.array(img1, dtype=np.float32) / 255.0
+    arr2 = np.array(img2, dtype=np.float32) / 255.0
+    
+    diff = arr1 - arr2
+    
+    # Root Mean Square Error
+    rmse = np.sqrt(np.mean(diff ** 2))
+    
+    # Maximum absolute difference
+    maxDiff = np.max(np.abs(diff))
+    
+    # Percentage of pixels with any difference (above tiny threshold)
+    pixelDiffs = np.any(np.abs(diff) > 1e-6, axis=2)
+    pctDiffPixels = 100.0 * np.sum(pixelDiffs) / pixelDiffs.size
+    
+    return {
+        'rmse': rmse,
+        'max_diff': maxDiff,
+        'pct_diff_pixels': pctDiffPixels,
+        'identical': rmse < 1e-10
+    }
+
+
+def compareImages(baselineDir, optimizedDir, threshold=0.001):
+    '''
+    Compare all matching images between two directories.
+    
+    Args:
+        baselineDir: Path to baseline images
+        optimizedDir: Path to optimized images
+        threshold: RMSE threshold above which to report differences
+        
+    Returns:
+        List of comparison results
+    '''
+    if not _have_imaging:
+        logger.error('Cannot compare images: PIL/numpy not installed.')
+        logger.error('Install with: pip install pillow numpy')
+        return None
+
+    baselineDir = Path(baselineDir)
+    optimizedDir = Path(optimizedDir)
+    
+    baselineImages = findImages(baselineDir)
+    logger.info(f'Found {len(baselineImages)} images in baseline')
+    
+    results = []
+    matched = 0
+    missing = 0
+    
+    for baselineImg in baselineImages:
+        # Get relative path from baseline directory
+        relPath = baselineImg.relative_to(baselineDir)
+        optimizedImg = optimizedDir / relPath
+        
+        if not optimizedImg.exists():
+            logger.warning(f'Missing in optimized: {relPath}')
+            missing += 1
+            continue
+        
+        matched += 1
+        metrics = computeImageDiff(baselineImg, optimizedImg)
+        metrics['name'] = relPath.stem
+        metrics['path'] = str(relPath)
+        results.append(metrics)
+    
+    logger.info(f'Compared {matched} image pairs, {missing} missing')
+    return results
+
+
+def printImageTable(results, threshold=0.001):
+    '''Print a formatted image comparison table.'''
+    if results is None:
+        return False
+        
+    print('\n' + '=' * 85)
+    print(f"{'Image':<40} {'RMSE':>10} {'Max Diff':>10} {'% Diff':>10} {'Status':>8}")
+    print('=' * 85)
+    
+    identical = 0
+    different = 0
+    errors = 0
+    
+    # Sort by RMSE (highest first)
+    sortedResults = sorted(results, key=lambda x: x.get('rmse', 0), reverse=True)
+    
+    for r in sortedResults:
+        name = r['name'][:38]
+        
+        if 'error' in r:
+            print(f"{name:<40} {'ERROR':>10} {r['error']}")
+            errors += 1
+            continue
+            
+        rmse = r['rmse']
+        maxDiff = r['max_diff']
+        pctDiff = r['pct_diff_pixels']
+        
+        if r['identical']:
+            status = 'OK'
+            identical += 1
+        elif rmse < threshold:
+            status = 'OK'
+            identical += 1
+        else:
+            status = 'DIFF'
+            different += 1
+        
+        print(f"{name:<40} {rmse:>10.6f} {maxDiff:>10.4f} {pctDiff:>9.2f}% {status:>8}")
+    
+    print('=' * 85)
+    print(f'\nImage Summary: {identical} identical, {different} different, {errors} errors')
+    print(f'Threshold: RMSE < {threshold}')
+    
+    if different > 0:
+        print(f'\n*** WARNING: {different} images differ above threshold! ***')
+        return False
+    else:
+        print('\nAll images match within threshold.')
+        return True
+
+
+# =============================================================================
+# MAIN ENTRY POINT
+# =============================================================================
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Compare performance data between two Perfetto trace files.',
+        description='Compare test results between baseline and optimized MaterialX runs.',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog='''
 Examples:
-  %(prog)s baseline.perfetto-trace optimized.perfetto-trace
-  %(prog)s ./baseline_dir/ ./optimized_dir/ --track GPU
-  %(prog)s base.perfetto-trace opt.perfetto-trace --chart chart.png --csv results.csv
+  %(prog)s ./baseline/ ./optimized/                    # Compare both traces and images
+  %(prog)s ./baseline/ ./optimized/ --traces           # Compare traces only
+  %(prog)s ./baseline/ ./optimized/ --images           # Compare images only
+  %(prog)s ./baseline/ ./optimized/ --min-delta-ms 1.0 # Filter trace noise
+  %(prog)s ./baseline/ ./optimized/ --chart chart.png  # Generate performance chart
 ''')
 
     parser.add_argument('baseline', type=Path,
-                        help='Baseline trace file or directory')
+                        help='Baseline directory (with traces and/or images)')
     parser.add_argument('optimized', type=Path,
-                        help='Optimized trace file or directory')
-    parser.add_argument('--track', '-t', type=str, default=None,
-                        help='Filter by track name (e.g., GPU, ShaderGen)')
-    parser.add_argument('--min-delta-ms', type=float, default=0.0,
-                        help='Minimum absolute time difference in ms to include (filters out noise)')
-    parser.add_argument('--chart', '-c', type=Path,
-                        help='Output path for chart image (e.g., chart.png). Requires matplotlib.')
-    parser.add_argument('--csv', type=Path,
-                        help='Export full results to CSV file. Requires pandas.')
-    parser.add_argument('--title', type=str,
-                        help='Custom title for the chart')
-    parser.add_argument('--open-matplotlib', action='store_true',
-                        help='Open interactive matplotlib window after saving chart')
-    parser.add_argument('--show-opt', type=str, metavar='OPT_NAME',
-                        help='Highlight materials affected by GenOptions optimization (e.g., optReplaceBsdfMixWithLinearCombination)')
+                        help='Optimized directory (with traces and/or images)')
+    
+    # Mode selection
+    modeGroup = parser.add_argument_group('comparison mode')
+    modeGroup.add_argument('--traces', action='store_true',
+                           help='Compare performance traces only')
+    modeGroup.add_argument('--images', action='store_true',
+                           help='Compare rendered images only')
+    
+    # Trace options
+    traceGroup = parser.add_argument_group('trace options')
+    traceGroup.add_argument('--track', '-t', type=str, default=None,
+                            help='Filter traces by track name (e.g., GPU, ShaderGen)')
+    traceGroup.add_argument('--min-delta-ms', type=float, default=0.0,
+                            help='Minimum absolute time difference in ms to include')
+    traceGroup.add_argument('--chart', '-c', type=Path,
+                            help='Output path for trace chart image (e.g., chart.png)')
+    traceGroup.add_argument('--show-opt', type=str, metavar='OPT_NAME',
+                            help='Highlight materials affected by optimization pass')
+    
+    # Image options
+    imageGroup = parser.add_argument_group('image options')
+    imageGroup.add_argument('--image-threshold', type=float, default=0.001,
+                            help='RMSE threshold for image differences (default: 0.001)')
+    
+    # Output options
+    outputGroup = parser.add_argument_group('output options')
+    outputGroup.add_argument('--csv', type=Path,
+                             help='Export trace results to CSV file')
+    outputGroup.add_argument('--title', type=str,
+                             help='Custom title for the chart')
 
     args = parser.parse_args()
 
+    # Default: compare both if neither specified
+    doTraces = args.traces or (not args.traces and not args.images)
+    doImages = args.images or (not args.traces and not args.images)
+    
+    allPassed = True
+
     try:
-        data = compareTraces(args.baseline, args.optimized, args.track, args.min_delta_ms)
-        
-        # Load optimization events if requested
-        optimizedMaterials = set()
-        if args.show_opt:
-            # Check baseline - should NOT have the optimization enabled
-            baselineTracePath = findTraceFile(args.baseline)
-            baselineMaterials = loadOptimizationEvents(baselineTracePath, args.show_opt)
-            if baselineMaterials:
-                logger.error(f'ERROR: Baseline trace has {len(baselineMaterials)} materials '
-                            f'with {args.show_opt} optimization!')
-                logger.error('The baseline should have the optimization DISABLED.')
-                logger.error('Affected materials: ' + ', '.join(sorted(baselineMaterials)[:5]) + 
-                            ('...' if len(baselineMaterials) > 5 else ''))
-                sys.exit(1)
+        # -------------------------
+        # Trace Comparison
+        # -------------------------
+        if doTraces:
+            print('\n' + '=' * 85)
+            print('PERFORMANCE TRACE COMPARISON')
+            print('=' * 85)
             
-            # Load from optimized trace
-            optimizedTracePath = findTraceFile(args.optimized)
-            optimizedMaterials = loadOptimizationEvents(optimizedTracePath, args.show_opt)
-            logger.info(f'Found {len(optimizedMaterials)} materials affected by {args.show_opt}')
-        
-        printTable(data, optimizedMaterials)
-
-        if args.chart:
-            createChart(data, args.chart, title=args.title, minDeltaMs=args.min_delta_ms,
-                       optimizedMaterials=optimizedMaterials, optimizationName=args.show_opt)
-            if args.open_matplotlib and _have_matplotlib:
-                plt.show()
-
-        if args.csv:
-            if _have_pandas:
-                df = data if hasattr(data, 'to_csv') else pd.DataFrame(data)
-                df.to_csv(args.csv, index=False)
-                logger.info(f'CSV exported to: {args.csv}')
+            if not _have_perfetto:
+                logger.warning('Skipping traces: perfetto not installed (pip install perfetto)')
             else:
-                logger.error('Cannot export CSV: pandas not installed.')
-                logger.error('Install with: pip install pandas')
+                traceData = compareTraces(args.baseline, args.optimized,
+                                          args.track, args.min_delta_ms)
+                
+                # Load optimization events if requested
+                optimizedMaterials = set()
+                if args.show_opt and traceData is not None:
+                    baselineTracePath = findTraceFile(args.baseline)
+                    baselineMaterials = loadOptimizationEvents(baselineTracePath, args.show_opt)
+                    if baselineMaterials:
+                        logger.error(f'ERROR: Baseline has {len(baselineMaterials)} materials '
+                                    f'with {args.show_opt}!')
+                        sys.exit(1)
+                    
+                    optimizedTracePath = findTraceFile(args.optimized)
+                    optimizedMaterials = loadOptimizationEvents(optimizedTracePath, args.show_opt)
+                    logger.info(f'Found {len(optimizedMaterials)} materials affected by {args.show_opt}')
+                
+                printTraceTable(traceData, optimizedMaterials)
+
+                if args.chart and traceData is not None:
+                    createTraceChart(traceData, args.chart, title=args.title,
+                                     minDeltaMs=args.min_delta_ms,
+                                     optimizedMaterials=optimizedMaterials,
+                                     optimizationName=args.show_opt)
+
+                if args.csv and traceData is not None:
+                    if _have_pandas:
+                        df = traceData if hasattr(traceData, 'to_csv') else pd.DataFrame(traceData)
+                        df.to_csv(args.csv, index=False)
+                        logger.info(f'CSV exported to: {args.csv}')
+                    else:
+                        logger.error('Cannot export CSV: pandas not installed.')
+
+        # -------------------------
+        # Image Comparison
+        # -------------------------
+        if doImages:
+            print('\n' + '=' * 85)
+            print('RENDERED IMAGE COMPARISON')
+            print('=' * 85)
+            
+            if not _have_imaging:
+                logger.warning('Skipping images: PIL/numpy not installed (pip install pillow numpy)')
+            else:
+                imageResults = compareImages(args.baseline, args.optimized, args.image_threshold)
+                imagesMatch = printImageTable(imageResults, args.image_threshold)
+                if not imagesMatch:
+                    allPassed = False
+
+        # -------------------------
+        # Final Summary
+        # -------------------------
+        print('\n' + '=' * 85)
+        if allPassed:
+            print('RESULT: All comparisons passed')
+        else:
+            print('RESULT: Some comparisons FAILED - review above for details')
+        print('=' * 85)
+        
+        sys.exit(0 if allPassed else 1)
 
     except FileNotFoundError as e:
         logger.error(f'{e}')
         sys.exit(1)
     except Exception as e:
-        logger.error(f'Error processing traces: {e}')
+        logger.error(f'Error: {e}')
         raise
 
 
