@@ -85,7 +85,7 @@ NodeGraphTopology::NodeGraphTopology(const NodeGraph& nodeGraph)
                 {
                     TopologicalInput topoInput;
                     topoInput.name = interfaceName;
-                    analyzeAffectedNodes(node, mixInput, topoInput, nodeGraph);
+                    analyzeAffectedNodes(node, mixInput, topoInput);
                     _topologicalInputs[interfaceName] = topoInput;
                 }
             }
@@ -102,7 +102,7 @@ NodeGraphTopology::NodeGraphTopology(const NodeGraph& nodeGraph)
                     {
                         TopologicalInput topoInput;
                         topoInput.name = interfaceName;
-                        analyzeAffectedNodes(node, input, topoInput, nodeGraph);
+                        analyzeAffectedNodes(node, input, topoInput);
                         _topologicalInputs[interfaceName] = topoInput;
                     }
                 }
@@ -119,7 +119,7 @@ NodeGraphTopology::NodeGraphTopology(const NodeGraph& nodeGraph)
                 {
                     TopologicalInput topoInput;
                     topoInput.name = interfaceName;
-                    analyzeAffectedNodes(node, weightInput, topoInput, nodeGraph);
+                    analyzeAffectedNodes(node, weightInput, topoInput);
                     _topologicalInputs[interfaceName] = topoInput;
                 }
             }
@@ -170,8 +170,7 @@ bool NodeGraphTopology::isTopologicalInput(const InputPtr& input, const NodeDefP
 void NodeGraphTopology::analyzeAffectedNodes(
     const NodePtr& node,
     const InputPtr& input,
-    TopologicalInput& topoInput,
-    const NodeGraph& nodeGraph)
+    TopologicalInput& topoInput)
 {
     const string& category = node->getCategory();
 
@@ -348,6 +347,79 @@ std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const
                             {
                                 skipNodes.insert(n);
                                 worklist.push_back(n);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        else
+        {
+            // Input not set on node instance - check NodeDef default value
+            NodeDefPtr nodeDef = node.getNodeDef();
+            if (nodeDef)
+            {
+                InputPtr defaultInput = nodeDef->getActiveInput(inputName);
+                if (defaultInput && defaultInput->hasValue())
+                {
+                    float value = defaultInput->getValue()->asA<float>();
+                    if (value == 0.0f)
+                    {
+                        flag = '0';
+                        hasOptimization = true;
+
+                        // Unconditionally skip these nodes
+                        for (const string& n : topoInput.nodesToSkipAt0)
+                        {
+                            if (skipNodes.find(n) == skipNodes.end())
+                            {
+                                skipNodes.insert(n);
+                                worklist.push_back(n);
+                            }
+                        }
+
+                        // These nodes lose a consumer - decrement their ref count
+                        for (const string& n : topoInput.maybeDeadAt0)
+                        {
+                            auto it = refCounts.find(n);
+                            if (it != refCounts.end() && it->second > 0)
+                            {
+                                it->second--;
+                                if (it->second == 0 && skipNodes.find(n) == skipNodes.end())
+                                {
+                                    skipNodes.insert(n);
+                                    worklist.push_back(n);
+                                }
+                            }
+                        }
+                    }
+                    else if (value == 1.0f)
+                    {
+                        flag = '1';
+                        hasOptimization = true;
+
+                        // Unconditionally skip these nodes
+                        for (const string& n : topoInput.nodesToSkipAt1)
+                        {
+                            if (skipNodes.find(n) == skipNodes.end())
+                            {
+                                skipNodes.insert(n);
+                                worklist.push_back(n);
+                            }
+                        }
+
+                        // These nodes lose a consumer - decrement their ref count
+                        for (const string& n : topoInput.maybeDeadAt1)
+                        {
+                            auto it = refCounts.find(n);
+                            if (it != refCounts.end() && it->second > 0)
+                            {
+                                it->second--;
+                                if (it->second == 0 && skipNodes.find(n) == skipNodes.end())
+                                {
+                                    skipNodes.insert(n);
+                                    worklist.push_back(n);
+                                }
                             }
                         }
                     }

@@ -58,8 +58,7 @@ class MX_GENSHADER_API NodeGraphTopology
     void analyzeAffectedNodes(
         const NodePtr& node,
         const InputPtr& input,
-        TopologicalInput& topoInput,
-        const NodeGraph& nodeGraph);
+        TopologicalInput& topoInput);
 
     /// Build reference counts and upstream dependency map for the graph
     void buildRefCounts(const NodeGraph& nodeGraph);
