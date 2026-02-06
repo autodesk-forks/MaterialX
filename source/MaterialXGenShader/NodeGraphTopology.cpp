@@ -66,6 +66,9 @@ NodeGraphTopology::NodeGraphTopology(const NodeGraph& nodeGraph)
         return;
     }
 
+    // Build reference counts and upstream dependency map
+    buildRefCounts(nodeGraph);
+
     // Scan all nodes in the NodeGraph for optimization opportunities
     for (const NodePtr& node : nodeGraph.getNodes())
     {
@@ -175,76 +178,77 @@ void NodeGraphTopology::analyzeAffectedNodes(
     if (category == "mix")
     {
         // For mix nodes:
-        // - When mix=0, the "fg" (foreground) branch is unused
-        // - When mix=1, the "bg" (background) branch is unused
+        // - When mix=0, the "fg" (foreground) branch loses a consumer
+        // - When mix=1, the "bg" (background) branch loses a consumer
+        // The mix node itself stays alive; we just decrement the unused input's upstream ref count
         InputPtr bgInput = node->getActiveInput("bg");
         InputPtr fgInput = node->getActiveInput("fg");
 
         if (fgInput && fgInput->hasNodeName())
         {
-            // mix=0 means fg branch is dead
-            collectUpstreamNodes(fgInput->getNodeName(), nodeGraph, topoInput.nodesAffectedAt0);
+            // mix=0 means fg branch loses this consumer
+            topoInput.maybeDeadAt0.insert(fgInput->getNodeName());
         }
 
         if (bgInput && bgInput->hasNodeName())
         {
-            // mix=1 means bg branch is dead
-            collectUpstreamNodes(bgInput->getNodeName(), nodeGraph, topoInput.nodesAffectedAt1);
+            // mix=1 means bg branch loses this consumer
+            topoInput.maybeDeadAt1.insert(bgInput->getNodeName());
         }
     }
     else if (category == "multiply")
     {
         // For multiply nodes with input=0:
-        // All upstream nodes of the other input(s) become dead
+        // The multiply node stays alive (outputs 0), but the other inputs lose a consumer
         for (const InputPtr& otherInput : node->getActiveInputs())
         {
             if (otherInput != input && otherInput->hasNodeName())
             {
-                collectUpstreamNodes(otherInput->getNodeName(), nodeGraph, topoInput.nodesAffectedAt0);
+                topoInput.maybeDeadAt0.insert(otherInput->getNodeName());
             }
         }
     }
     else if (kBasePbrNodes.count(category) || kLayerPbrNodes.count(category))
     {
         // For PBR nodes with weight=0:
-        // All upstream nodes feeding this PBR node become dead
-        for (const InputPtr& nodeInput : node->getActiveInputs())
-        {
-            if (nodeInput->getName() != "weight" && nodeInput->hasNodeName())
-            {
-                collectUpstreamNodes(nodeInput->getNodeName(), nodeGraph, topoInput.nodesAffectedAt0);
-            }
-        }
-        // Also include the PBR node itself (it gets replaced with a "dark" node)
-        topoInput.nodesAffectedAt0.insert(node->getName());
+        // The PBR node itself is unconditionally skipped (replaced with dark/transparent)
+        // Its upstream dependencies will be handled via ref count propagation
+        topoInput.nodesToSkipAt0.insert(node->getName());
     }
 }
 
-void NodeGraphTopology::collectUpstreamNodes(
-    const string& nodeName,
-    const NodeGraph& nodeGraph,
-    StringSet& collected)
+void NodeGraphTopology::buildRefCounts(const NodeGraph& nodeGraph)
 {
-    // Avoid cycles
-    if (collected.count(nodeName))
-    {
-        return;
-    }
+    // Build reference counts: how many downstream nodes consume each node's output
+    // Also build upstream dependency map for efficient propagation
 
-    NodePtr node = nodeGraph.getNode(nodeName);
-    if (!node)
+    for (const NodePtr& node : nodeGraph.getNodes())
     {
-        return;
-    }
+        const string& nodeName = node->getName();
+        StringSet upstreams;
 
-    collected.insert(nodeName);
-
-    // Recursively collect upstream nodes
-    for (const InputPtr& input : node->getActiveInputs())
-    {
-        if (input->hasNodeName())
+        for (const InputPtr& input : node->getActiveInputs())
         {
-            collectUpstreamNodes(input->getNodeName(), nodeGraph, collected);
+            if (input->hasNodeName())
+            {
+                const string& upstreamName = input->getNodeName();
+                _refCounts[upstreamName]++;
+                upstreams.insert(upstreamName);
+            }
+        }
+
+        if (!upstreams.empty())
+        {
+            _nodeUpstreams[nodeName] = std::move(upstreams);
+        }
+    }
+
+    // Count references from NodeGraph outputs (these are the "roots" of the graph)
+    for (const OutputPtr& output : nodeGraph.getOutputs())
+    {
+        if (output->hasNodeName())
+        {
+            _refCounts[output->getNodeName()]++;
         }
     }
 }
@@ -262,8 +266,13 @@ std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const
     StringSet skipNodes;
     bool hasOptimization = false;
 
-    // Iterate through topological inputs in sorted order (for stable keys)
-    // Compute key and skip nodes in a single pass
+    // Working copy of reference counts for this permutation
+    std::unordered_map<string, size_t> refCounts = _refCounts;
+
+    // Worklist for propagating death through the graph
+    std::vector<string> worklist;
+
+    // First pass: build the key and collect initial dead nodes
     for (const auto& pair : _topologicalInputs)
     {
         const string& inputName = pair.first;
@@ -287,15 +296,61 @@ std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const
                 {
                     flag = '0';
                     hasOptimization = true;
-                    skipNodes.insert(topoInput.nodesAffectedAt0.begin(),
-                                     topoInput.nodesAffectedAt0.end());
+
+                    // Unconditionally skip these nodes
+                    for (const string& n : topoInput.nodesToSkipAt0)
+                    {
+                        if (skipNodes.find(n) == skipNodes.end())
+                        {
+                            skipNodes.insert(n);
+                            worklist.push_back(n);
+                        }
+                    }
+
+                    // These nodes lose a consumer - decrement their ref count
+                    for (const string& n : topoInput.maybeDeadAt0)
+                    {
+                        auto it = refCounts.find(n);
+                        if (it != refCounts.end() && it->second > 0)
+                        {
+                            it->second--;
+                            if (it->second == 0 && skipNodes.find(n) == skipNodes.end())
+                            {
+                                skipNodes.insert(n);
+                                worklist.push_back(n);
+                            }
+                        }
+                    }
                 }
                 else if (value == 1.0f)
                 {
                     flag = '1';
                     hasOptimization = true;
-                    skipNodes.insert(topoInput.nodesAffectedAt1.begin(),
-                                     topoInput.nodesAffectedAt1.end());
+
+                    // Unconditionally skip these nodes
+                    for (const string& n : topoInput.nodesToSkipAt1)
+                    {
+                        if (skipNodes.find(n) == skipNodes.end())
+                        {
+                            skipNodes.insert(n);
+                            worklist.push_back(n);
+                        }
+                    }
+
+                    // These nodes lose a consumer - decrement their ref count
+                    for (const string& n : topoInput.maybeDeadAt1)
+                    {
+                        auto it = refCounts.find(n);
+                        if (it != refCounts.end() && it->second > 0)
+                        {
+                            it->second--;
+                            if (it->second == 0 && skipNodes.find(n) == skipNodes.end())
+                            {
+                                skipNodes.insert(n);
+                                worklist.push_back(n);
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -305,6 +360,34 @@ std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const
             key += ",";
         }
         key += inputName + "=" + flag;
+    }
+
+    // Propagate death through the graph using reference counting
+    // When a node dies, decrement ref counts of all its upstream dependencies
+    // If any upstream's ref count hits 0, it's also dead
+    while (!worklist.empty())
+    {
+        string nodeName = worklist.back();
+        worklist.pop_back();
+
+        // Find upstream dependencies of this node
+        auto upstreamIt = _nodeUpstreams.find(nodeName);
+        if (upstreamIt != _nodeUpstreams.end())
+        {
+            for (const string& upstream : upstreamIt->second)
+            {
+                auto refIt = refCounts.find(upstream);
+                if (refIt != refCounts.end() && refIt->second > 0)
+                {
+                    refIt->second--;
+                    if (refIt->second == 0 && skipNodes.find(upstream) == skipNodes.end())
+                    {
+                        skipNodes.insert(upstream);
+                        worklist.push_back(upstream);
+                    }
+                }
+            }
+        }
     }
 
     if (!hasOptimization)

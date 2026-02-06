@@ -25,6 +25,7 @@ class NodeGraphPermutation;
 /// Topology analysis result for a single NodeGraph.
 /// Identifies "topological" inputs - inputs that when constant (0 or 1)
 /// can eliminate entire branches of the graph.
+/// Uses reference counting for correct dead code elimination with shared nodes.
 /// The analysis is performed in the constructor for better encapsulation.
 class MX_GENSHADER_API NodeGraphTopology
 {
@@ -33,8 +34,10 @@ class MX_GENSHADER_API NodeGraphTopology
     struct TopologicalInput
     {
         string name;                   ///< Input name on the NodeGraph interface
-        StringSet nodesAffectedAt0;    ///< Nodes to prune when value = 0
-        StringSet nodesAffectedAt1;    ///< Nodes to prune when value = 1
+        StringSet nodesToSkipAt0;      ///< Nodes to unconditionally skip when value = 0
+        StringSet nodesToSkipAt1;      ///< Nodes to unconditionally skip when value = 1
+        StringSet maybeDeadAt0;        ///< Nodes that lose a consumer when value = 0
+        StringSet maybeDeadAt1;        ///< Nodes that lose a consumer when value = 1
     };
 
     /// Construct and analyze a NodeGraph's topology.
@@ -42,7 +45,7 @@ class MX_GENSHADER_API NodeGraphTopology
     explicit NodeGraphTopology(const NodeGraph& nodeGraph);
     
     /// Create a permutation for a specific node instance.
-    /// Computes the permutation key and skip nodes in a single pass.
+    /// Uses reference counting to correctly handle shared dependencies.
     /// @param node The node instance (call site) to read input values from
     /// @return The permutation, or nullptr if no optimization is possible
     std::unique_ptr<NodeGraphPermutation> createPermutation(const Node& node) const;
@@ -58,14 +61,13 @@ class MX_GENSHADER_API NodeGraphTopology
         TopologicalInput& topoInput,
         const NodeGraph& nodeGraph);
 
-    /// Recursively find all upstream nodes from a given node
-    static void collectUpstreamNodes(
-        const string& nodeName,
-        const NodeGraph& nodeGraph,
-        StringSet& collected);
+    /// Build reference counts and upstream dependency map for the graph
+    void buildRefCounts(const NodeGraph& nodeGraph);
 
     string _nodeGraphName;
     std::map<string, TopologicalInput> _topologicalInputs;  ///< Keyed by input name
+    std::unordered_map<string, size_t> _refCounts;          ///< Reference count for each node
+    std::unordered_map<string, StringSet> _nodeUpstreams;   ///< Upstream dependencies for each node
 };
 
 /// @class NodeGraphPermutation
