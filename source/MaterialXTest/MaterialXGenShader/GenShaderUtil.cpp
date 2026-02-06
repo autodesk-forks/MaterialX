@@ -1010,6 +1010,7 @@ void TestSuiteOptions::print(std::ostream& output) const
     output << "\toptReplaceBsdfMixWithLinearCombination: " << optReplaceBsdfMixWithLinearCombination << std::endl;
     output << "\toptPruneMixBsdf: " << optPruneMixBsdf << std::endl;
     output << "\toptEarlyPruning: " << optEarlyPruning << std::endl;
+    output << "\tenvSampleCount: " << envSampleCount << std::endl;
 }
 
 bool TestSuiteOptions::readOptions(const std::string& optionFile)
@@ -1041,6 +1042,7 @@ bool TestSuiteOptions::readOptions(const std::string& optionFile)
     const std::string OPT_REPLACE_BSDF_MIX_STRING("optReplaceBsdfMixWithLinearCombination");
     const std::string OPT_PRUNE_MIX_BSDF_STRING("optPruneMixBsdf");
     const std::string OPT_EARLY_PRUNING_STRING("optEarlyPruning");
+    const std::string ENV_SAMPLE_COUNT_STRING("envSampleCount");
 
     overrideFiles.clear();
     dumpGeneratedCode = false;
@@ -1172,6 +1174,11 @@ bool TestSuiteOptions::readOptions(const std::string& optionFile)
                     else if (name == OPT_EARLY_PRUNING_STRING)
                     {
                         optEarlyPruning = val->asA<bool>();
+                    }
+                    else if (name == ENV_SAMPLE_COUNT_STRING)
+                    {
+                        int count = val->asA<int>();
+                        envSampleCount = (count >= 1) ? count : 1024;
                     }
                 }
             }

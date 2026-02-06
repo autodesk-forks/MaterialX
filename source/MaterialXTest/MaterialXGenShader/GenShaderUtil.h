@@ -141,6 +141,10 @@ class TestSuiteOptions
     // Enable early pruning during ShaderGraph construction.
     bool optEarlyPruning = false;
 
+    // Number of environment radiance samples for IBL lighting.
+    // Default is 1024. Lower values (1-16) are more representative of real-time rendering.
+    int envSampleCount = 1024;
+
     // Helper to resolve output path for an artifact.
     // If outputDirectory is set, returns outputDirectory/filename.
     // Otherwise returns the original path unchanged.
