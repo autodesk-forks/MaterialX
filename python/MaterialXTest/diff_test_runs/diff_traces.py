@@ -5,15 +5,19 @@ Compare performance traces between baseline and optimized MaterialX test runs.
 Reads Perfetto .perfetto-trace files and compares slice durations, generating
 tables, charts, and optional CSV/HTML output.
 
+Two modes:
+  --gpu           Compare GPU render durations per material (from GPU async track)
+  --slice NAME    Compare CPU slice durations per material (child slices under
+                  material parent slices). Multiple names produce multiple charts.
+
 For image comparison, see diff_images.py in the same directory.
 
 Usage:
-    python diff_traces.py <baseline_dir> <optimized_dir> [options]
-
-Examples:
-    python diff_traces.py ./baseline/ ./optimized/ --track GPU
-    python diff_traces.py ./baseline/ ./optimized/ --min-delta-ms 1.0
-    python diff_traces.py ./baseline/ ./optimized/ --chart chart.png
+    python diff_traces.py <baseline_dir> <optimized_dir> --gpu
+    python diff_traces.py <baseline_dir> <optimized_dir> --slice GenerateShader
+    python diff_traces.py <baseline_dir> <optimized_dir> --slice GenerateShader CompileShader
+    python diff_traces.py <baseline_dir> <optimized_dir> --gpu --slice GenerateShader
+    python diff_traces.py <baseline_dir> <optimized_dir> --gpu -o my_report.html
 '''
 
 import argparse
@@ -56,7 +60,7 @@ except ImportError:
 
 
 # =============================================================================
-# TRACE COMPARISON
+# TRACE LOADING
 # =============================================================================
 
 def findTraceFile(path):
@@ -75,7 +79,6 @@ def findTraceFile(path):
     if path.is_dir():
         traces = list(path.glob('*.perfetto-trace'))
         if not traces:
-            # Try recursive search
             traces = list(path.glob('**/*.perfetto-trace'))
         if traces:
             if len(traces) > 1:
@@ -88,25 +91,21 @@ def findTraceFile(path):
 
 def loadSliceDurations(tracePath, trackName=None):
     '''
-    Load slice durations from a Perfetto trace.
+    Load slice durations from a Perfetto trace, optionally filtered by track.
 
     Args:
         tracePath: Path to the .perfetto-trace file
-        trackName: Optional track name filter (e.g., "GPU", "ShaderGen")
+        trackName: Optional track name filter (e.g., "GPU")
 
     Returns:
-        List of dicts with keys: [name, dur_ns, dur_ms, track]
-        Or DataFrame if pandas is available.
+        DataFrame with columns [name, dur_ms] if pandas available,
+        otherwise list of dicts.
     '''
     tp = TraceProcessor(trace=str(tracePath))
 
-    # Build query with optional track filter
     if trackName:
         query = f'''
-        SELECT 
-            slice.name,
-            slice.dur as dur_ns,
-            track.name as track
+        SELECT slice.name, slice.dur / 1000000.0 as dur_ms
         FROM slice
         JOIN track ON slice.track_id = track.id
         WHERE track.name = '{trackName}'
@@ -114,10 +113,7 @@ def loadSliceDurations(tracePath, trackName=None):
         '''
     else:
         query = '''
-        SELECT 
-            slice.name,
-            slice.dur as dur_ns,
-            track.name as track
+        SELECT slice.name, slice.dur / 1000000.0 as dur_ms
         FROM slice
         JOIN track ON slice.track_id = track.id
         ORDER BY slice.name
@@ -130,53 +126,58 @@ def loadSliceDurations(tracePath, trackName=None):
         if df.empty:
             trackMsg = f' on track "{trackName}"' if trackName else ''
             logger.warning(f'No slices found{trackMsg} in {tracePath}')
-            return pd.DataFrame(columns=['name', 'dur_ns', 'dur_ms', 'track'])
-        df['dur_ms'] = df['dur_ns'] / 1_000_000
+            return pd.DataFrame(columns=['name', 'dur_ms'])
         return df
     else:
-        # Return as list of dicts when pandas not available
         rows = []
         for row in result:
-            rows.append({
-                'name': row.name,
-                'dur_ns': row.dur_ns,
-                'dur_ms': row.dur_ns / 1_000_000,
-                'track': row.track
-            })
+            rows.append({'name': row.name, 'dur_ms': row.dur_ms})
         if not rows:
             trackMsg = f' on track "{trackName}"' if trackName else ''
             logger.warning(f'No slices found{trackMsg} in {tracePath}')
         return rows
 
 
-def aggregateByName(data):
+def loadChildSliceDurations(tracePath, sliceName):
     '''
-    Aggregate durations by slice name (averaging across multiple samples).
+    Load durations of a named child slice, keyed by parent (material) name.
+
+    Queries the trace for slices matching sliceName that are direct children
+    of a parent slice (typically the material name).
+
+    Args:
+        tracePath: Path to the .perfetto-trace file
+        sliceName: Name of the child slice (e.g., "GenerateShader", "CompileShader")
 
     Returns:
-        DataFrame with columns: [name, mean_ms, std_ms, count] if pandas available,
-        otherwise dict of {name: {'mean_ms': float, 'count': int}}.
+        DataFrame with columns [name, dur_ms] if pandas available,
+        otherwise list of dicts. 'name' is the parent (material) name.
     '''
+    tp = TraceProcessor(trace=str(tracePath))
+
+    query = f'''
+    SELECT parent.name as name, child.dur / 1000000.0 as dur_ms
+    FROM slice child
+    JOIN slice parent ON child.parent_id = parent.id
+    WHERE child.name = '{sliceName}'
+    ORDER BY parent.name
+    '''
+
+    result = tp.query(query)
+
     if _have_pandas:
-        df = data
+        df = result.as_pandas_dataframe()
         if df.empty:
-            return pd.DataFrame(columns=['name', 'mean_ms', 'std_ms', 'count'])
-        agg = df.groupby('name')['dur_ms'].agg(['mean', 'std', 'count']).reset_index()
-        agg.columns = ['name', 'mean_ms', 'std_ms', 'count']
-        return agg
+            logger.warning(f'No "{sliceName}" slices found in {tracePath}')
+            return pd.DataFrame(columns=['name', 'dur_ms'])
+        return df
     else:
-        # Manual aggregation without pandas
-        from collections import defaultdict
-        groups = defaultdict(list)
-        for row in data:
-            groups[row['name']].append(row['dur_ms'])
-        result = {}
-        for name, durations in groups.items():
-            result[name] = {
-                'mean_ms': sum(durations) / len(durations),
-                'count': len(durations)
-            }
-        return result
+        rows = []
+        for row in result:
+            rows.append({'name': row.name, 'dur_ms': row.dur_ms})
+        if not rows:
+            logger.warning(f'No "{sliceName}" slices found in {tracePath}')
+        return rows
 
 
 def loadOptimizationEvents(tracePath, optimizationName=None):
@@ -184,19 +185,17 @@ def loadOptimizationEvents(tracePath, optimizationName=None):
     Load optimization events from a Perfetto trace.
 
     Optimization events are nested inside ShaderGen slices with hierarchy:
-    MaterialName → GenerateShader → OptimizationPass
+    MaterialName -> GenerateShader -> OptimizationPass
 
     Args:
         tracePath: Path to the .perfetto-trace file
-        optimizationName: Filter by optimization pass name (e.g., optReplaceBsdfMixWithLinearCombination)
+        optimizationName: Filter by optimization pass name
 
     Returns:
         Set of material names that had the optimization applied.
     '''
     tp = TraceProcessor(trace=str(tracePath))
 
-    # Query for optimization events and find grandparent slices (material names)
-    # Hierarchy: opt → GenerateShader → MaterialName
     if optimizationName:
         query = f'''
         SELECT DISTINCT grandparent.name as material_name
@@ -214,47 +213,39 @@ def loadOptimizationEvents(tracePath, optimizationName=None):
         '''
 
     result = tp.query(query)
-    
+
     optimizedMaterials = set()
     for row in result:
         if row.material_name:
             optimizedMaterials.add(row.material_name)
-    
+
     return optimizedMaterials
 
 
-def compareTraces(baselinePath, optimizedPath, trackName=None, minDeltaMs=0.0):
-    '''
-    Compare durations between baseline and optimized traces.
+# =============================================================================
+# COMPARISON
+# =============================================================================
 
-    Args:
-        baselinePath: Path to baseline trace file or directory
-        optimizedPath: Path to optimized trace file or directory
-        trackName: Optional track name filter
-        minDeltaMs: Minimum absolute delta in ms to include (filters out noise)
-
-    Returns:
-        List of comparison dicts sorted by absolute time saved (largest first),
-        or DataFrame if pandas is available.
-    '''
-    if not _have_perfetto:
-        logger.error('Cannot compare traces: perfetto not installed.')
-        logger.error('Install with: pip install perfetto')
-        return None
-
-    baselineTrace = findTraceFile(baselinePath)
-    optimizedTrace = findTraceFile(optimizedPath)
-
-    logger.info(f'Loading baseline trace: {baselineTrace}')
-    baselineData = loadSliceDurations(baselineTrace, trackName)
-    baselineAgg = aggregateByName(baselineData)
-
-    logger.info(f'Loading optimized trace: {optimizedTrace}')
-    optimizedData = loadSliceDurations(optimizedTrace, trackName)
-    optimizedAgg = aggregateByName(optimizedData)
-
+def _aggregateByName(data):
+    '''Aggregate durations by name (averaging across multiple samples).'''
     if _have_pandas:
-        # Merge on slice name using pandas
+        df = data
+        if df.empty:
+            return pd.DataFrame(columns=['name', 'mean_ms'])
+        agg = df.groupby('name')['dur_ms'].mean().reset_index()
+        agg.columns = ['name', 'mean_ms']
+        return agg
+    else:
+        from collections import defaultdict
+        groups = defaultdict(list)
+        for row in data:
+            groups[row['name']].append(row['dur_ms'])
+        return {name: {'mean_ms': sum(durs) / len(durs)} for name, durs in groups.items()}
+
+
+def _mergeAndCompare(baselineAgg, optimizedAgg, minDeltaMs=0.0):
+    '''Merge baseline and optimized aggregates, compute delta and percentage.'''
+    if _have_pandas:
         merged = pd.merge(
             baselineAgg[['name', 'mean_ms']],
             optimizedAgg[['name', 'mean_ms']],
@@ -262,17 +253,13 @@ def compareTraces(baselinePath, optimizedPath, trackName=None, minDeltaMs=0.0):
             suffixes=('_baseline', '_optimized'),
             how='outer'
         )
-        # delta_ms: negative = faster (good), positive = slower (bad)
         merged['delta_ms'] = merged['mean_ms_optimized'] - merged['mean_ms_baseline']
         merged['change_pct'] = (merged['delta_ms'] / merged['mean_ms_baseline']) * 100
-        # Filter by minimum absolute delta threshold
         if minDeltaMs > 0:
             merged = merged[merged['delta_ms'].abs() >= minDeltaMs]
-        # Sort by delta (most negative = biggest improvement first)
         merged = merged.sort_values('delta_ms', ascending=True)
         return merged
     else:
-        # Manual merge without pandas
         allNames = set(baselineAgg.keys()) | set(optimizedAgg.keys())
         results = []
         for name in allNames:
@@ -281,10 +268,8 @@ def compareTraces(baselinePath, optimizedPath, trackName=None, minDeltaMs=0.0):
             deltaMs = None
             changePct = None
             if baseMs is not None and optMs is not None:
-                # delta_ms: negative = faster (good), positive = slower (bad)
                 deltaMs = optMs - baseMs
                 changePct = (deltaMs / baseMs) * 100 if baseMs != 0 else None
-            # Filter by minimum absolute delta threshold
             if minDeltaMs > 0 and (deltaMs is None or abs(deltaMs) < minDeltaMs):
                 continue
             results.append({
@@ -294,10 +279,54 @@ def compareTraces(baselinePath, optimizedPath, trackName=None, minDeltaMs=0.0):
                 'delta_ms': deltaMs,
                 'change_pct': changePct
             })
-        # Sort by delta (most negative = biggest improvement first)
         results.sort(key=lambda x: (x['delta_ms'] is None, x['delta_ms'] or 0))
         return results
 
+
+def compareGpuTraces(baselinePath, optimizedPath, minDeltaMs=0.0):
+    '''
+    Compare GPU render durations between baseline and optimized traces.
+
+    Reads the GPU async track and averages per material across frames.
+    '''
+    baselineTrace = findTraceFile(baselinePath)
+    optimizedTrace = findTraceFile(optimizedPath)
+
+    logger.info(f'Loading baseline GPU trace: {baselineTrace}')
+    baselineData = loadSliceDurations(baselineTrace, trackName='GPU')
+    baselineAgg = _aggregateByName(baselineData)
+
+    logger.info(f'Loading optimized GPU trace: {optimizedTrace}')
+    optimizedData = loadSliceDurations(optimizedTrace, trackName='GPU')
+    optimizedAgg = _aggregateByName(optimizedData)
+
+    return _mergeAndCompare(baselineAgg, optimizedAgg, minDeltaMs)
+
+
+def compareChildSlices(baselinePath, optimizedPath, sliceName, minDeltaMs=0.0):
+    '''
+    Compare durations of a named child slice (e.g., GenerateShader) per material.
+
+    Queries child slices under material parent slices in both traces,
+    then merges by material name and computes delta/percentage.
+    '''
+    baselineTrace = findTraceFile(baselinePath)
+    optimizedTrace = findTraceFile(optimizedPath)
+
+    logger.info(f'Loading baseline "{sliceName}" slices: {baselineTrace}')
+    baselineData = loadChildSliceDurations(baselineTrace, sliceName)
+    baselineAgg = _aggregateByName(baselineData)
+
+    logger.info(f'Loading optimized "{sliceName}" slices: {optimizedTrace}')
+    optimizedData = loadChildSliceDurations(optimizedTrace, sliceName)
+    optimizedAgg = _aggregateByName(optimizedData)
+
+    return _mergeAndCompare(baselineAgg, optimizedAgg, minDeltaMs)
+
+
+# =============================================================================
+# OUTPUT: TABLE
+# =============================================================================
 
 def _isna(val):
     '''Check if value is None or NaN.'''
@@ -308,25 +337,27 @@ def _isna(val):
     return False
 
 
-def printTraceTable(data, optimizedMaterials=None):
+def printTraceTable(data, title, optimizedMaterials=None):
     '''Print a formatted trace comparison table to stdout.
-    
+
     Args:
         data: Comparison data (DataFrame or list of dicts)
+        title: Section title printed above the table
         optimizedMaterials: Optional set of material names affected by optimization
     '''
     if data is None:
         return
-        
+
     if optimizedMaterials is None:
         optimizedMaterials = set()
-    
-    print('\n' + '=' * 85)
+
+    print(f'\n{"=" * 85}')
+    print(f'  {title}')
+    print(f'{"=" * 85}')
     marker = ' *' if optimizedMaterials else ''
     print(f"{'Name':<40} {'Baseline':>10} {'Optimized':>10} {'Delta':>10} {'Change':>8}{marker}")
-    print('=' * 85)
+    print('-' * 85)
 
-    # Handle both DataFrame and list of dicts
     if _have_pandas and hasattr(data, 'iterrows'):
         rows = [row for _, row in data.iterrows()]
         totalLen = len(data)
@@ -350,34 +381,30 @@ def printTraceTable(data, optimizedMaterials=None):
             changePct = row.change_pct
             deltaMs = getattr(row, 'delta_ms', None)
 
-        # Mark materials affected by the optimization
         affected = fullName in optimizedMaterials
         marker = ' *' if affected else '  '
-        
+
         baseline = f'{baseMs:.2f}ms' if not _isna(baseMs) else 'N/A'
         optimized = f'{optMs:.2f}ms' if not _isna(optMs) else 'N/A'
-        # negative delta = faster (optimization), positive = slower (regression)
         delta = f'{deltaMs:+.2f}ms' if not _isna(deltaMs) else 'N/A'
         change = f'{changePct:+.1f}%' if not _isna(changePct) else 'N/A'
         print(f'{name:<40} {baseline:>10} {optimized:>10} {delta:>10} {change:>8}{marker}')
 
-    print('=' * 80)
+    print('-' * 85)
 
-    # Summary statistics
     if _have_pandas and hasattr(data, 'iterrows'):
         improved = data[data['change_pct'] < 0]
         regressed = data[data['change_pct'] > 0]
         unchanged = data[data['change_pct'] == 0]
         nImproved, nRegressed, nUnchanged = len(improved), len(regressed), len(unchanged)
-        validRows = data.dropna(subset=['change_pct'])
-        validChanges = list(validRows['change_pct'])
+        validChanges = list(data.dropna(subset=['change_pct'])['change_pct'])
     else:
         nImproved = sum(1 for r in data if r['change_pct'] is not None and r['change_pct'] < 0)
         nRegressed = sum(1 for r in data if r['change_pct'] is not None and r['change_pct'] > 0)
         nUnchanged = sum(1 for r in data if r['change_pct'] == 0)
         validChanges = [r['change_pct'] for r in data if r['change_pct'] is not None]
 
-    print(f'\nTrace Summary: {nImproved} improved, {nRegressed} regressed, '
+    print(f'\nSummary: {nImproved} improved, {nRegressed} regressed, '
           f'{nUnchanged} unchanged, {totalLen} total')
 
     if nImproved > 0:
@@ -396,124 +423,100 @@ def printTraceTable(data, optimizedMaterials=None):
             worst = [r for r in data if r['change_pct'] is not None and r['change_pct'] > 0][-1]
             print(f"Worst regression: {worst['name']} ({worst['change_pct']:+.1f}%)")
 
-    # Overall statistics
     if validChanges:
         avgChange = sum(validChanges) / len(validChanges)
         sortedChanges = sorted(validChanges)
         medianChange = sortedChanges[len(sortedChanges) // 2]
-        print(f'\nOverall: mean {avgChange:+.1f}%, median {medianChange:+.1f}%')
-    
-    # Optimization tracking legend
+        print(f'Overall: mean {avgChange:+.1f}%, median {medianChange:+.1f}%')
+
     if optimizedMaterials:
         print(f'\n* = affected by optimization ({len(optimizedMaterials)} materials)')
 
 
-def createTraceChart(data, outputPath, title=None, minDeltaMs=0.0,
+# =============================================================================
+# OUTPUT: CHART
+# =============================================================================
+
+def createTraceChart(data, outputPath, title,
                      optimizedMaterials=None, optimizationName=None):
     '''
-    Create a paired before/after horizontal bar chart sorted by absolute time saved.
+    Create a paired before/after horizontal bar chart sorted by time saved.
 
     Args:
         data: DataFrame or list of dicts with comparison results
-        minDeltaMs: Minimum delta threshold (shown in title)
         outputPath: Path to save the chart image
-        title: Optional chart title
-        optimizedMaterials: Set of material names affected by optimization (highlighted)
-        optimizationName: Name of the optimization pass (for title/legend)
-
-    Requires: matplotlib, pandas
+        title: Chart title (required)
+        optimizedMaterials: Set of material names affected by optimization
+        optimizationName: Name of the optimization pass (for legend)
     '''
     if data is None:
         return
-        
+
     if optimizedMaterials is None:
         optimizedMaterials = set()
     if not _have_matplotlib:
         logger.error('Cannot create chart: matplotlib not installed.')
-        logger.error('Install with: pip install matplotlib')
         return
-
     if not _have_pandas:
         logger.error('Cannot create chart: pandas not installed.')
-        logger.error('Install with: pip install pandas')
         return
 
     df = data if hasattr(data, 'iterrows') else pd.DataFrame(data)
-    
-    # Filter to rows with both values
-    chartDf = df.dropna(subset=['mean_ms_baseline', 'mean_ms_optimized']).copy()
 
+    chartDf = df.dropna(subset=['mean_ms_baseline', 'mean_ms_optimized']).copy()
     if chartDf.empty:
         logger.warning('No data to chart')
         return
 
-    # Reverse order so largest improvements appear at TOP of chart
-    # (matplotlib draws bars from bottom to top)
+    # Reverse so largest improvements at TOP
     chartDf = chartDf.iloc[::-1].reset_index(drop=True)
-
-    # Track which materials are affected by the optimization
     chartDf['is_optimized'] = chartDf['name'].isin(optimizedMaterials)
-    
-    # Create display names with absolute delta and percentage
-    # Prefix with "★ " for materials affected by the optimization
+
     def make_label(row):
         name = row['name'][:28] + '...' if len(row['name']) > 28 else row['name']
         delta = row['delta_ms']
         pct = row['change_pct']
-        prefix = '★ ' if row['is_optimized'] else ''
+        prefix = '* ' if row['is_optimized'] else ''
         if pd.notna(delta) and pd.notna(pct):
             return f"{prefix}{name} ({delta:+.1f}ms, {pct:+.1f}%)"
         return f"{prefix}{name}"
 
     chartDf['display_name'] = chartDf.apply(make_label, axis=1)
 
-    # Create figure
     figHeight = max(10, len(chartDf) * 0.5)
     fig, ax = plt.subplots(figsize=(14, figHeight))
 
     y_pos = range(len(chartDf))
     bar_height = 0.35
 
-    # Baseline bars (blue) - ABOVE (higher y position)
-    bars1 = ax.barh([y + bar_height/2 for y in y_pos], chartDf['mean_ms_baseline'],
-                    bar_height, label='Baseline', color='#3498db', alpha=0.8)
+    ax.barh([y + bar_height/2 for y in y_pos], chartDf['mean_ms_baseline'],
+            bar_height, label='Baseline', color='#3498db', alpha=0.8)
 
-    # Optimized bars (green/red based on improvement) - BELOW (lower y position)
-    # delta < 0 = faster (green), delta > 0 = slower (red)
     colors = ['#2ecc71' if d < 0 else '#e74c3c' for d in chartDf['delta_ms']]
-    bars2 = ax.barh([y - bar_height/2 for y in y_pos], chartDf['mean_ms_optimized'],
-                    bar_height, label='Optimized', color=colors, alpha=0.8)
+    ax.barh([y - bar_height/2 for y in y_pos], chartDf['mean_ms_optimized'],
+            bar_height, label='Optimized', color=colors, alpha=0.8)
 
-    # Add duration labels to the right of each bar
     for i, (b, o, delta) in enumerate(zip(chartDf['mean_ms_baseline'],
                                            chartDf['mean_ms_optimized'],
                                            chartDf['delta_ms'])):
-        # Baseline duration at end of baseline bar
         ax.text(b + 1, i + bar_height/2, f'{b:.1f}ms', va='center', fontsize=7,
                 color='#2980b9')
-        # Optimized duration at end of optimized bar
         ax.text(o + 1, i - bar_height/2, f'{o:.1f}ms', va='center', fontsize=7,
                 color='#27ae60' if delta < 0 else '#c0392b')
 
     ax.set_yticks(y_pos)
     ax.set_yticklabels(chartDf['display_name'])
     ax.set_xlabel('Time (ms)')
-    
-    # Highlight Y-axis labels for materials affected by the optimization
+
     if optimizedMaterials:
         for i, (label, isOpt) in enumerate(zip(ax.get_yticklabels(), chartDf['is_optimized'])):
             if isOpt:
                 label.set_fontweight('bold')
-                label.set_color('#8e44ad')  # Purple for highlighted items
+                label.set_color('#8e44ad')
 
-    if title:
-        ax.set_title(title)
-    else:
-        filterNote = f', filtered |Δ| ≥ {minDeltaMs:.1f}ms' if minDeltaMs > 0 else ''
-        optNote = f'\n★ = affected by {optimizationName}' if optimizationName and optimizedMaterials else ''
-        ax.set_title(f'Absolute Duration Comparison: Baseline vs Optimized\n(sorted by time saved{filterNote}){optNote}')
+    optNote = f'\n* = affected by {optimizationName}' if optimizationName and optimizedMaterials else ''
+    ax.set_title(f'{title}{optNote}')
 
-    # Legend
     legendElements = [
         Patch(facecolor='#3498db', label='Baseline'),
         Patch(facecolor='#2ecc71', label='Optimized (faster)'),
@@ -523,21 +526,21 @@ def createTraceChart(data, outputPath, title=None, minDeltaMs=0.0,
 
     plt.tight_layout()
     plt.savefig(outputPath, dpi=150, bbox_inches='tight')
-    logger.info(f'Trace chart saved to: {outputPath}')
+    plt.close(fig)
+    logger.info(f'Chart saved to: {outputPath}')
 
 
 # =============================================================================
-# HTML REPORT GENERATION
+# OUTPUT: HTML REPORT
 # =============================================================================
 
-def generateHtmlReport(reportPath, traceData=None, chartPath=None):
+def generateHtmlReport(reportPath, sections):
     '''
-    Generate an HTML report with performance chart and trace summary.
+    Generate an HTML report with multiple chart sections.
 
     Args:
         reportPath: Path to output HTML file
-        traceData: Trace comparison results (DataFrame or list of dicts)
-        chartPath: Path to performance chart image (optional)
+        sections: List of (title, chartPath) tuples
     '''
     reportPath = Path(reportPath)
     reportDir = reportPath.parent
@@ -550,17 +553,6 @@ def generateHtmlReport(reportPath, traceData=None, chartPath=None):
             return str(Path(absPath).relative_to(reportDir))
         except ValueError:
             return 'file:///' + str(Path(absPath)).replace('\\', '/')
-
-    traceImproved = 0
-    traceRegressed = 0
-
-    if traceData is not None:
-        if _have_pandas and hasattr(traceData, 'iterrows'):
-            traceImproved = len(traceData[traceData['change_pct'] < 0])
-            traceRegressed = len(traceData[traceData['change_pct'] > 0])
-        else:
-            traceImproved = sum(1 for r in traceData if r.get('change_pct', 0) and r['change_pct'] < 0)
-            traceRegressed = sum(1 for r in traceData if r.get('change_pct', 0) and r['change_pct'] > 0)
 
     html = []
     html.append('''<!DOCTYPE html>
@@ -578,20 +570,9 @@ def generateHtmlReport(reportPath, traceData=None, chartPath=None):
         .container { max-width: 1800px; margin: 0 auto; }
         h1, h2 { color: #333; }
         h1 { border-bottom: 2px solid #3498db; padding-bottom: 10px; }
-
-        .summary { display: flex; gap: 20px; margin-bottom: 30px; flex-wrap: wrap; }
-        .card {
-            background: white; border-radius: 8px; padding: 20px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1); flex: 1; min-width: 200px;
-        }
-        .card h3 { margin: 0 0 10px 0; color: #666; font-size: 14px; text-transform: uppercase; }
-        .card .value { font-size: 32px; font-weight: bold; }
-        .card .value.good { color: #27ae60; }
-        .card .value.bad { color: #e74c3c; }
-        .card .value.neutral { color: #3498db; }
-
-        .chart-container { background: white; border-radius: 8px; padding: 20px; margin-bottom: 30px; }
-        .chart-container img { max-width: 100%; height: auto; }
+        .chart-section { background: white; border-radius: 8px; padding: 20px; margin-bottom: 30px;
+                         box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .chart-section img { max-width: 100%; height: auto; }
     </style>
 </head>
 <body>
@@ -599,25 +580,13 @@ def generateHtmlReport(reportPath, traceData=None, chartPath=None):
     <h1>MaterialX Trace Comparison Report</h1>
 ''')
 
-    html.append(f'''
-    <div class="summary">
-        <div class="card">
-            <h3>Trace Improvements</h3>
-            <div class="value good">{traceImproved}</div>
-        </div>
-        <div class="card">
-            <h3>Trace Regressions</h3>
-            <div class="value {'bad' if traceRegressed > 0 else 'neutral'}">{traceRegressed}</div>
-        </div>
-    </div>
-''')
-
-    if chartPath and Path(chartPath).exists():
-        chartRel = relPath(chartPath)
-        html.append(f'''
-    <h2>Performance Comparison</h2>
-    <div class="chart-container">
-        <img src="{chartRel}" alt="Performance Chart">
+    for title, chartPath in sections:
+        if chartPath and Path(chartPath).exists():
+            chartRel = relPath(str(chartPath))
+            html.append(f'''
+    <div class="chart-section">
+        <h2>{title}</h2>
+        <img src="{chartRel}" alt="{title}">
     </div>
 ''')
 
@@ -637,7 +606,17 @@ def generateHtmlReport(reportPath, traceData=None, chartPath=None):
 
 
 # =============================================================================
-# MAIN ENTRY POINT
+# CHART PATH HELPERS
+# =============================================================================
+
+def _chartPath(basePath, suffix):
+    '''Derive a chart output path by inserting a suffix before the extension.'''
+    basePath = Path(basePath)
+    return basePath.parent / f'{basePath.stem}_{suffix}{basePath.suffix}'
+
+
+# =============================================================================
+# MAIN
 # =============================================================================
 
 def main():
@@ -646,10 +625,11 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog='''
 Examples:
-  %(prog)s ./baseline/ ./optimized/
-  %(prog)s ./baseline/ ./optimized/ --min-delta-ms 1.0
-  %(prog)s ./baseline/ ./optimized/ --chart chart.png
-  %(prog)s ./baseline/ ./optimized/ --track GPU
+  %(prog)s ./baseline/ ./optimized/ --gpu
+  %(prog)s ./baseline/ ./optimized/ --slice GenerateShader
+  %(prog)s ./baseline/ ./optimized/ --slice GenerateShader CompileShader RenderMaterial
+  %(prog)s ./baseline/ ./optimized/ --gpu --slice GenerateShader
+  %(prog)s ./baseline/ ./optimized/ --gpu -o my_report.html
 
 For image comparison, see diff_images.py in the same directory.
 ''')
@@ -659,53 +639,38 @@ For image comparison, see diff_images.py in the same directory.
     parser.add_argument('optimized', type=Path,
                         help='Optimized directory containing Perfetto traces')
 
-    # Trace options
-    traceGroup = parser.add_argument_group('trace options')
-    traceGroup.add_argument('--track', '-t', type=str, default=None,
-                            help='Filter traces by track name (e.g., GPU)')
-    traceGroup.add_argument('--min-delta-ms', type=float, default=0.0,
-                            help='Minimum absolute time difference in ms to include')
-    traceGroup.add_argument('--chart', '-c', type=Path,
-                            help='Output path for trace chart image (e.g., chart.png)')
-    traceGroup.add_argument('--show-opt', type=str, metavar='OPT_NAME',
-                            help='Highlight materials affected by optimization pass')
+    modeGroup = parser.add_argument_group('comparison modes (at least one required)')
+    modeGroup.add_argument('--gpu', action='store_true',
+                           help='Compare GPU render durations per material')
+    modeGroup.add_argument('--slice', nargs='+', metavar='NAME',
+                           help='Compare named child-slice durations per material '
+                                '(e.g., GenerateShader, CompileShader, RenderMaterial)')
 
-    # Output options
-    outputGroup = parser.add_argument_group('output options')
-    outputGroup.add_argument('--csv', type=Path,
-                             help='Export trace results to CSV file')
-    outputGroup.add_argument('--title', type=str,
-                             help='Custom title for the chart')
-    outputGroup.add_argument('--report', type=Path,
-                             help='Generate HTML report with trace chart')
+    optGroup = parser.add_argument_group('options')
+    optGroup.add_argument('--min-delta-ms', type=float, default=0.0,
+                          help='Minimum absolute time difference in ms to include')
+    optGroup.add_argument('-o', '--outputfile', dest='outputfile', type=str,
+                          default='trace_diff.html',
+                          help='Output HTML report file name (default: trace_diff.html)')
+    optGroup.add_argument('--show-opt', type=str, metavar='OPT_NAME',
+                          help='Highlight materials affected by optimization pass')
+    optGroup.add_argument('--csv', type=Path,
+                          help='Export trace results to CSV file (last comparison only)')
 
     args = parser.parse_args()
 
-    traceData = None
-    chartPath = None
+    if not args.gpu and not args.slice:
+        parser.print_help()
+        sys.exit(0)
 
-    # Determine chart path
-    if args.report:
-        if not args.chart:
-            chartPath = args.report.parent / 'chart.png'
-        else:
-            chartPath = args.chart
+    if not _have_perfetto:
+        logger.error('perfetto is required. Install with: pip install perfetto')
+        sys.exit(1)
 
-    try:
-        print('\n' + '=' * 85)
-        print('PERFORMANCE TRACE COMPARISON')
-        print('=' * 85)
-
-        if not _have_perfetto:
-            logger.error('perfetto is required. Install with: pip install perfetto')
-            sys.exit(1)
-
-        traceData = compareTraces(args.baseline, args.optimized,
-                                  args.track, args.min_delta_ms)
-
-        # Load optimization events if requested
-        optimizedMaterials = set()
-        if args.show_opt and traceData is not None:
+    # Load optimization events if requested
+    optimizedMaterials = set()
+    if args.show_opt:
+        try:
             baselineTracePath = findTraceFile(args.baseline)
             baselineMaterials = loadOptimizationEvents(baselineTracePath, args.show_opt)
             if baselineMaterials:
@@ -716,32 +681,69 @@ For image comparison, see diff_images.py in the same directory.
             optimizedTracePath = findTraceFile(args.optimized)
             optimizedMaterials = loadOptimizationEvents(optimizedTracePath, args.show_opt)
             logger.info(f'Found {len(optimizedMaterials)} materials affected by {args.show_opt}')
+        except FileNotFoundError as e:
+            logger.error(f'{e}')
+            sys.exit(1)
 
-        printTraceTable(traceData, optimizedMaterials)
+    # Build the list of comparisons to run: [(label, title), ...]
+    comparisons = []
 
-        # Generate chart
-        actualChartPath = chartPath or args.chart
-        if actualChartPath and traceData is not None:
-            createTraceChart(traceData, actualChartPath, title=args.title,
-                             minDeltaMs=args.min_delta_ms,
-                             optimizedMaterials=optimizedMaterials,
-                             optimizationName=args.show_opt)
+    if args.gpu:
+        comparisons.append(('GPU', 'GPU Render Duration per Material: Baseline vs Optimized'))
 
-        if args.csv and traceData is not None:
+    if args.slice:
+        for sliceName in args.slice:
+            comparisons.append((sliceName, f'{sliceName} Duration per Material: Baseline vs Optimized'))
+
+    # Derive chart paths from the report file name
+    reportPath = Path(args.outputfile)
+    reportDir = reportPath.parent
+    reportDir.mkdir(parents=True, exist_ok=True)
+    chartBase = reportDir / (reportPath.stem + '.png')
+
+    reportSections = []
+    lastTraceData = None
+
+    try:
+        for label, title in comparisons:
+            # Run comparison
+            if label == 'GPU':
+                traceData = compareGpuTraces(args.baseline, args.optimized, args.min_delta_ms)
+            else:
+                traceData = compareChildSlices(args.baseline, args.optimized, label, args.min_delta_ms)
+
+            lastTraceData = traceData
+
+            # Print table
+            printTraceTable(traceData, title, optimizedMaterials)
+
+            # Generate chart
+            if traceData is not None:
+                if len(comparisons) > 1:
+                    chartPath = _chartPath(chartBase, label)
+                else:
+                    chartPath = chartBase
+                createTraceChart(traceData, chartPath, title=title,
+                                 optimizedMaterials=optimizedMaterials,
+                                 optimizationName=args.show_opt)
+                reportSections.append((title, chartPath))
+
+        # CSV export (last comparison)
+        if args.csv and lastTraceData is not None:
             if _have_pandas:
-                df = traceData if hasattr(traceData, 'to_csv') else pd.DataFrame(traceData)
+                df = lastTraceData if hasattr(lastTraceData, 'to_csv') else pd.DataFrame(lastTraceData)
                 df.to_csv(args.csv, index=False)
                 logger.info(f'CSV exported to: {args.csv}')
             else:
                 logger.error('Cannot export CSV: pandas not installed.')
 
-        # HTML Report
-        if args.report:
-            generateHtmlReport(args.report, traceData=traceData, chartPath=chartPath)
+        # HTML Report (always generated)
+        if reportSections:
+            generateHtmlReport(reportPath, reportSections)
 
-        print('\n' + '=' * 85)
+        print(f'\n{"=" * 85}')
         print('RESULT: Trace comparison complete')
-        print('=' * 85)
+        print(f'{"=" * 85}')
 
         sys.exit(0)
 
