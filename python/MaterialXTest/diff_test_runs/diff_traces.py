@@ -3,7 +3,7 @@
 Compare performance traces between baseline and optimized MaterialX test runs.
 
 Reads Perfetto .perfetto-trace files and compares slice durations, generating
-tables, charts, and optional CSV/HTML output.
+tables, charts, and an HTML report.
 
 Two modes:
   --gpu           Compare GPU render durations per material (from GPU async track)
@@ -30,24 +30,18 @@ logger = logging.getLogger('diff_traces')
 
 
 # -----------------------------------------------------------------------------
-# Dependency Checking
+# Dependencies
 # -----------------------------------------------------------------------------
 
-# Optional: perfetto (for reading traces)
-_have_perfetto = False
 try:
     from perfetto.trace_processor import TraceProcessor
-    _have_perfetto = True
 except ImportError:
-    logger.debug('perfetto not found. Trace comparison disabled.')
+    sys.exit('ERROR: perfetto is required. Install with: pip install perfetto')
 
-# Optional: pandas (for CSV export and data aggregation)
-_have_pandas = False
 try:
     import pandas as pd
-    _have_pandas = True
 except ImportError:
-    logger.debug('pandas not found. CSV export disabled.')
+    sys.exit('ERROR: pandas is required. Install with: pip install pandas')
 
 # Optional: matplotlib (for chart generation)
 _have_matplotlib = False
@@ -98,8 +92,7 @@ def loadSliceDurations(tracePath, trackName=None):
         trackName: Optional track name filter (e.g., "GPU")
 
     Returns:
-        DataFrame with columns [name, dur_ms] if pandas available,
-        otherwise list of dicts.
+        DataFrame with columns [name, dur_ms].
     '''
     tp = TraceProcessor(trace=str(tracePath))
 
@@ -119,23 +112,12 @@ def loadSliceDurations(tracePath, trackName=None):
         ORDER BY slice.name
         '''
 
-    result = tp.query(query)
-
-    if _have_pandas:
-        df = result.as_pandas_dataframe()
-        if df.empty:
-            trackMsg = f' on track "{trackName}"' if trackName else ''
-            logger.warning(f'No slices found{trackMsg} in {tracePath}')
-            return pd.DataFrame(columns=['name', 'dur_ms'])
-        return df
-    else:
-        rows = []
-        for row in result:
-            rows.append({'name': row.name, 'dur_ms': row.dur_ms})
-        if not rows:
-            trackMsg = f' on track "{trackName}"' if trackName else ''
-            logger.warning(f'No slices found{trackMsg} in {tracePath}')
-        return rows
+    df = tp.query(query).as_pandas_dataframe()
+    if df.empty:
+        trackMsg = f' on track "{trackName}"' if trackName else ''
+        logger.warning(f'No slices found{trackMsg} in {tracePath}')
+        return pd.DataFrame(columns=['name', 'dur_ms'])
+    return df
 
 
 def loadChildSliceDurations(tracePath, sliceName):
@@ -150,8 +132,7 @@ def loadChildSliceDurations(tracePath, sliceName):
         sliceName: Name of the child slice (e.g., "GenerateShader", "CompileShader")
 
     Returns:
-        DataFrame with columns [name, dur_ms] if pandas available,
-        otherwise list of dicts. 'name' is the parent (material) name.
+        DataFrame with columns [name, dur_ms]. 'name' is the parent (material) name.
     '''
     tp = TraceProcessor(trace=str(tracePath))
 
@@ -163,21 +144,11 @@ def loadChildSliceDurations(tracePath, sliceName):
     ORDER BY parent.name
     '''
 
-    result = tp.query(query)
-
-    if _have_pandas:
-        df = result.as_pandas_dataframe()
-        if df.empty:
-            logger.warning(f'No "{sliceName}" slices found in {tracePath}')
-            return pd.DataFrame(columns=['name', 'dur_ms'])
-        return df
-    else:
-        rows = []
-        for row in result:
-            rows.append({'name': row.name, 'dur_ms': row.dur_ms})
-        if not rows:
-            logger.warning(f'No "{sliceName}" slices found in {tracePath}')
-        return rows
+    df = tp.query(query).as_pandas_dataframe()
+    if df.empty:
+        logger.warning(f'No "{sliceName}" slices found in {tracePath}')
+        return pd.DataFrame(columns=['name', 'dur_ms'])
+    return df
 
 
 def loadOptimizationEvents(tracePath, optimizationName=None):
@@ -226,61 +197,30 @@ def loadOptimizationEvents(tracePath, optimizationName=None):
 # COMPARISON
 # =============================================================================
 
-def _aggregateByName(data):
+def _aggregateByName(df):
     '''Aggregate durations by name (averaging across multiple samples).'''
-    if _have_pandas:
-        df = data
-        if df.empty:
-            return pd.DataFrame(columns=['name', 'mean_ms'])
-        agg = df.groupby('name')['dur_ms'].mean().reset_index()
-        agg.columns = ['name', 'mean_ms']
-        return agg
-    else:
-        from collections import defaultdict
-        groups = defaultdict(list)
-        for row in data:
-            groups[row['name']].append(row['dur_ms'])
-        return {name: {'mean_ms': sum(durs) / len(durs)} for name, durs in groups.items()}
+    if df.empty:
+        return pd.DataFrame(columns=['name', 'mean_ms'])
+    agg = df.groupby('name')['dur_ms'].mean().reset_index()
+    agg.columns = ['name', 'mean_ms']
+    return agg
 
 
 def _mergeAndCompare(baselineAgg, optimizedAgg, minDeltaMs=0.0):
     '''Merge baseline and optimized aggregates, compute delta and percentage.'''
-    if _have_pandas:
-        merged = pd.merge(
-            baselineAgg[['name', 'mean_ms']],
-            optimizedAgg[['name', 'mean_ms']],
-            on='name',
-            suffixes=('_baseline', '_optimized'),
-            how='outer'
-        )
-        merged['delta_ms'] = merged['mean_ms_optimized'] - merged['mean_ms_baseline']
-        merged['change_pct'] = (merged['delta_ms'] / merged['mean_ms_baseline']) * 100
-        if minDeltaMs > 0:
-            merged = merged[merged['delta_ms'].abs() >= minDeltaMs]
-        merged = merged.sort_values('delta_ms', ascending=True)
-        return merged
-    else:
-        allNames = set(baselineAgg.keys()) | set(optimizedAgg.keys())
-        results = []
-        for name in allNames:
-            baseMs = baselineAgg.get(name, {}).get('mean_ms')
-            optMs = optimizedAgg.get(name, {}).get('mean_ms')
-            deltaMs = None
-            changePct = None
-            if baseMs is not None and optMs is not None:
-                deltaMs = optMs - baseMs
-                changePct = (deltaMs / baseMs) * 100 if baseMs != 0 else None
-            if minDeltaMs > 0 and (deltaMs is None or abs(deltaMs) < minDeltaMs):
-                continue
-            results.append({
-                'name': name,
-                'mean_ms_baseline': baseMs,
-                'mean_ms_optimized': optMs,
-                'delta_ms': deltaMs,
-                'change_pct': changePct
-            })
-        results.sort(key=lambda x: (x['delta_ms'] is None, x['delta_ms'] or 0))
-        return results
+    merged = pd.merge(
+        baselineAgg[['name', 'mean_ms']],
+        optimizedAgg[['name', 'mean_ms']],
+        on='name',
+        suffixes=('_baseline', '_optimized'),
+        how='outer'
+    )
+    merged['delta_ms'] = merged['mean_ms_optimized'] - merged['mean_ms_baseline']
+    merged['change_pct'] = (merged['delta_ms'] / merged['mean_ms_baseline']) * 100
+    if minDeltaMs > 0:
+        merged = merged[merged['delta_ms'].abs() >= minDeltaMs]
+    merged = merged.sort_values('delta_ms', ascending=True)
+    return merged
 
 
 def compareGpuTraces(baselinePath, optimizedPath, minDeltaMs=0.0):
@@ -330,22 +270,19 @@ def compareChildSlices(baselinePath, optimizedPath, sliceName, minDeltaMs=0.0):
 
 def _isna(val):
     '''Check if value is None or NaN.'''
-    if val is None:
-        return True
-    if _have_pandas:
-        return pd.isna(val)
-    return False
+    return val is None or pd.isna(val)
 
 
-def printTraceTable(data, title, optimizedMaterials=None):
+def printTraceTable(df, title, optimizedMaterials=None):
     '''Print a formatted trace comparison table to stdout.
 
     Args:
-        data: Comparison data (DataFrame or list of dicts)
+        df: Comparison DataFrame with columns [name, mean_ms_baseline,
+            mean_ms_optimized, delta_ms, change_pct]
         title: Section title printed above the table
         optimizedMaterials: Optional set of material names affected by optimization
     '''
-    if data is None:
+    if df is None or df.empty:
         return
 
     if optimizedMaterials is None:
@@ -358,28 +295,13 @@ def printTraceTable(data, title, optimizedMaterials=None):
     print(f"{'Name':<40} {'Baseline':>10} {'Optimized':>10} {'Delta':>10} {'Change':>8}{marker}")
     print('-' * 85)
 
-    if _have_pandas and hasattr(data, 'iterrows'):
-        rows = [row for _, row in data.iterrows()]
-        totalLen = len(data)
-    else:
-        rows = data
-        totalLen = len(data)
-
-    for row in rows:
-        if hasattr(row, '__getitem__'):
-            fullName = str(row['name'])
-            name = fullName[:38]
-            baseMs = row['mean_ms_baseline']
-            optMs = row['mean_ms_optimized']
-            changePct = row['change_pct']
-            deltaMs = row.get('delta_ms')
-        else:
-            fullName = str(row.name)
-            name = fullName[:38]
-            baseMs = row.mean_ms_baseline
-            optMs = row.mean_ms_optimized
-            changePct = row.change_pct
-            deltaMs = getattr(row, 'delta_ms', None)
+    for _, row in df.iterrows():
+        fullName = str(row['name'])
+        name = fullName[:38]
+        baseMs = row['mean_ms_baseline']
+        optMs = row['mean_ms_optimized']
+        deltaMs = row['delta_ms']
+        changePct = row['change_pct']
 
         affected = fullName in optimizedMaterials
         marker = ' *' if affected else '  '
@@ -392,42 +314,24 @@ def printTraceTable(data, title, optimizedMaterials=None):
 
     print('-' * 85)
 
-    if _have_pandas and hasattr(data, 'iterrows'):
-        improved = data[data['change_pct'] < 0]
-        regressed = data[data['change_pct'] > 0]
-        unchanged = data[data['change_pct'] == 0]
-        nImproved, nRegressed, nUnchanged = len(improved), len(regressed), len(unchanged)
-        validChanges = list(data.dropna(subset=['change_pct'])['change_pct'])
-    else:
-        nImproved = sum(1 for r in data if r['change_pct'] is not None and r['change_pct'] < 0)
-        nRegressed = sum(1 for r in data if r['change_pct'] is not None and r['change_pct'] > 0)
-        nUnchanged = sum(1 for r in data if r['change_pct'] == 0)
-        validChanges = [r['change_pct'] for r in data if r['change_pct'] is not None]
+    improved = df[df['change_pct'] < 0]
+    regressed = df[df['change_pct'] > 0]
+    unchanged = df[df['change_pct'] == 0]
+    validChanges = df.dropna(subset=['change_pct'])['change_pct']
 
-    print(f'\nSummary: {nImproved} improved, {nRegressed} regressed, '
-          f'{nUnchanged} unchanged, {totalLen} total')
+    print(f'\nSummary: {len(improved)} improved, {len(regressed)} regressed, '
+          f'{len(unchanged)} unchanged, {len(df)} total')
 
-    if nImproved > 0:
-        if _have_pandas and hasattr(data, 'iterrows'):
-            best = improved.iloc[0]
-            print(f"Best improvement: {best['name']} ({best['change_pct']:.1f}%)")
-        else:
-            best = next(r for r in data if r['change_pct'] is not None and r['change_pct'] < 0)
-            print(f"Best improvement: {best['name']} ({best['change_pct']:.1f}%)")
+    if len(improved) > 0:
+        best = improved.iloc[0]
+        print(f"Best improvement: {best['name']} ({best['change_pct']:.1f}%)")
 
-    if nRegressed > 0:
-        if _have_pandas and hasattr(data, 'iterrows'):
-            worst = regressed.iloc[-1]
-            print(f"Worst regression: {worst['name']} ({worst['change_pct']:+.1f}%)")
-        else:
-            worst = [r for r in data if r['change_pct'] is not None and r['change_pct'] > 0][-1]
-            print(f"Worst regression: {worst['name']} ({worst['change_pct']:+.1f}%)")
+    if len(regressed) > 0:
+        worst = regressed.iloc[-1]
+        print(f"Worst regression: {worst['name']} ({worst['change_pct']:+.1f}%)")
 
-    if validChanges:
-        avgChange = sum(validChanges) / len(validChanges)
-        sortedChanges = sorted(validChanges)
-        medianChange = sortedChanges[len(sortedChanges) // 2]
-        print(f'Overall: mean {avgChange:+.1f}%, median {medianChange:+.1f}%')
+    if len(validChanges) > 0:
+        print(f'Overall: mean {validChanges.mean():+.1f}%, median {validChanges.median():+.1f}%')
 
     if optimizedMaterials:
         print(f'\n* = affected by optimization ({len(optimizedMaterials)} materials)')
@@ -457,13 +361,8 @@ def createTraceChart(data, outputPath, title,
     if not _have_matplotlib:
         logger.error('Cannot create chart: matplotlib not installed.')
         return
-    if not _have_pandas:
-        logger.error('Cannot create chart: pandas not installed.')
-        return
 
-    df = data if hasattr(data, 'iterrows') else pd.DataFrame(data)
-
-    chartDf = df.dropna(subset=['mean_ms_baseline', 'mean_ms_optimized']).copy()
+    chartDf = data.dropna(subset=['mean_ms_baseline', 'mean_ms_optimized']).copy()
     if chartDf.empty:
         logger.warning('No data to chart')
         return
@@ -654,18 +553,12 @@ For image comparison, see diff_images.py in the same directory.
                           help='Output HTML report file name (default: trace_diff.html)')
     optGroup.add_argument('--show-opt', type=str, metavar='OPT_NAME',
                           help='Highlight materials affected by optimization pass')
-    optGroup.add_argument('--csv', type=Path,
-                          help='Export trace results to CSV file (last comparison only)')
 
     args = parser.parse_args()
 
     if not args.gpu and not args.slice:
         parser.print_help()
         sys.exit(0)
-
-    if not _have_perfetto:
-        logger.error('perfetto is required. Install with: pip install perfetto')
-        sys.exit(1)
 
     # Load optimization events if requested
     optimizedMaterials = set()
@@ -702,7 +595,6 @@ For image comparison, see diff_images.py in the same directory.
     chartBase = reportDir / (reportPath.stem + '.png')
 
     reportSections = []
-    lastTraceData = None
 
     try:
         for label, title in comparisons:
@@ -712,13 +604,11 @@ For image comparison, see diff_images.py in the same directory.
             else:
                 traceData = compareChildSlices(args.baseline, args.optimized, label, args.min_delta_ms)
 
-            lastTraceData = traceData
-
             # Print table
             printTraceTable(traceData, title, optimizedMaterials)
 
             # Generate chart
-            if traceData is not None:
+            if traceData is not None and not traceData.empty:
                 if len(comparisons) > 1:
                     chartPath = _chartPath(chartBase, label)
                 else:
@@ -727,15 +617,6 @@ For image comparison, see diff_images.py in the same directory.
                                  optimizedMaterials=optimizedMaterials,
                                  optimizationName=args.show_opt)
                 reportSections.append((title, chartPath))
-
-        # CSV export (last comparison)
-        if args.csv and lastTraceData is not None:
-            if _have_pandas:
-                df = lastTraceData if hasattr(lastTraceData, 'to_csv') else pd.DataFrame(lastTraceData)
-                df.to_csv(args.csv, index=False)
-                logger.info(f'CSV exported to: {args.csv}')
-            else:
-                logger.error('Cannot export CSV: pandas not installed.')
 
         # HTML Report (always generated)
         if reportSections:
