@@ -1,30 +1,20 @@
 #!/usr/bin/env python
 '''
-Compare test results between baseline and optimized MaterialX test runs.
+Compare performance traces between baseline and optimized MaterialX test runs.
 
-This script supports comparing:
-  - Performance traces (Perfetto .perfetto-trace files)
-  - Rendered images using NVIDIA FLIP perceptual comparison
+Reads Perfetto .perfetto-trace files and compares slice durations, generating
+tables, charts, and optional CSV/HTML output.
 
-FLIP (A Difference Evaluator for Alternating Images) approximates human
-perception of differences when flipping between images. A FLIP score of 0
-means identical, 1 means maximally different.
+For image comparison, see diff_images.py in python/MaterialXTest/diff_test_runs/.
 
 Usage:
     python diff_test_results.py <baseline_dir> <optimized_dir> [options]
 
 Examples:
-    # Compare traces only
-    python diff_test_results.py ./baseline/ ./optimized/ --traces
-
-    # Compare images only  
-    python diff_test_results.py ./baseline/ ./optimized/ --images
-
-    # Compare both (default)
     python diff_test_results.py ./baseline/ ./optimized/
-
-    # With options
-    python diff_test_results.py ./baseline/ ./optimized/ --min-delta-ms 1.0 --image-threshold 0.05
+    python diff_test_results.py ./baseline/ ./optimized/ --min-delta-ms 1.0
+    python diff_test_results.py ./baseline/ ./optimized/ --chart chart.png
+    python diff_test_results.py ./baseline/ ./optimized/ --track GPU
 '''
 
 import argparse
@@ -47,14 +37,6 @@ try:
     _have_perfetto = True
 except ImportError:
     logger.debug('perfetto not found. Trace comparison disabled.')
-
-# Optional: FLIP (for perceptual image comparison)
-_have_flip = False
-try:
-    import flip_evaluator as flip
-    _have_flip = True
-except ImportError:
-    logger.debug('flip-evaluator not found. Install with: pip install flip-evaluator')
 
 # Optional: pandas (for CSV export and data aggregation)
 _have_pandas = False
@@ -546,267 +528,60 @@ def createTraceChart(data, outputPath, title=None, minDeltaMs=0.0,
 
 
 # =============================================================================
-# IMAGE COMPARISON
-# =============================================================================
-
-def findImages(directory, pattern='**/*.png'):
-    '''Find all PNG images in a directory recursively.'''
-    directory = Path(directory)
-    if not directory.exists():
-        raise FileNotFoundError(f'Directory not found: {directory}')
-    return list(directory.glob(pattern))
-
-
-def computeImageDiff(img1Path, img2Path, ppd=70.0, heatmapPath=None):
-    '''
-    Compute FLIP perceptual difference metrics between two images.
-    
-    FLIP (A Difference Evaluator for Alternating Images) is a perceptual
-    image comparison metric from NVIDIA that approximates human perception
-    of differences when flipping between images.
-    
-    Args:
-        img1Path: Path to reference (baseline) image
-        img2Path: Path to test (optimized) image
-        ppd: Pixels per degree (viewing distance). Default 70 assumes
-             a 0.7m viewing distance for a 1080p 24" monitor.
-        heatmapPath: Optional path to save FLIP heatmap image (magma colormap)
-    
-    Returns:
-        dict with keys: mean_flip, max_flip, pct_diff_pixels, identical, heatmap_path
-    '''
-    import numpy as np
-    
-    # FLIP evaluate() accepts file paths directly as strings
-    # Returns: (error_map, mean_error, params)
-    # error_map is HxWx3 if applyMagma=True (colored heatmap), HxW if False
-    try:
-        flipMap, meanFlip, _ = flip.evaluate(
-            str(img1Path),
-            str(img2Path),
-            "LDR",  # Low dynamic range (PNG images)
-            inputsRGB=True,
-            applyMagma=False,  # Get raw FLIP values for metrics
-            computeMeanError=True,
-            parameters={"ppd": ppd}
-        )
-    except Exception as e:
-        return {
-            'error': str(e),
-            'identical': False
-        }
-    
-    # flipMap is a numpy array with per-pixel FLIP values in [0, 1]
-    flipMap = np.array(flipMap)
-    
-    # Maximum FLIP value
-    maxFlip = float(flipMap.max())
-    
-    # Percentage of pixels with perceptible difference (FLIP > 0.01)
-    # 0.01 is a reasonable threshold for "just noticeable difference"
-    diffPixels = flipMap > 0.01
-    pctDiffPixels = 100.0 * diffPixels.sum() / diffPixels.size
-    
-    result = {
-        'mean_flip': float(meanFlip),
-        'max_flip': maxFlip,
-        'pct_diff_pixels': pctDiffPixels,
-        'identical': meanFlip < 1e-6,
-        'heatmap_path': None
-    }
-    
-    # Save heatmap if requested
-    if heatmapPath:
-        try:
-            # Re-run with magma colormap for visualization
-            heatmapImg, _, _ = flip.evaluate(
-                str(img1Path),
-                str(img2Path),
-                "LDR",
-                inputsRGB=True,
-                applyMagma=True,  # Get colored heatmap
-                computeMeanError=False,
-                parameters={"ppd": ppd}
-            )
-            # Save as PNG
-            from PIL import Image
-            heatmapArr = np.array(heatmapImg)
-            if heatmapArr.max() <= 1.0:
-                heatmapArr = (heatmapArr * 255).astype(np.uint8)
-            Image.fromarray(heatmapArr).save(heatmapPath)
-            result['heatmap_path'] = str(heatmapPath)
-        except Exception as e:
-            logger.warning(f'Failed to save heatmap: {e}')
-    
-    return result
-
-
-def compareImages(baselineDir, optimizedDir, threshold=0.05, ppd=70.0, reportDir=None):
-    '''
-    Compare all matching images between two directories using FLIP.
-    
-    Args:
-        baselineDir: Path to baseline images
-        optimizedDir: Path to optimized images
-        threshold: FLIP threshold above which to report differences (default: 0.05)
-        ppd: Pixels per degree for FLIP calculation (default: 70)
-        reportDir: Optional directory to save FLIP heatmaps for HTML report
-        
-    Returns:
-        List of comparison results with paths for report generation
-    '''
-    if not _have_flip:
-        logger.error('Cannot compare images: flip-evaluator not installed.')
-        logger.error('Install with: pip install flip-evaluator')
-        return None
-
-    baselineDir = Path(baselineDir)
-    optimizedDir = Path(optimizedDir)
-    
-    # Create heatmap directory if generating report
-    heatmapDir = None
-    if reportDir:
-        heatmapDir = Path(reportDir) / 'heatmaps'
-        heatmapDir.mkdir(parents=True, exist_ok=True)
-    
-    baselineImages = findImages(baselineDir)
-    logger.info(f'Found {len(baselineImages)} images in baseline')
-    
-    results = []
-    matched = 0
-    missing = 0
-    
-    for baselineImg in baselineImages:
-        # Get relative path from baseline directory
-        relPath = baselineImg.relative_to(baselineDir)
-        optimizedImg = optimizedDir / relPath
-        
-        if not optimizedImg.exists():
-            logger.warning(f'Missing in optimized: {relPath}')
-            missing += 1
-            continue
-        
-        matched += 1
-        
-        # Determine heatmap path if saving for report
-        heatmapPath = None
-        if heatmapDir:
-            heatmapPath = heatmapDir / f'{relPath.stem}_flip.png'
-        
-        metrics = computeImageDiff(baselineImg, optimizedImg, ppd, heatmapPath)
-        metrics['name'] = relPath.stem
-        metrics['path'] = str(relPath)
-        # Store absolute paths for HTML report
-        metrics['baseline_path'] = str(baselineImg.absolute())
-        metrics['optimized_path'] = str(optimizedImg.absolute())
-        results.append(metrics)
-    
-    logger.info(f'Compared {matched} image pairs, {missing} missing')
-    return results
-
-
-def printImageTable(results, threshold=0.05):
-    '''Print a formatted FLIP image comparison table.'''
-    if results is None:
-        return False
-        
-    print('\n' + '=' * 85)
-    print(f"{'Image':<40} {'Mean FLIP':>10} {'Max FLIP':>10} {'% Diff':>10} {'Status':>8}")
-    print('=' * 85)
-    
-    identical = 0
-    different = 0
-    errors = 0
-    
-    # Sort by mean FLIP (highest first)
-    sortedResults = sorted(results, key=lambda x: x.get('mean_flip', 0), reverse=True)
-    
-    for r in sortedResults:
-        name = r['name'][:38]
-        
-        if 'error' in r:
-            print(f"{name:<40} {'ERROR':>10} {r['error']}")
-            errors += 1
-            continue
-            
-        meanFlip = r['mean_flip']
-        maxFlip = r['max_flip']
-        pctDiff = r['pct_diff_pixels']
-        
-        if r['identical']:
-            status = 'OK'
-            identical += 1
-        elif meanFlip < threshold:
-            status = 'OK'
-            identical += 1
-        else:
-            status = 'DIFF'
-            different += 1
-        
-        print(f"{name:<40} {meanFlip:>10.6f} {maxFlip:>10.4f} {pctDiff:>9.2f}% {status:>8}")
-    
-    print('=' * 85)
-    print(f'\nImage Summary (FLIP): {identical} identical, {different} different, {errors} errors')
-    print(f'Threshold: mean FLIP < {threshold}')
-    
-    if different > 0:
-        print(f'\n*** WARNING: {different} images differ above threshold! ***')
-        return False
-    else:
-        print('\nAll images match within threshold.')
-        return True
-
-
-# =============================================================================
 # HTML REPORT GENERATION
 # =============================================================================
 
-def generateHtmlReport(reportPath, traceData=None, imageResults=None, 
-                       chartPath=None, threshold=0.05):
+def generateHtmlReport(reportPath, traceData=None, chartPath=None):
     '''
-    Generate an HTML report with performance chart and image comparisons.
-    
+    Generate an HTML report with performance chart and trace summary.
+
     Args:
         reportPath: Path to output HTML file
         traceData: Trace comparison results (DataFrame or list of dicts)
-        imageResults: Image comparison results from compareImages()
         chartPath: Path to performance chart image (optional)
-        threshold: FLIP threshold used for pass/fail
     '''
     reportPath = Path(reportPath)
     reportDir = reportPath.parent
     reportDir.mkdir(parents=True, exist_ok=True)
-    
-    # Convert paths to be relative to report directory for portability
+
     def relPath(absPath):
         if absPath is None:
             return None
         try:
             return str(Path(absPath).relative_to(reportDir))
         except ValueError:
-            # Path is not relative to report dir, use absolute with file:// prefix
             return 'file:///' + str(Path(absPath)).replace('\\', '/')
-    
+
+    traceImproved = 0
+    traceRegressed = 0
+
+    if traceData is not None:
+        if _have_pandas and hasattr(traceData, 'iterrows'):
+            traceImproved = len(traceData[traceData['change_pct'] < 0])
+            traceRegressed = len(traceData[traceData['change_pct'] > 0])
+        else:
+            traceImproved = sum(1 for r in traceData if r.get('change_pct', 0) and r['change_pct'] < 0)
+            traceRegressed = sum(1 for r in traceData if r.get('change_pct', 0) and r['change_pct'] > 0)
+
     html = []
     html.append('''<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MaterialX Test Comparison Report</title>
+    <title>MaterialX Trace Comparison Report</title>
     <style>
         * { box-sizing: border-box; }
-        body { 
+        body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             margin: 0; padding: 20px; background: #f5f5f5;
         }
         .container { max-width: 1800px; margin: 0 auto; }
         h1, h2 { color: #333; }
         h1 { border-bottom: 2px solid #3498db; padding-bottom: 10px; }
-        
-        /* Summary cards */
+
         .summary { display: flex; gap: 20px; margin-bottom: 30px; flex-wrap: wrap; }
-        .card { 
+        .card {
             background: white; border-radius: 8px; padding: 20px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1); flex: 1; min-width: 200px;
         }
@@ -815,72 +590,16 @@ def generateHtmlReport(reportPath, traceData=None, imageResults=None,
         .card .value.good { color: #27ae60; }
         .card .value.bad { color: #e74c3c; }
         .card .value.neutral { color: #3498db; }
-        
-        /* Chart */
+
         .chart-container { background: white; border-radius: 8px; padding: 20px; margin-bottom: 30px; }
         .chart-container img { max-width: 100%; height: auto; }
-        
-        /* Trace table */
-        table { width: 100%; border-collapse: collapse; background: white; border-radius: 8px; overflow: hidden; }
-        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #eee; }
-        th { background: #3498db; color: white; }
-        tr:hover { background: #f8f9fa; }
-        .improved { color: #27ae60; }
-        .regressed { color: #e74c3c; }
-        
-        /* Image comparison grid */
-        .image-grid { display: grid; gap: 20px; }
-        .image-row {
-            display: grid; grid-template-columns: 1fr 1fr 1fr;
-            gap: 10px; background: white; border-radius: 8px; padding: 15px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-        }
-        .image-row.failed { border-left: 4px solid #e74c3c; }
-        .image-row.passed { border-left: 4px solid #27ae60; }
-        .image-cell { text-align: center; }
-        .image-cell img { max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 4px; }
-        .image-cell .label { font-size: 12px; color: #666; margin-top: 5px; }
-        .image-header { 
-            grid-column: 1 / -1; display: flex; justify-content: space-between;
-            align-items: center; padding-bottom: 10px; border-bottom: 1px solid #eee;
-        }
-        .image-header h3 { margin: 0; }
-        .image-header .metrics { font-size: 14px; color: #666; }
-        .status-badge {
-            display: inline-block; padding: 4px 12px; border-radius: 20px;
-            font-size: 12px; font-weight: bold;
-        }
-        .status-badge.pass { background: #d4edda; color: #155724; }
-        .status-badge.fail { background: #f8d7da; color: #721c24; }
     </style>
 </head>
 <body>
 <div class="container">
-    <h1>MaterialX Test Comparison Report</h1>
+    <h1>MaterialX Trace Comparison Report</h1>
 ''')
-    
-    # Summary cards
-    traceImproved = 0
-    traceRegressed = 0
-    imgPassed = 0
-    imgFailed = 0
-    
-    if traceData is not None:
-        if _have_pandas and hasattr(traceData, 'iterrows'):
-            traceImproved = len(traceData[traceData['change_pct'] < 0])
-            traceRegressed = len(traceData[traceData['change_pct'] > 0])
-        else:
-            traceImproved = sum(1 for r in traceData if r.get('change_pct', 0) and r['change_pct'] < 0)
-            traceRegressed = sum(1 for r in traceData if r.get('change_pct', 0) and r['change_pct'] > 0)
-    
-    if imageResults:
-        for r in imageResults:
-            if 'error' not in r:
-                if r['identical'] or r['mean_flip'] < threshold:
-                    imgPassed += 1
-                else:
-                    imgFailed += 1
-    
+
     html.append(f'''
     <div class="summary">
         <div class="card">
@@ -891,18 +610,9 @@ def generateHtmlReport(reportPath, traceData=None, imageResults=None,
             <h3>Trace Regressions</h3>
             <div class="value {'bad' if traceRegressed > 0 else 'neutral'}">{traceRegressed}</div>
         </div>
-        <div class="card">
-            <h3>Images Passed</h3>
-            <div class="value good">{imgPassed}</div>
-        </div>
-        <div class="card">
-            <h3>Images Failed</h3>
-            <div class="value {'bad' if imgFailed > 0 else 'neutral'}">{imgFailed}</div>
-        </div>
     </div>
 ''')
-    
-    # Performance chart
+
     if chartPath and Path(chartPath).exists():
         chartRel = relPath(chartPath)
         html.append(f'''
@@ -911,76 +621,19 @@ def generateHtmlReport(reportPath, traceData=None, imageResults=None,
         <img src="{chartRel}" alt="Performance Chart">
     </div>
 ''')
-    
-    # Image comparisons
-    if imageResults:
-        html.append('''
-    <h2>Image Comparisons (FLIP)</h2>
-    <p>FLIP score: 0 = identical, 1 = maximally different. Threshold: ''' + f'{threshold}' + '''</p>
-    <div class="image-grid">
-''')
-        # Sort by mean_flip descending (worst first)
-        sortedImages = sorted(imageResults, key=lambda x: x.get('mean_flip', 0), reverse=True)
-        
-        for r in sortedImages:
-            if 'error' in r:
-                continue
-            
-            passed = r['identical'] or r['mean_flip'] < threshold
-            statusClass = 'passed' if passed else 'failed'
-            statusBadge = 'pass' if passed else 'fail'
-            statusText = 'PASS' if passed else 'FAIL'
-            
-            baselineRel = relPath(r.get('baseline_path'))
-            optimizedRel = relPath(r.get('optimized_path'))
-            heatmapRel = relPath(r.get('heatmap_path'))
-            
-            html.append(f'''
-        <div class="image-row {statusClass}">
-            <div class="image-header">
-                <h3>{r['name']}</h3>
-                <div class="metrics">
-                    Mean FLIP: {r['mean_flip']:.4f} | Max: {r['max_flip']:.4f} | {r['pct_diff_pixels']:.1f}% pixels differ
-                    <span class="status-badge {statusBadge}">{statusText}</span>
-                </div>
-            </div>
-            <div class="image-cell">
-                <img src="{baselineRel}" alt="Baseline">
-                <div class="label">Baseline</div>
-            </div>
-            <div class="image-cell">
-                <img src="{optimizedRel}" alt="Optimized">
-                <div class="label">Optimized</div>
-            </div>
-            <div class="image-cell">
-''')
-            if heatmapRel:
-                html.append(f'''                <img src="{heatmapRel}" alt="FLIP Heatmap">
-                <div class="label">FLIP Heatmap</div>
-''')
-            else:
-                html.append('''                <div style="padding: 50px; color: #999;">No heatmap</div>
-''')
-            html.append('''            </div>
-        </div>
-''')
-        
-        html.append('    </div>\n')
-    
-    # Footer
+
     html.append('''
     <footer style="margin-top: 40px; padding-top: 20px; border-top: 1px solid #ddd; color: #666; font-size: 12px;">
-        Generated by diff_test_results.py | NVIDIA FLIP for perceptual image comparison
+        Generated by diff_test_results.py
     </footer>
 </div>
 </body>
 </html>
 ''')
-    
-    # Write HTML file
+
     with open(reportPath, 'w', encoding='utf-8') as f:
         f.write(''.join(html))
-    
+
     logger.info(f'HTML report saved to: {reportPath}')
 
 
@@ -990,47 +643,34 @@ def generateHtmlReport(reportPath, traceData=None, imageResults=None,
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Compare test results between baseline and optimized MaterialX runs.',
+        description='Compare performance traces between baseline and optimized MaterialX test runs.',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog='''
 Examples:
-  %(prog)s ./baseline/ ./optimized/                    # Compare both traces and images
-  %(prog)s ./baseline/ ./optimized/ --traces           # Compare traces only
-  %(prog)s ./baseline/ ./optimized/ --images           # Compare images only
-  %(prog)s ./baseline/ ./optimized/ --min-delta-ms 1.0 # Filter trace noise
-  %(prog)s ./baseline/ ./optimized/ --chart chart.png  # Generate performance chart
+  %(prog)s ./baseline/ ./optimized/
+  %(prog)s ./baseline/ ./optimized/ --min-delta-ms 1.0
+  %(prog)s ./baseline/ ./optimized/ --chart chart.png
+  %(prog)s ./baseline/ ./optimized/ --track GPU
+
+For image comparison, see diff_images.py in python/MaterialXTest/diff_test_runs/.
 ''')
 
     parser.add_argument('baseline', type=Path,
-                        help='Baseline directory (with traces and/or images)')
+                        help='Baseline directory containing Perfetto traces')
     parser.add_argument('optimized', type=Path,
-                        help='Optimized directory (with traces and/or images)')
-    
-    # Mode selection
-    modeGroup = parser.add_argument_group('comparison mode')
-    modeGroup.add_argument('--traces', action='store_true',
-                           help='Compare performance traces only')
-    modeGroup.add_argument('--images', action='store_true',
-                           help='Compare rendered images only')
-    
+                        help='Optimized directory containing Perfetto traces')
+
     # Trace options
     traceGroup = parser.add_argument_group('trace options')
     traceGroup.add_argument('--track', '-t', type=str, default=None,
-                            help='Filter traces by track name (e.g., GPU, ShaderGen)')
+                            help='Filter traces by track name (e.g., GPU)')
     traceGroup.add_argument('--min-delta-ms', type=float, default=0.0,
                             help='Minimum absolute time difference in ms to include')
     traceGroup.add_argument('--chart', '-c', type=Path,
                             help='Output path for trace chart image (e.g., chart.png)')
     traceGroup.add_argument('--show-opt', type=str, metavar='OPT_NAME',
                             help='Highlight materials affected by optimization pass')
-    
-    # Image options (FLIP perceptual comparison)
-    imageGroup = parser.add_argument_group('image options')
-    imageGroup.add_argument('--image-threshold', type=float, default=0.05,
-                            help='FLIP threshold for image differences (default: 0.05)')
-    imageGroup.add_argument('--ppd', type=float, default=70.0,
-                            help='Pixels per degree for FLIP (default: 70, ~0.7m from 24" 1080p)')
-    
+
     # Output options
     outputGroup = parser.add_argument_group('output options')
     outputGroup.add_argument('--csv', type=Path,
@@ -1038,117 +678,73 @@ Examples:
     outputGroup.add_argument('--title', type=str,
                              help='Custom title for the chart')
     outputGroup.add_argument('--report', type=Path,
-                             help='Generate HTML report with side-by-side image comparison')
+                             help='Generate HTML report with trace chart')
 
     args = parser.parse_args()
 
-    # Default: compare both if neither specified
-    doTraces = args.traces or (not args.traces and not args.images)
-    doImages = args.images or (not args.traces and not args.images)
-    
-    allPassed = True
     traceData = None
-    imageResults = None
     chartPath = None
-    
-    # Determine report directory for saving heatmaps
-    reportDir = None
+
+    # Determine chart path
     if args.report:
-        reportDir = args.report.parent
-        # If generating report, auto-generate chart if not specified
         if not args.chart:
-            chartPath = reportDir / 'chart.png'
+            chartPath = args.report.parent / 'chart.png'
         else:
             chartPath = args.chart
 
     try:
-        # -------------------------
-        # Trace Comparison
-        # -------------------------
-        if doTraces:
-            print('\n' + '=' * 85)
-            print('PERFORMANCE TRACE COMPARISON')
-            print('=' * 85)
-            
-            if not _have_perfetto:
-                logger.warning('Skipping traces: perfetto not installed (pip install perfetto)')
-            else:
-                traceData = compareTraces(args.baseline, args.optimized,
-                                          args.track, args.min_delta_ms)
-                
-                # Load optimization events if requested
-                optimizedMaterials = set()
-                if args.show_opt and traceData is not None:
-                    baselineTracePath = findTraceFile(args.baseline)
-                    baselineMaterials = loadOptimizationEvents(baselineTracePath, args.show_opt)
-                    if baselineMaterials:
-                        logger.error(f'ERROR: Baseline has {len(baselineMaterials)} materials '
-                                    f'with {args.show_opt}!')
-                        sys.exit(1)
-                    
-                    optimizedTracePath = findTraceFile(args.optimized)
-                    optimizedMaterials = loadOptimizationEvents(optimizedTracePath, args.show_opt)
-                    logger.info(f'Found {len(optimizedMaterials)} materials affected by {args.show_opt}')
-                
-                printTraceTable(traceData, optimizedMaterials)
-
-                # Generate chart (for report or if explicitly requested)
-                actualChartPath = chartPath or args.chart
-                if actualChartPath and traceData is not None:
-                    createTraceChart(traceData, actualChartPath, title=args.title,
-                                     minDeltaMs=args.min_delta_ms,
-                                     optimizedMaterials=optimizedMaterials,
-                                     optimizationName=args.show_opt)
-
-                if args.csv and traceData is not None:
-                    if _have_pandas:
-                        df = traceData if hasattr(traceData, 'to_csv') else pd.DataFrame(traceData)
-                        df.to_csv(args.csv, index=False)
-                        logger.info(f'CSV exported to: {args.csv}')
-                    else:
-                        logger.error('Cannot export CSV: pandas not installed.')
-
-        # -------------------------
-        # Image Comparison (FLIP)
-        # -------------------------
-        if doImages:
-            print('\n' + '=' * 85)
-            print('RENDERED IMAGE COMPARISON (FLIP)')
-            print('=' * 85)
-            
-            if not _have_flip:
-                logger.warning('Skipping images: flip-evaluator not installed (pip install flip-evaluator)')
-            else:
-                imageResults = compareImages(args.baseline, args.optimized, 
-                                             args.image_threshold, args.ppd,
-                                             reportDir=reportDir)
-                imagesMatch = printImageTable(imageResults, args.image_threshold)
-                if not imagesMatch:
-                    allPassed = False
-
-        # -------------------------
-        # HTML Report Generation
-        # -------------------------
-        if args.report:
-            generateHtmlReport(
-                args.report,
-                traceData=traceData,
-                imageResults=imageResults,
-                chartPath=chartPath,
-                threshold=args.image_threshold
-            )
-
-        # -------------------------
-        # Final Summary
-        # -------------------------
         print('\n' + '=' * 85)
-        if allPassed:
-            print('RESULT: All comparisons passed')
-        else:
-            print('RESULT: Some comparisons FAILED - review above for details')
+        print('PERFORMANCE TRACE COMPARISON')
         print('=' * 85)
-        
-        sys.exit(0 if allPassed else 1)
+
+        if not _have_perfetto:
+            logger.error('perfetto is required. Install with: pip install perfetto')
+            sys.exit(1)
+
+        traceData = compareTraces(args.baseline, args.optimized,
+                                  args.track, args.min_delta_ms)
+
+        # Load optimization events if requested
+        optimizedMaterials = set()
+        if args.show_opt and traceData is not None:
+            baselineTracePath = findTraceFile(args.baseline)
+            baselineMaterials = loadOptimizationEvents(baselineTracePath, args.show_opt)
+            if baselineMaterials:
+                logger.error(f'ERROR: Baseline has {len(baselineMaterials)} materials '
+                            f'with {args.show_opt}!')
+                sys.exit(1)
+
+            optimizedTracePath = findTraceFile(args.optimized)
+            optimizedMaterials = loadOptimizationEvents(optimizedTracePath, args.show_opt)
+            logger.info(f'Found {len(optimizedMaterials)} materials affected by {args.show_opt}')
+
+        printTraceTable(traceData, optimizedMaterials)
+
+        # Generate chart
+        actualChartPath = chartPath or args.chart
+        if actualChartPath and traceData is not None:
+            createTraceChart(traceData, actualChartPath, title=args.title,
+                             minDeltaMs=args.min_delta_ms,
+                             optimizedMaterials=optimizedMaterials,
+                             optimizationName=args.show_opt)
+
+        if args.csv and traceData is not None:
+            if _have_pandas:
+                df = traceData if hasattr(traceData, 'to_csv') else pd.DataFrame(traceData)
+                df.to_csv(args.csv, index=False)
+                logger.info(f'CSV exported to: {args.csv}')
+            else:
+                logger.error('Cannot export CSV: pandas not installed.')
+
+        # HTML Report
+        if args.report:
+            generateHtmlReport(args.report, traceData=traceData, chartPath=chartPath)
+
+        print('\n' + '=' * 85)
+        print('RESULT: Trace comparison complete')
+        print('=' * 85)
+
+        sys.exit(0)
 
     except FileNotFoundError as e:
         logger.error(f'{e}')
