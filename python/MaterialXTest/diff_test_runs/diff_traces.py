@@ -17,7 +17,7 @@ Usage:
     python diff_traces.py <baseline_dir> <optimized_dir> --slice GenerateShader
     python diff_traces.py <baseline_dir> <optimized_dir> --slice GenerateShader CompileShader
     python diff_traces.py <baseline_dir> <optimized_dir> --gpu --slice GenerateShader
-    python diff_traces.py <baseline_dir> <optimized_dir> --gpu -o my_report.html
+    python diff_traces.py <baseline_dir> <optimized_dir> --gpu -o custom_name.html
 '''
 
 import argparse
@@ -549,7 +549,7 @@ Examples:
   %(prog)s ./baseline/ ./optimized/ --slice GenerateShader
   %(prog)s ./baseline/ ./optimized/ --slice GenerateShader CompileShader RenderMaterial
   %(prog)s ./baseline/ ./optimized/ --gpu --slice GenerateShader
-  %(prog)s ./baseline/ ./optimized/ --gpu -o my_report.html
+  %(prog)s ./baseline/ ./optimized/ --gpu -o custom_name.html
 
 For image comparison, see diff_images.py in the same directory.
 ''')
@@ -570,8 +570,8 @@ For image comparison, see diff_images.py in the same directory.
     optGroup.add_argument('--min-delta-ms', type=float, default=0.0,
                           help='Minimum absolute time difference in ms to include')
     optGroup.add_argument('-o', '--outputfile', dest='outputfile', type=str,
-                          default='trace_diff.html',
-                          help='Output HTML report file name (default: trace_diff.html)')
+                          default=None,
+                          help='Output HTML report file name (default: <baseline>_vs_<optimized>.html)')
     optGroup.add_argument('--show-opt', type=str, metavar='OPT_NAME',
                           help='Highlight materials affected by optimization pass')
 
@@ -603,7 +603,11 @@ For image comparison, see diff_images.py in the same directory.
     baselineName = Path(args.baseline).name
     optimizedName = Path(args.optimized).name
 
-    # Build the list of comparisons to run: [(label, title), ...]
+    # Derive default report name from directory names
+    if args.outputfile is None:
+        args.outputfile = f'{baselineName}_vs_{optimizedName}.html'
+
+    # Build the list of comparisons to run
     comparisons = []
 
     if args.gpu:
@@ -641,10 +645,7 @@ For image comparison, see diff_images.py in the same directory.
 
             # Generate chart
             if traceData is not None and not traceData.empty:
-                if len(comparisons) > 1:
-                    chartPath = _chartPath(chartBase, label)
-                else:
-                    chartPath = chartBase
+                chartPath = _chartPath(chartBase, label)
                 createTraceChart(traceData, chartPath, title=title,
                                  baselineName=baselineName, optimizedName=optimizedName,
                                  optimizedMaterials=optimizedMaterials,
