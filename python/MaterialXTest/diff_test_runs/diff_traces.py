@@ -228,6 +228,10 @@ def compareGpuTraces(baselinePath, optimizedPath, minDeltaMs=0.0):
     Compare GPU render durations between baseline and optimized traces.
 
     Reads the GPU async track and averages per material across frames.
+
+    Returns:
+        (merged_df, samplesPerMaterial) -- the comparison DataFrame and the
+        typical number of samples per material (for display in titles).
     '''
     baselineTrace = findTraceFile(baselinePath)
     optimizedTrace = findTraceFile(optimizedPath)
@@ -240,7 +244,13 @@ def compareGpuTraces(baselinePath, optimizedPath, minDeltaMs=0.0):
     optimizedData = loadSliceDurations(optimizedTrace, trackName='GPU')
     optimizedAgg = _aggregateByName(optimizedData)
 
-    return _mergeAndCompare(baselineAgg, optimizedAgg, minDeltaMs)
+    # Determine typical samples per material (frames rendered)
+    if not baselineData.empty:
+        samplesPerMaterial = int(baselineData.groupby('name').size().median())
+    else:
+        samplesPerMaterial = 0
+
+    return _mergeAndCompare(baselineAgg, optimizedAgg, minDeltaMs), samplesPerMaterial
 
 
 def compareChildSlices(baselinePath, optimizedPath, sliceName, minDeltaMs=0.0):
@@ -273,13 +283,16 @@ def _isna(val):
     return val is None or pd.isna(val)
 
 
-def printTraceTable(df, title, optimizedMaterials=None):
+def printTraceTable(df, title, baselineName='Baseline', optimizedName='Optimized',
+                    optimizedMaterials=None):
     '''Print a formatted trace comparison table to stdout.
 
     Args:
         df: Comparison DataFrame with columns [name, mean_ms_baseline,
             mean_ms_optimized, delta_ms, change_pct]
         title: Section title printed above the table
+        baselineName: Display name for the baseline column
+        optimizedName: Display name for the optimized column
         optimizedMaterials: Optional set of material names affected by optimization
     '''
     if df is None or df.empty:
@@ -288,11 +301,15 @@ def printTraceTable(df, title, optimizedMaterials=None):
     if optimizedMaterials is None:
         optimizedMaterials = set()
 
+    # Truncate column headers to fit
+    bCol = baselineName[:10]
+    oCol = optimizedName[:10]
+
     print(f'\n{"=" * 85}')
     print(f'  {title}')
     print(f'{"=" * 85}')
     marker = ' *' if optimizedMaterials else ''
-    print(f"{'Name':<40} {'Baseline':>10} {'Optimized':>10} {'Delta':>10} {'Change':>8}{marker}")
+    print(f"{'Name':<40} {bCol:>10} {oCol:>10} {'Delta':>10} {'Change':>8}{marker}")
     print('-' * 85)
 
     for _, row in df.iterrows():
@@ -342,14 +359,17 @@ def printTraceTable(df, title, optimizedMaterials=None):
 # =============================================================================
 
 def createTraceChart(data, outputPath, title,
+                     baselineName='Baseline', optimizedName='Optimized',
                      optimizedMaterials=None, optimizationName=None):
     '''
     Create a paired before/after horizontal bar chart sorted by time saved.
 
     Args:
-        data: DataFrame or list of dicts with comparison results
+        data: DataFrame with comparison results
         outputPath: Path to save the chart image
         title: Chart title (required)
+        baselineName: Display name for the baseline series
+        optimizedName: Display name for the optimized series
         optimizedMaterials: Set of material names affected by optimization
         optimizationName: Name of the optimization pass (for legend)
     '''
@@ -389,11 +409,11 @@ def createTraceChart(data, outputPath, title,
     bar_height = 0.35
 
     ax.barh([y + bar_height/2 for y in y_pos], chartDf['mean_ms_baseline'],
-            bar_height, label='Baseline', color='#3498db', alpha=0.8)
+            bar_height, label=baselineName, color='#3498db', alpha=0.8)
 
     colors = ['#2ecc71' if d < 0 else '#e74c3c' for d in chartDf['delta_ms']]
     ax.barh([y - bar_height/2 for y in y_pos], chartDf['mean_ms_optimized'],
-            bar_height, label='Optimized', color=colors, alpha=0.8)
+            bar_height, label=optimizedName, color=colors, alpha=0.8)
 
     for i, (b, o, delta) in enumerate(zip(chartDf['mean_ms_baseline'],
                                            chartDf['mean_ms_optimized'],
@@ -417,9 +437,9 @@ def createTraceChart(data, outputPath, title,
     ax.set_title(f'{title}{optNote}')
 
     legendElements = [
-        Patch(facecolor='#3498db', label='Baseline'),
-        Patch(facecolor='#2ecc71', label='Optimized (faster)'),
-        Patch(facecolor='#e74c3c', label='Optimized (slower)')
+        Patch(facecolor='#3498db', label=baselineName),
+        Patch(facecolor='#2ecc71', label=f'{optimizedName} (faster)'),
+        Patch(facecolor='#e74c3c', label=f'{optimizedName} (slower)')
     ]
     ax.legend(handles=legendElements, loc='lower right')
 
@@ -433,13 +453,14 @@ def createTraceChart(data, outputPath, title,
 # OUTPUT: HTML REPORT
 # =============================================================================
 
-def generateHtmlReport(reportPath, sections):
+def generateHtmlReport(reportPath, sections, pageTitle='MaterialX Trace Comparison Report'):
     '''
     Generate an HTML report with multiple chart sections.
 
     Args:
         reportPath: Path to output HTML file
         sections: List of (title, chartPath) tuples
+        pageTitle: Title for the HTML page header
     '''
     reportPath = Path(reportPath)
     reportDir = reportPath.parent
@@ -454,29 +475,29 @@ def generateHtmlReport(reportPath, sections):
             return 'file:///' + str(Path(absPath)).replace('\\', '/')
 
     html = []
-    html.append('''<!DOCTYPE html>
+    html.append(f'''<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MaterialX Trace Comparison Report</title>
+    <title>{pageTitle}</title>
     <style>
-        * { box-sizing: border-box; }
-        body {
+        * {{ box-sizing: border-box; }}
+        body {{
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             margin: 0; padding: 20px; background: #f5f5f5;
-        }
-        .container { max-width: 1800px; margin: 0 auto; }
-        h1, h2 { color: #333; }
-        h1 { border-bottom: 2px solid #3498db; padding-bottom: 10px; }
-        .chart-section { background: white; border-radius: 8px; padding: 20px; margin-bottom: 30px;
-                         box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .chart-section img { max-width: 100%; height: auto; }
+        }}
+        .container {{ max-width: 1800px; margin: 0 auto; }}
+        h1, h2 {{ color: #333; }}
+        h1 {{ border-bottom: 2px solid #3498db; padding-bottom: 10px; }}
+        .chart-section {{ background: white; border-radius: 8px; padding: 20px; margin-bottom: 30px;
+                         box-shadow: 0 2px 4px rgba(0,0,0,0.1); }}
+        .chart-section img {{ max-width: 100%; height: auto; }}
     </style>
 </head>
 <body>
 <div class="container">
-    <h1>MaterialX Trace Comparison Report</h1>
+    <h1>{pageTitle}</h1>
 ''')
 
     for title, chartPath in sections:
@@ -578,15 +599,19 @@ For image comparison, see diff_images.py in the same directory.
             logger.error(f'{e}')
             sys.exit(1)
 
+    # Directory leaf names for display
+    baselineName = Path(args.baseline).name
+    optimizedName = Path(args.optimized).name
+
     # Build the list of comparisons to run: [(label, title), ...]
     comparisons = []
 
     if args.gpu:
-        comparisons.append(('GPU', 'GPU Render Duration per Material: Baseline vs Optimized'))
+        comparisons.append('GPU')
 
     if args.slice:
         for sliceName in args.slice:
-            comparisons.append((sliceName, f'{sliceName} Duration per Material: Baseline vs Optimized'))
+            comparisons.append(sliceName)
 
     # Derive chart paths from the report file name
     reportPath = Path(args.outputfile)
@@ -597,15 +622,22 @@ For image comparison, see diff_images.py in the same directory.
     reportSections = []
 
     try:
-        for label, title in comparisons:
-            # Run comparison
+        for label in comparisons:
+            # Run comparison and build title
             if label == 'GPU':
-                traceData = compareGpuTraces(args.baseline, args.optimized, args.min_delta_ms)
+                traceData, samplesPerMaterial = compareGpuTraces(
+                    args.baseline, args.optimized, args.min_delta_ms)
+                avgNote = f' (averaged over {samplesPerMaterial} frames)' if samplesPerMaterial > 1 else ''
+                title = f'GPU Render Duration per Material{avgNote}: {baselineName} vs {optimizedName}'
             else:
-                traceData = compareChildSlices(args.baseline, args.optimized, label, args.min_delta_ms)
+                traceData = compareChildSlices(
+                    args.baseline, args.optimized, label, args.min_delta_ms)
+                title = f'{label} Duration per Material: {baselineName} vs {optimizedName}'
 
             # Print table
-            printTraceTable(traceData, title, optimizedMaterials)
+            printTraceTable(traceData, title,
+                            baselineName=baselineName, optimizedName=optimizedName,
+                            optimizedMaterials=optimizedMaterials)
 
             # Generate chart
             if traceData is not None and not traceData.empty:
@@ -614,13 +646,15 @@ For image comparison, see diff_images.py in the same directory.
                 else:
                     chartPath = chartBase
                 createTraceChart(traceData, chartPath, title=title,
+                                 baselineName=baselineName, optimizedName=optimizedName,
                                  optimizedMaterials=optimizedMaterials,
                                  optimizationName=args.show_opt)
                 reportSections.append((title, chartPath))
 
         # HTML Report (always generated)
+        pageTitle = f'Trace Comparison: {baselineName} vs {optimizedName}'
         if reportSections:
-            generateHtmlReport(reportPath, reportSections)
+            generateHtmlReport(reportPath, reportSections, pageTitle=pageTitle)
 
         print(f'\n{"=" * 85}')
         print('RESULT: Trace comparison complete')
