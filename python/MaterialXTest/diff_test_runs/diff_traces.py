@@ -83,18 +83,17 @@ def findTraceFile(path):
     raise FileNotFoundError(f'Path not found: {path}')
 
 
-def loadSliceDurations(tracePath, trackName=None):
+def loadSliceDurations(traceProcessor, trackName=None):
     '''
     Load slice durations from a Perfetto trace, optionally filtered by track.
 
     Args:
-        tracePath: Path to the .perfetto-trace file
+        traceProcessor: TraceProcessor instance
         trackName: Optional track name filter (e.g., "GPU")
 
     Returns:
         DataFrame with columns [name, dur_ms].
     '''
-    tp = TraceProcessor(trace=str(tracePath))
 
     if trackName:
         query = f'''
@@ -112,15 +111,15 @@ def loadSliceDurations(tracePath, trackName=None):
         ORDER BY slice.name
         '''
 
-    df = tp.query(query).as_pandas_dataframe()
+    df = traceProcessor.query(query).as_pandas_dataframe()
     if df.empty:
         trackMsg = f' on track "{trackName}"' if trackName else ''
-        logger.warning(f'No slices found{trackMsg} in {tracePath}')
+        logger.warning(f'No slices found{trackMsg}')
         return pd.DataFrame(columns=['name', 'dur_ms'])
     return df
 
 
-def loadChildSliceDurations(tracePath, sliceName):
+def loadChildSliceDurations(traceProcessor, sliceName):
     '''
     Load durations of a named child slice, keyed by parent (material) name.
 
@@ -128,13 +127,12 @@ def loadChildSliceDurations(tracePath, sliceName):
     of a parent slice (typically the material name).
 
     Args:
-        tracePath: Path to the .perfetto-trace file
+        traceProcessor: TraceProcessor instance
         sliceName: Name of the child slice (e.g., "GenerateShader", "CompileShader")
 
     Returns:
         DataFrame with columns [name, dur_ms]. 'name' is the parent (material) name.
     '''
-    tp = TraceProcessor(trace=str(tracePath))
 
     query = f'''
     SELECT parent.name as name, child.dur / 1000000.0 as dur_ms
@@ -144,14 +142,14 @@ def loadChildSliceDurations(tracePath, sliceName):
     ORDER BY parent.name
     '''
 
-    df = tp.query(query).as_pandas_dataframe()
+    df = traceProcessor.query(query).as_pandas_dataframe()
     if df.empty:
-        logger.warning(f'No "{sliceName}" slices found in {tracePath}')
+        logger.warning(f'No "{sliceName}" slices found')
         return pd.DataFrame(columns=['name', 'dur_ms'])
     return df
 
 
-def loadOptimizationEvents(tracePath, optimizationName=None):
+def loadOptimizationEvents(traceProcessor, optimizationName=None):
     '''
     Load optimization events from a Perfetto trace.
 
@@ -159,13 +157,12 @@ def loadOptimizationEvents(tracePath, optimizationName=None):
     MaterialName -> GenerateShader -> OptimizationPass
 
     Args:
-        tracePath: Path to the .perfetto-trace file
+        traceProcessor: TraceProcessor instance
         optimizationName: Filter by optimization pass name
 
     Returns:
         Set of material names that had the optimization applied.
     '''
-    tp = TraceProcessor(trace=str(tracePath))
 
     if optimizationName:
         query = f'''
@@ -183,7 +180,7 @@ def loadOptimizationEvents(tracePath, optimizationName=None):
         JOIN slice grandparent ON parent.parent_id = grandparent.id
         '''
 
-    result = tp.query(query)
+    result = traceProcessor.query(query)
 
     optimizedMaterials = set()
     for row in result:
@@ -223,7 +220,7 @@ def _mergeAndCompare(baselineAgg, optimizedAgg, minDeltaMs=0.0):
     return merged
 
 
-def compareGpuTraces(baselinePath, optimizedPath, minDeltaMs=0.0):
+def compareGpuTraces(baselineTraceProcessor, optimizedTraceProcessor, minDeltaMs=0.0):
     '''
     Compare GPU render durations between baseline and optimized traces.
 
@@ -233,15 +230,11 @@ def compareGpuTraces(baselinePath, optimizedPath, minDeltaMs=0.0):
         (merged_df, samplesPerMaterial) -- the comparison DataFrame and the
         typical number of samples per material (for display in titles).
     '''
-    baselineTrace = findTraceFile(baselinePath)
-    optimizedTrace = findTraceFile(optimizedPath)
-
-    logger.info(f'Loading baseline GPU trace: {baselineTrace}')
-    baselineData = loadSliceDurations(baselineTrace, trackName='GPU')
+    logger.info('Comparing GPU traces...')
+    baselineData = loadSliceDurations(baselineTraceProcessor, trackName='GPU')
     baselineAgg = _aggregateByName(baselineData)
 
-    logger.info(f'Loading optimized GPU trace: {optimizedTrace}')
-    optimizedData = loadSliceDurations(optimizedTrace, trackName='GPU')
+    optimizedData = loadSliceDurations(optimizedTraceProcessor, trackName='GPU')
     optimizedAgg = _aggregateByName(optimizedData)
 
     # Determine typical samples per material (frames rendered)
@@ -253,22 +246,18 @@ def compareGpuTraces(baselinePath, optimizedPath, minDeltaMs=0.0):
     return _mergeAndCompare(baselineAgg, optimizedAgg, minDeltaMs), samplesPerMaterial
 
 
-def compareChildSlices(baselinePath, optimizedPath, sliceName, minDeltaMs=0.0):
+def compareChildSlices(baselineTraceProcessor, optimizedTraceProcessor, sliceName, minDeltaMs=0.0):
     '''
     Compare durations of a named child slice (e.g., GenerateShader) per material.
 
     Queries child slices under material parent slices in both traces,
     then merges by material name and computes delta/percentage.
     '''
-    baselineTrace = findTraceFile(baselinePath)
-    optimizedTrace = findTraceFile(optimizedPath)
-
-    logger.info(f'Loading baseline "{sliceName}" slices: {baselineTrace}')
-    baselineData = loadChildSliceDurations(baselineTrace, sliceName)
+    logger.info(f'Comparing "{sliceName}" slices...')
+    baselineData = loadChildSliceDurations(baselineTraceProcessor, sliceName)
     baselineAgg = _aggregateByName(baselineData)
 
-    logger.info(f'Loading optimized "{sliceName}" slices: {optimizedTrace}')
-    optimizedData = loadChildSliceDurations(optimizedTrace, sliceName)
+    optimizedData = loadChildSliceDurations(optimizedTraceProcessor, sliceName)
     optimizedAgg = _aggregateByName(optimizedData)
 
     return _mergeAndCompare(baselineAgg, optimizedAgg, minDeltaMs)
@@ -593,23 +582,31 @@ For image comparison, see diff_images.py in the same directory.
         parser.print_help()
         sys.exit(0)
 
+    # Load trace files once
+    try:
+        baselineTracePath = findTraceFile(args.baseline)
+        optimizedTracePath = findTraceFile(args.optimized)
+    except FileNotFoundError as e:
+        logger.error(f'{e}')
+        sys.exit(1)
+
+    logger.info(f'Loading baseline trace: {baselineTracePath}')
+    baselineTraceProcessor = TraceProcessor(trace=str(baselineTracePath))
+
+    logger.info(f'Loading optimized trace: {optimizedTracePath}')
+    optimizedTraceProcessor = TraceProcessor(trace=str(optimizedTracePath))
+
     # Load optimization events if requested
     optimizedMaterials = set()
     if args.show_opt:
-        try:
-            baselineTracePath = findTraceFile(args.baseline)
-            baselineMaterials = loadOptimizationEvents(baselineTracePath, args.show_opt)
-            if baselineMaterials:
-                logger.error(f'ERROR: Baseline has {len(baselineMaterials)} materials '
-                            f'with {args.show_opt}!')
-                sys.exit(1)
-
-            optimizedTracePath = findTraceFile(args.optimized)
-            optimizedMaterials = loadOptimizationEvents(optimizedTracePath, args.show_opt)
-            logger.info(f'Found {len(optimizedMaterials)} materials affected by {args.show_opt}')
-        except FileNotFoundError as e:
-            logger.error(f'{e}')
+        baselineMaterials = loadOptimizationEvents(baselineTraceProcessor, args.show_opt)
+        if baselineMaterials:
+            logger.error(f'ERROR: Baseline has {len(baselineMaterials)} materials '
+                        f'with {args.show_opt}!')
             sys.exit(1)
+
+        optimizedMaterials = loadOptimizationEvents(optimizedTraceProcessor, args.show_opt)
+        logger.info(f'Found {len(optimizedMaterials)} materials affected by {args.show_opt}')
 
     # Directory leaf names for display
     baselineName = Path(args.baseline).name
@@ -650,12 +647,12 @@ For image comparison, see diff_images.py in the same directory.
             # Run comparison and build title
             if label == 'GPU':
                 traceData, samplesPerMaterial = compareGpuTraces(
-                    args.baseline, args.optimized, args.min_delta_ms)
+                    baselineTraceProcessor, optimizedTraceProcessor, args.min_delta_ms)
                 avgNote = f' (averaged over {samplesPerMaterial} frames)' if samplesPerMaterial > 1 else ''
                 title = f'GPU Render Duration per Material{avgNote}: {baselineName} vs {optimizedName}'
             else:
                 traceData = compareChildSlices(
-                    args.baseline, args.optimized, label, args.min_delta_ms)
+                    baselineTraceProcessor, optimizedTraceProcessor, label, args.min_delta_ms)
                 title = f'{label} Duration per Material: {baselineName} vs {optimizedName}'
 
             # Print table
