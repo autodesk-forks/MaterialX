@@ -360,7 +360,8 @@ def printTraceTable(df, title, baselineName='Baseline', optimizedName='Optimized
 
 def createTraceChart(data, outputPath, title,
                      baselineName='Baseline', optimizedName='Optimized',
-                     optimizedMaterials=None, optimizationName=None):
+                     optimizedMaterials=None, optimizationName=None,
+                     subtitle=None):
     '''
     Create a paired before/after horizontal bar chart sorted by time saved.
 
@@ -372,6 +373,7 @@ def createTraceChart(data, outputPath, title,
         optimizedName: Display name for the optimized series
         optimizedMaterials: Set of material names affected by optimization
         optimizationName: Name of the optimization pass (for legend)
+        subtitle: Optional subtitle line (e.g., filter parameters)
     '''
     if data is None:
         return
@@ -433,8 +435,12 @@ def createTraceChart(data, outputPath, title,
                 label.set_fontweight('bold')
                 label.set_color('#8e44ad')
 
-    optNote = f'\n* = affected by {optimizationName}' if optimizationName and optimizedMaterials else ''
-    ax.set_title(f'{title}{optNote}')
+    titleLines = [title]
+    if optimizationName and optimizedMaterials:
+        titleLines.append(f'* = affected by {optimizationName}')
+    if subtitle:
+        titleLines.append(subtitle)
+    ax.set_title('\n'.join(titleLines), fontsize=11)
 
     legendElements = [
         Patch(facecolor='#3498db', label=baselineName),
@@ -453,7 +459,8 @@ def createTraceChart(data, outputPath, title,
 # OUTPUT: HTML REPORT
 # =============================================================================
 
-def generateHtmlReport(reportPath, sections, pageTitle='MaterialX Trace Comparison Report'):
+def generateHtmlReport(reportPath, sections, pageTitle='MaterialX Trace Comparison Report',
+                       subtitle=None):
     '''
     Generate an HTML report with multiple chart sections.
 
@@ -461,6 +468,7 @@ def generateHtmlReport(reportPath, sections, pageTitle='MaterialX Trace Comparis
         reportPath: Path to output HTML file
         sections: List of (title, chartPath) tuples
         pageTitle: Title for the HTML page header
+        subtitle: Optional subtitle shown under the page title (e.g., filter params)
     '''
     reportPath = Path(reportPath)
     reportDir = reportPath.parent
@@ -490,6 +498,7 @@ def generateHtmlReport(reportPath, sections, pageTitle='MaterialX Trace Comparis
         .container {{ max-width: 1800px; margin: 0 auto; }}
         h1, h2 {{ color: #333; }}
         h1 {{ border-bottom: 2px solid #3498db; padding-bottom: 10px; }}
+        .subtitle {{ color: #666; font-size: 14px; margin-top: -8px; margin-bottom: 16px; }}
         .chart-section {{ background: white; border-radius: 8px; padding: 20px; margin-bottom: 30px;
                          box-shadow: 0 2px 4px rgba(0,0,0,0.1); }}
         .chart-section img {{ max-width: 100%; height: auto; }}
@@ -499,6 +508,9 @@ def generateHtmlReport(reportPath, sections, pageTitle='MaterialX Trace Comparis
 <div class="container">
     <h1>{pageTitle}</h1>
 ''')
+
+    if subtitle:
+        html.append(f'    <p class="subtitle">{subtitle}</p>\n')
 
     for title, chartPath in sections:
         if chartPath and Path(chartPath).exists():
@@ -617,6 +629,14 @@ For image comparison, see diff_images.py in the same directory.
         for sliceName in args.slice:
             comparisons.append(sliceName)
 
+    # Build filter subtitle from active options
+    filterParts = []
+    if args.min_delta_ms > 0:
+        filterParts.append(f'min delta: {args.min_delta_ms:.1f} ms')
+    if args.show_opt:
+        filterParts.append(f'highlighting: {args.show_opt}')
+    subtitle = 'Filters: ' + ', '.join(filterParts) if filterParts else None
+
     # Derive chart paths from the report file name
     reportPath = Path(args.outputfile)
     reportDir = reportPath.parent
@@ -649,13 +669,15 @@ For image comparison, see diff_images.py in the same directory.
                 createTraceChart(traceData, chartPath, title=title,
                                  baselineName=baselineName, optimizedName=optimizedName,
                                  optimizedMaterials=optimizedMaterials,
-                                 optimizationName=args.show_opt)
+                                 optimizationName=args.show_opt,
+                                 subtitle=subtitle)
                 reportSections.append((title, chartPath))
 
         # HTML Report (always generated)
         pageTitle = f'Trace Comparison: {baselineName} vs {optimizedName}'
         if reportSections:
-            generateHtmlReport(reportPath, reportSections, pageTitle=pageTitle)
+            generateHtmlReport(reportPath, reportSections, pageTitle=pageTitle,
+                               subtitle=subtitle)
             absReportPath = reportPath.resolve()
             print(f'\n{"=" * 85}')
             print(f'  Report: {absReportPath}')
