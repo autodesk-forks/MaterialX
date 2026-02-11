@@ -46,6 +46,8 @@ except ImportError:
 # Optional: matplotlib (for chart generation)
 _have_matplotlib = False
 try:
+    import matplotlib
+    matplotlib.rcParams['svg.fonttype'] = 'none'  # Keep text as <text>, not paths
     import matplotlib.pyplot as plt
     from matplotlib.patches import Patch
     _have_matplotlib = True
@@ -439,7 +441,7 @@ def createTraceChart(data, outputPath, title,
     ax.legend(handles=legendElements, loc='lower right')
 
     plt.tight_layout()
-    plt.savefig(outputPath, dpi=150, bbox_inches='tight')
+    plt.savefig(outputPath, format='svg', bbox_inches='tight')
     plt.close(fig)
     logger.info(f'Chart saved to: {outputPath}')
 
@@ -451,25 +453,18 @@ def createTraceChart(data, outputPath, title,
 def generateHtmlReport(reportPath, sections, pageTitle='MaterialX Trace Comparison Report',
                        subtitle=None):
     '''
-    Generate an HTML report with multiple chart sections.
+    Generate an HTML report with inline SVG charts (searchable text).
 
     Args:
         reportPath: Path to output HTML file
-        sections: List of (title, chartPath) tuples
+        sections: List of (title, chartPath) tuples. Chart files are read and
+                  inlined as SVG so that material names are searchable via Ctrl+F.
         pageTitle: Title for the HTML page header
         subtitle: Optional subtitle shown under the page title (e.g., filter params)
     '''
     reportPath = Path(reportPath)
     reportDir = reportPath.parent
     reportDir.mkdir(parents=True, exist_ok=True)
-
-    def relPath(absPath):
-        if absPath is None:
-            return None
-        try:
-            return str(Path(absPath).relative_to(reportDir))
-        except ValueError:
-            return 'file:///' + str(Path(absPath)).replace('\\', '/')
 
     html = []
     html.append(f'''<!DOCTYPE html>
@@ -490,7 +485,7 @@ def generateHtmlReport(reportPath, sections, pageTitle='MaterialX Trace Comparis
         .subtitle {{ color: #666; font-size: 14px; margin-top: -8px; margin-bottom: 16px; }}
         .chart-section {{ background: white; border-radius: 8px; padding: 20px; margin-bottom: 30px;
                          box-shadow: 0 2px 4px rgba(0,0,0,0.1); }}
-        .chart-section img {{ max-width: 100%; height: auto; }}
+        .chart-section svg {{ max-width: 100%; height: auto; }}
     </style>
 </head>
 <body>
@@ -502,12 +497,16 @@ def generateHtmlReport(reportPath, sections, pageTitle='MaterialX Trace Comparis
         html.append(f'    <p class="subtitle">{subtitle}</p>\n')
 
     for title, chartPath in sections:
-        if chartPath and Path(chartPath).exists():
-            chartRel = relPath(str(chartPath))
+        chartFile = Path(chartPath) if chartPath else None
+        if chartFile and chartFile.exists():
+            svgContent = chartFile.read_text(encoding='utf-8')
+            # Strip XML declaration if present (not needed when inlined)
+            if svgContent.startswith('<?xml'):
+                svgContent = svgContent[svgContent.index('?>') + 2:].lstrip()
             html.append(f'''
     <div class="chart-section">
         <h2>{title}</h2>
-        <img src="{chartRel}" alt="{title}">
+        {svgContent}
     </div>
 ''')
 
@@ -638,7 +637,7 @@ For image comparison, see diff_images.py in the same directory.
     reportPath = Path(args.outputfile)
     reportDir = reportPath.parent
     reportDir.mkdir(parents=True, exist_ok=True)
-    chartBase = reportDir / (reportPath.stem + '.png')
+    chartBase = reportDir / (reportPath.stem + '.svg')
 
     reportSections = []
 
