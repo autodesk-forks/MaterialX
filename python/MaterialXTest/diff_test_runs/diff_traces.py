@@ -656,10 +656,17 @@ For image comparison, see diff_images.py in the same directory.
         pageTitle = f'Trace Comparison: {baselineName} vs {optimizedName}'
         if reportSections:
             generateHtmlReport(reportPath, reportSections, pageTitle=pageTitle)
-
-        print(f'\n{"=" * 85}')
-        print('RESULT: Trace comparison complete')
-        print(f'{"=" * 85}')
+            absReportPath = reportPath.resolve()
+            print(f'\n{"=" * 85}')
+            print(f'  Report: {absReportPath}')
+            print(f'{"=" * 85}')
+            # Auto-open in the default browser
+            import webbrowser
+            webbrowser.open(absReportPath.as_uri())
+        else:
+            print(f'\n{"=" * 85}')
+            print('  No data to report.')
+            print(f'{"=" * 85}')
 
         sys.exit(0)
 
