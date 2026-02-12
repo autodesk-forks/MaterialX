@@ -243,7 +243,7 @@ def createComparisonChart(data, outputPath, title,
     ax.barh([y + barHeight / 2 for y in yPos], chartDf['baseline'],
             barHeight, label=baselineLabel, color='#3498db', alpha=0.8)
 
-    colors = ['#2ecc71' if d < 0 else '#e74c3c' for d in chartDf['delta']]
+    colors = ['#2ecc71' if d <= 0 else '#e74c3c' for d in chartDf['delta']]
     ax.barh([y - barHeight / 2 for y in yPos], chartDf['optimized'],
             barHeight, label=optimizedLabel, color=colors, alpha=0.8)
 

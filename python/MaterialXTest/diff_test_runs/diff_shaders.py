@@ -11,7 +11,6 @@ Built-in metrics (always available):
 Tool-based metrics (when the tool is in PATH):
   glslangValidator  SPIR-V size (bytes) + compilation time (ms)
   spirv-opt         Optimised SPIR-V size + optimisation time (ms)
-  rga               VGPR count from AMD Radeon GPU Analyzer
 
 Usage:
     python diff_shaders.py <baseline_dir> <optimized_dir>
@@ -20,7 +19,6 @@ Usage:
 
 import argparse
 import logging
-import re
 import shutil
 import subprocess
 import sys
@@ -263,85 +261,6 @@ def extractOptTimeMetrics(optCache):
 
 
 # =============================================================================
-# METRICS: AMD RGA  (Radeon GPU Analyzer -- VGPR count)
-# =============================================================================
-
-_RGA_VGPR_RE = re.compile(r'(?:used\s+)?vgprs?\s*[:=]\s*(\d+)', re.IGNORECASE)
-_RGA_SGPR_RE = re.compile(r'(?:used\s+)?sgprs?\s*[:=]\s*(\d+)', re.IGNORECASE)
-
-
-def _parseRgaStats(text):
-    '''
-    Parse VGPR and SGPR counts from RGA stdout or analysis file content.
-
-    Returns (vgprs: int|None, sgprs: int|None).
-    '''
-    vgprs = sgprs = None
-    m = _RGA_VGPR_RE.search(text)
-    if m:
-        vgprs = int(m.group(1))
-    m = _RGA_SGPR_RE.search(text)
-    if m:
-        sgprs = int(m.group(1))
-    return vgprs, sgprs
-
-
-def _runRga(spvPath, tmpDir, tag):
-    '''
-    Run AMD RGA on a SPIR-V binary.  Tries vk-spv-offline mode first.
-
-    Returns (vgprs: int|None, sgprs: int|None).
-    '''
-    isaPath = tmpDir / f'{tag}.isa'
-    try:
-        result = subprocess.run(
-            ['rga', '-s', 'vk-spv-offline', '-c', 'gfx1030',
-             '--isa', str(isaPath), '--frag', str(spvPath)],
-            capture_output=True, text=True, timeout=120
-        )
-        if result.returncode == 0:
-            return _parseRgaStats(result.stdout)
-        logger.debug(f'RGA failed (rc={result.returncode}): '
-                      f'{result.stderr.strip()[:200]}')
-    except (subprocess.TimeoutExpired, FileNotFoundError):
-        pass
-    return None, None
-
-
-def computeRgaMetrics(spirvCache, tmpDir):
-    '''
-    Compute VGPR counts via AMD RGA for all cached SPIR-V pairs.
-
-    Returns:
-        (baselineVgprs, optimizedVgprs) dicts, or (None, None) if RGA
-        is unavailable or produces no results.
-    '''
-    if not shutil.which('rga'):
-        return None, None
-
-    logger.info('Computing VGPR counts via AMD RGA (this may take a while)...')
-    bVgprs = {}
-    oVgprs = {}
-
-    for name, info in spirvCache.items():
-        bV, _ = _runRga(info['baseline_spv'], tmpDir, f'{name}_baseline')
-        oV, _ = _runRga(info['optimized_spv'], tmpDir, f'{name}_optimized')
-
-        if bV is not None and oV is not None:
-            bVgprs[name] = bV
-            oVgprs[name] = oV
-        else:
-            logger.warning(f'RGA analysis failed for {name}')
-
-    if not bVgprs:
-        logger.warning('RGA produced no results')
-        return None, None
-
-    logger.info(f'RGA analysis completed for {len(bVgprs)} shader pairs')
-    return bVgprs, oVgprs
-
-
-# =============================================================================
 # REPORT HELPERS
 # =============================================================================
 
@@ -387,7 +306,6 @@ Available metrics depend on tools found in PATH:
   Compile time      Requires glslangValidator
   Optimised SPIR-V  Requires glslangValidator + spirv-opt
   spirv-opt time    Requires glslangValidator + spirv-opt
-  VGPR count        Requires glslangValidator + rga
 ''')
 
     parser.add_argument('baseline', type=Path,
@@ -432,7 +350,6 @@ Available metrics depend on tools found in PATH:
     tools = {
         'glslangValidator': shutil.which('glslangValidator'),
         'spirv-opt': shutil.which('spirv-opt'),
-        'rga': shutil.which('rga'),
     }
     foundTools = [name for name, path in tools.items() if path]
     if foundTools:
@@ -498,16 +415,6 @@ Available metrics depend on tools found in PATH:
                     f'spirv-opt Time (ms): {baselineName} vs {optimizedName}',
                     baselineName, optimizedName, chartBase,
                     unit=' ms', valueFormat='.1f')
-
-        # -- AMD RGA VGPR analysis -----------------------------------------
-        if tools['rga'] and spirvCache:
-            bVgprs, oVgprs = computeRgaMetrics(spirvCache, tmpPath)
-            if bVgprs is not None:
-                _addMetric(
-                    reportSections, mergeComparison(bVgprs, oVgprs), 'VGPR',
-                    f'VGPR Count (AMD RGA): '
-                    f'{baselineName} vs {optimizedName}',
-                    baselineName, optimizedName, chartBase, unit='')
 
     # ---- HTML Report -----------------------------------------------------
     pageTitle = f'Shader Comparison: {baselineName} vs {optimizedName}'
