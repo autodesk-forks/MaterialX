@@ -9,8 +9,8 @@ Built-in metrics (always available):
   LOC   Lines of code (non-blank lines in the pixel shader)
 
 Tool-based metrics (when the tool is in PATH):
-  glslangValidator  SPIR-V size (bytes) after GLSL -> SPIR-V compilation
-  spirv-opt         SPIR-V size after optimisation passes
+  glslangValidator  SPIR-V size (bytes) + compilation time (ms)
+  spirv-opt         Optimised SPIR-V size + optimisation time (ms)
   rga               VGPR count from AMD Radeon GPU Analyzer
 
 Usage:
@@ -20,10 +20,12 @@ Usage:
 
 import argparse
 import logging
+import re
 import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from pathlib import Path
 
 logging.basicConfig(level=logging.INFO)
@@ -85,7 +87,7 @@ def findShaderPairs(baselineDir, optimizedDir, pattern='**/*_ps.glsl'):
 
 
 # =============================================================================
-# METRICS: LOC
+# METRICS: LOC (always available)
 # =============================================================================
 
 def countLoc(shaderPath):
@@ -110,10 +112,10 @@ def computeLocMetrics(pairs):
 
 
 # =============================================================================
-# METRICS: SPIR-V SIZE (via glslangValidator)
+# SPIR-V COMPILATION PIPELINE  (glslangValidator, compile once / reuse)
 # =============================================================================
 
-def _compileToSpirv(glslPath, outputPath):
+def _compileToSpirvTimed(glslPath, outputPath):
     '''
     Compile a GLSL shader to SPIR-V using glslangValidator.
 
@@ -121,100 +123,247 @@ def _compileToSpirv(glslPath, outputPath):
     and --auto-map-locations to assign layout locations automatically
     (MaterialX shaders don't have explicit layout qualifiers).
 
-    Returns True on success.
+    Returns (success: bool, elapsedMs: float).
     '''
     try:
+        start = time.perf_counter()
         result = subprocess.run(
             ['glslangValidator', '-G', '--auto-map-locations',
              '-S', 'frag', '-o', str(outputPath), str(glslPath)],
             capture_output=True, text=True, timeout=30
         )
+        elapsedMs = (time.perf_counter() - start) * 1000.0
         if result.returncode != 0:
             logger.debug(f'glslangValidator stderr: {result.stderr.strip()}')
-        return result.returncode == 0
+        return result.returncode == 0, elapsedMs
     except (subprocess.TimeoutExpired, FileNotFoundError):
-        return False
+        return False, 0.0
 
 
-def computeSpirvSizeMetrics(pairs):
+def compileSpirvPairs(pairs, tmpDir):
     '''
-    Compute SPIR-V binary size for all shader pairs via glslangValidator.
+    Compile all shader pairs to SPIR-V once, caching results in tmpDir.
 
     Returns:
-        (baselineDict, optimizedDict) or (None, None) if tool not available.
+        dict of materialName -> {
+            'baseline_spv': Path, 'optimized_spv': Path,
+            'baseline_compile_ms': float, 'optimized_compile_ms': float,
+        }
     '''
-    if not shutil.which('glslangValidator'):
-        return None, None
+    cache = {}
+    for materialName, baselinePath, optimizedPath in pairs:
+        bSpv = tmpDir / f'{materialName}_baseline.spv'
+        oSpv = tmpDir / f'{materialName}_optimized.spv'
 
-    logger.info('Computing SPIR-V sizes via glslangValidator...')
-    baseline = {}
-    optimized = {}
+        bOk, bMs = _compileToSpirvTimed(baselinePath, bSpv)
+        oOk, oMs = _compileToSpirvTimed(optimizedPath, oSpv)
 
-    with tempfile.TemporaryDirectory(prefix='mtlx_spirv_') as tmpDir:
-        tmpPath = Path(tmpDir)
-        for materialName, baselinePath, optimizedPath in pairs:
-            bOut = tmpPath / f'{materialName}_baseline.spv'
-            oOut = tmpPath / f'{materialName}_optimized.spv'
+        if bOk and oOk:
+            cache[materialName] = {
+                'baseline_spv': bSpv,
+                'optimized_spv': oSpv,
+                'baseline_compile_ms': bMs,
+                'optimized_compile_ms': oMs,
+            }
+        else:
+            logger.warning(f'SPIR-V compilation failed for {materialName}')
 
-            if _compileToSpirv(baselinePath, bOut) and _compileToSpirv(optimizedPath, oOut):
-                baseline[materialName] = bOut.stat().st_size
-                optimized[materialName] = oOut.stat().st_size
-            else:
-                logger.warning(f'SPIR-V compilation failed for {materialName}')
-
-    logger.info(f'Compiled {len(baseline)} shader pairs to SPIR-V')
-    return baseline, optimized
+    logger.info(f'Compiled {len(cache)}/{len(pairs)} shader pairs to SPIR-V')
+    return cache
 
 
 # =============================================================================
-# METRICS: OPTIMISED SPIR-V SIZE (via spirv-opt)
+# SPIR-V OPTIMISATION PIPELINE  (spirv-opt, reuses compiled SPIR-V)
 # =============================================================================
 
-def _optimizeSpirv(inputPath, outputPath):
-    '''Run spirv-opt on a SPIR-V binary. Returns True on success.'''
+def _optimizeSpirvTimed(inputPath, outputPath):
+    '''Run spirv-opt -O on a SPIR-V binary.  Returns (success, elapsedMs).'''
     try:
+        start = time.perf_counter()
         result = subprocess.run(
             ['spirv-opt', '-O', '-o', str(outputPath), str(inputPath)],
             capture_output=True, text=True, timeout=60
         )
-        return result.returncode == 0
+        elapsedMs = (time.perf_counter() - start) * 1000.0
+        return result.returncode == 0, elapsedMs
     except (subprocess.TimeoutExpired, FileNotFoundError):
-        return False
+        return False, 0.0
 
 
-def computeOptSpirvSizeMetrics(pairs):
+def optimizeSpirvPairs(spirvCache, tmpDir):
     '''
-    Compute optimised SPIR-V binary size (glslangValidator + spirv-opt).
+    Run spirv-opt on every cached SPIR-V pair.
 
     Returns:
-        (baselineDict, optimizedDict) or (None, None) if tools not available.
+        dict of materialName -> {
+            'baseline_opt_spv': Path, 'optimized_opt_spv': Path,
+            'baseline_opt_ms': float, 'optimized_opt_ms': float,
+        }
     '''
-    if not shutil.which('glslangValidator') or not shutil.which('spirv-opt'):
+    optCache = {}
+    for name, info in spirvCache.items():
+        bOpt = tmpDir / f'{name}_baseline_opt.spv'
+        oOpt = tmpDir / f'{name}_optimized_opt.spv'
+
+        bOk, bMs = _optimizeSpirvTimed(info['baseline_spv'], bOpt)
+        oOk, oMs = _optimizeSpirvTimed(info['optimized_spv'], oOpt)
+
+        if bOk and oOk:
+            optCache[name] = {
+                'baseline_opt_spv': bOpt,
+                'optimized_opt_spv': oOpt,
+                'baseline_opt_ms': bMs,
+                'optimized_opt_ms': oMs,
+            }
+        else:
+            logger.warning(f'spirv-opt failed for {name}')
+
+    logger.info(f'Optimised {len(optCache)}/{len(spirvCache)} SPIR-V pairs')
+    return optCache
+
+
+# =============================================================================
+# METRICS EXTRACTORS  (pull numbers out of the caches)
+# =============================================================================
+
+def extractSpirvSizeMetrics(spirvCache):
+    '''SPIR-V binary size in bytes.'''
+    b, o = {}, {}
+    for name, info in spirvCache.items():
+        b[name] = info['baseline_spv'].stat().st_size
+        o[name] = info['optimized_spv'].stat().st_size
+    return b, o
+
+
+def extractCompileTimeMetrics(spirvCache):
+    '''glslangValidator compilation time in ms.'''
+    b, o = {}, {}
+    for name, info in spirvCache.items():
+        b[name] = info['baseline_compile_ms']
+        o[name] = info['optimized_compile_ms']
+    return b, o
+
+
+def extractOptSpirvSizeMetrics(optCache):
+    '''Optimised SPIR-V binary size in bytes.'''
+    b, o = {}, {}
+    for name, info in optCache.items():
+        b[name] = info['baseline_opt_spv'].stat().st_size
+        o[name] = info['optimized_opt_spv'].stat().st_size
+    return b, o
+
+
+def extractOptTimeMetrics(optCache):
+    '''spirv-opt optimisation time in ms.'''
+    b, o = {}, {}
+    for name, info in optCache.items():
+        b[name] = info['baseline_opt_ms']
+        o[name] = info['optimized_opt_ms']
+    return b, o
+
+
+# =============================================================================
+# METRICS: AMD RGA  (Radeon GPU Analyzer -- VGPR count)
+# =============================================================================
+
+_RGA_VGPR_RE = re.compile(r'(?:used\s+)?vgprs?\s*[:=]\s*(\d+)', re.IGNORECASE)
+_RGA_SGPR_RE = re.compile(r'(?:used\s+)?sgprs?\s*[:=]\s*(\d+)', re.IGNORECASE)
+
+
+def _parseRgaStats(text):
+    '''
+    Parse VGPR and SGPR counts from RGA stdout or analysis file content.
+
+    Returns (vgprs: int|None, sgprs: int|None).
+    '''
+    vgprs = sgprs = None
+    m = _RGA_VGPR_RE.search(text)
+    if m:
+        vgprs = int(m.group(1))
+    m = _RGA_SGPR_RE.search(text)
+    if m:
+        sgprs = int(m.group(1))
+    return vgprs, sgprs
+
+
+def _runRga(spvPath, tmpDir, tag):
+    '''
+    Run AMD RGA on a SPIR-V binary.  Tries vk-spv-offline mode first.
+
+    Returns (vgprs: int|None, sgprs: int|None).
+    '''
+    isaPath = tmpDir / f'{tag}.isa'
+    try:
+        result = subprocess.run(
+            ['rga', '-s', 'vk-spv-offline', '-c', 'gfx1030',
+             '--isa', str(isaPath), '--frag', str(spvPath)],
+            capture_output=True, text=True, timeout=120
+        )
+        if result.returncode == 0:
+            return _parseRgaStats(result.stdout)
+        logger.debug(f'RGA failed (rc={result.returncode}): '
+                      f'{result.stderr.strip()[:200]}')
+    except (subprocess.TimeoutExpired, FileNotFoundError):
+        pass
+    return None, None
+
+
+def computeRgaMetrics(spirvCache, tmpDir):
+    '''
+    Compute VGPR counts via AMD RGA for all cached SPIR-V pairs.
+
+    Returns:
+        (baselineVgprs, optimizedVgprs) dicts, or (None, None) if RGA
+        is unavailable or produces no results.
+    '''
+    if not shutil.which('rga'):
         return None, None
 
-    logger.info('Computing optimised SPIR-V sizes via spirv-opt...')
-    baseline = {}
-    optimized = {}
+    logger.info('Computing VGPR counts via AMD RGA (this may take a while)...')
+    bVgprs = {}
+    oVgprs = {}
 
-    with tempfile.TemporaryDirectory(prefix='mtlx_spirvopt_') as tmpDir:
-        tmpPath = Path(tmpDir)
-        for materialName, baselinePath, optimizedPath in pairs:
-            bSpv = tmpPath / f'{materialName}_baseline.spv'
-            oSpv = tmpPath / f'{materialName}_optimized.spv'
-            bOpt = tmpPath / f'{materialName}_baseline_opt.spv'
-            oOpt = tmpPath / f'{materialName}_optimized_opt.spv'
+    for name, info in spirvCache.items():
+        bV, _ = _runRga(info['baseline_spv'], tmpDir, f'{name}_baseline')
+        oV, _ = _runRga(info['optimized_spv'], tmpDir, f'{name}_optimized')
 
-            bOk = _compileToSpirv(baselinePath, bSpv) and _optimizeSpirv(bSpv, bOpt)
-            oOk = _compileToSpirv(optimizedPath, oSpv) and _optimizeSpirv(oSpv, oOpt)
+        if bV is not None and oV is not None:
+            bVgprs[name] = bV
+            oVgprs[name] = oV
+        else:
+            logger.warning(f'RGA analysis failed for {name}')
 
-            if bOk and oOk:
-                baseline[materialName] = bOpt.stat().st_size
-                optimized[materialName] = oOpt.stat().st_size
-            else:
-                logger.warning(f'spirv-opt pipeline failed for {materialName}')
+    if not bVgprs:
+        logger.warning('RGA produced no results')
+        return None, None
 
-    logger.info(f'Optimised {len(baseline)} shader pairs')
-    return baseline, optimized
+    logger.info(f'RGA analysis completed for {len(bVgprs)} shader pairs')
+    return bVgprs, oVgprs
+
+
+# =============================================================================
+# REPORT HELPERS
+# =============================================================================
+
+def _addMetric(reportSections, data, metricTag, title, baselineName,
+               optimizedName, chartBase, unit='', valueFormat='.0f'):
+    '''
+    Print a comparison table, generate a chart, and append to reportSections.
+    '''
+    if data is None or data.empty:
+        return
+
+    printComparisonTable(data, title,
+                         baselineLabel=baselineName,
+                         optimizedLabel=optimizedName,
+                         unit=unit, valueFormat=valueFormat)
+
+    svgPath = chartPath(chartBase, metricTag)
+    createComparisonChart(data, svgPath, title=title,
+                          baselineLabel=baselineName,
+                          optimizedLabel=optimizedName,
+                          unit=unit)
+    reportSections.append((title, svgPath))
 
 
 # =============================================================================
@@ -223,7 +372,8 @@ def computeOptSpirvSizeMetrics(pairs):
 
 def main():
     parser = argparse.ArgumentParser(
-        description='Compare dumped shader files between baseline and optimized MaterialX test runs.',
+        description='Compare dumped shader files between baseline and '
+                    'optimized MaterialX test runs.',
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog='''
 Examples:
@@ -234,7 +384,10 @@ Examples:
 Available metrics depend on tools found in PATH:
   LOC               Always available (non-blank line count)
   SPIR-V size       Requires glslangValidator
+  Compile time      Requires glslangValidator
   Optimised SPIR-V  Requires glslangValidator + spirv-opt
+  spirv-opt time    Requires glslangValidator + spirv-opt
+  VGPR count        Requires glslangValidator + rga
 ''')
 
     parser.add_argument('baseline', type=Path,
@@ -249,7 +402,7 @@ Available metrics depend on tools found in PATH:
 
     args = parser.parse_args()
 
-    # Discover shader pairs
+    # Discover shader pairs ------------------------------------------------
     try:
         pairs = findShaderPairs(args.baseline, args.optimized, args.pattern)
     except FileNotFoundError as e:
@@ -275,7 +428,7 @@ Available metrics depend on tools found in PATH:
 
     reportSections = []
 
-    # Discover available tools
+    # Discover available tools ---------------------------------------------
     tools = {
         'glslangValidator': shutil.which('glslangValidator'),
         'spirv-opt': shutil.which('spirv-opt'),
@@ -285,62 +438,86 @@ Available metrics depend on tools found in PATH:
     if foundTools:
         logger.info(f'Found tools in PATH: {", ".join(foundTools)}')
     else:
-        logger.info('No optional shader tools found in PATH; only LOC will be computed')
+        logger.info('No optional shader tools found in PATH; '
+                     'only LOC will be computed')
 
-    # ---- Metric: LOC ----
+    # ---- Metric: LOC (always) --------------------------------------------
     logger.info('Computing LOC metrics...')
     bLoc, oLoc = computeLocMetrics(pairs)
     locData = mergeComparison(bLoc, oLoc)
+    _addMetric(reportSections, locData, 'LOC',
+               f'Lines of Code (non-blank): {baselineName} vs {optimizedName}',
+               baselineName, optimizedName, chartBase, unit=' lines')
 
-    title = f'Lines of Code (non-blank): {baselineName} vs {optimizedName}'
-    printComparisonTable(locData, title,
-                         baselineLabel=baselineName, optimizedLabel=optimizedName,
-                         unit='', valueFormat='.0f')
+    # ---- Tool-based metrics (inside a temp directory) --------------------
+    with tempfile.TemporaryDirectory(prefix='mtlx_spirv_') as tmpDir:
+        tmpPath = Path(tmpDir)
+        spirvCache = {}
+        optCache = {}
 
-    if not locData.empty:
-        svgPath = chartPath(chartBase, 'LOC')
-        createComparisonChart(locData, svgPath, title=title,
-                              baselineLabel=baselineName, optimizedLabel=optimizedName,
-                              unit=' lines')
-        reportSections.append((title, svgPath))
+        # -- Compile GLSL -> SPIR-V (once) ---------------------------------
+        if tools['glslangValidator']:
+            spirvCache = compileSpirvPairs(pairs, tmpPath)
 
-    # ---- Metric: SPIR-V size ----
-    bSpirv, oSpirv = computeSpirvSizeMetrics(pairs)
-    if bSpirv is not None:
-        spirvData = mergeComparison(bSpirv, oSpirv)
-        title = f'SPIR-V Size (bytes): {baselineName} vs {optimizedName}'
-        printComparisonTable(spirvData, title,
-                             baselineLabel=baselineName, optimizedLabel=optimizedName,
-                             unit=' B', valueFormat='.0f')
+            if spirvCache:
+                # SPIR-V Size
+                bSize, oSize = extractSpirvSizeMetrics(spirvCache)
+                _addMetric(
+                    reportSections, mergeComparison(bSize, oSize), 'SPIRV',
+                    f'SPIR-V Size (bytes): {baselineName} vs {optimizedName}',
+                    baselineName, optimizedName, chartBase, unit=' B')
 
-        if not spirvData.empty:
-            svgPath = chartPath(chartBase, 'SPIRV')
-            createComparisonChart(spirvData, svgPath, title=title,
-                                  baselineLabel=baselineName, optimizedLabel=optimizedName,
-                                  unit=' B')
-            reportSections.append((title, svgPath))
+                # Compilation Time
+                bTime, oTime = extractCompileTimeMetrics(spirvCache)
+                _addMetric(
+                    reportSections, mergeComparison(bTime, oTime), 'compile_time',
+                    f'glslangValidator Compile Time (ms): '
+                    f'{baselineName} vs {optimizedName}',
+                    baselineName, optimizedName, chartBase,
+                    unit=' ms', valueFormat='.1f')
 
-    # ---- Metric: Optimised SPIR-V size ----
-    bOptSpirv, oOptSpirv = computeOptSpirvSizeMetrics(pairs)
-    if bOptSpirv is not None:
-        optSpirvData = mergeComparison(bOptSpirv, oOptSpirv)
-        title = f'Optimised SPIR-V Size (bytes): {baselineName} vs {optimizedName}'
-        printComparisonTable(optSpirvData, title,
-                             baselineLabel=baselineName, optimizedLabel=optimizedName,
-                             unit=' B', valueFormat='.0f')
+        # -- spirv-opt on cached SPIR-V ------------------------------------
+        if tools['spirv-opt'] and spirvCache:
+            optCache = optimizeSpirvPairs(spirvCache, tmpPath)
 
-        if not optSpirvData.empty:
-            svgPath = chartPath(chartBase, 'SPIRV_opt')
-            createComparisonChart(optSpirvData, svgPath, title=title,
-                                  baselineLabel=baselineName, optimizedLabel=optimizedName,
-                                  unit=' B')
-            reportSections.append((title, svgPath))
+            if optCache:
+                # Optimised SPIR-V Size
+                bOptSize, oOptSize = extractOptSpirvSizeMetrics(optCache)
+                _addMetric(
+                    reportSections, mergeComparison(bOptSize, oOptSize),
+                    'SPIRV_opt',
+                    f'Optimised SPIR-V Size (bytes): '
+                    f'{baselineName} vs {optimizedName}',
+                    baselineName, optimizedName, chartBase, unit=' B')
 
-    # ---- HTML Report ----
+                # spirv-opt Time
+                bOptTime, oOptTime = extractOptTimeMetrics(optCache)
+                _addMetric(
+                    reportSections, mergeComparison(bOptTime, oOptTime),
+                    'spirvopt_time',
+                    f'spirv-opt Time (ms): {baselineName} vs {optimizedName}',
+                    baselineName, optimizedName, chartBase,
+                    unit=' ms', valueFormat='.1f')
+
+        # -- AMD RGA VGPR analysis -----------------------------------------
+        if tools['rga'] and spirvCache:
+            bVgprs, oVgprs = computeRgaMetrics(spirvCache, tmpPath)
+            if bVgprs is not None:
+                _addMetric(
+                    reportSections, mergeComparison(bVgprs, oVgprs), 'VGPR',
+                    f'VGPR Count (AMD RGA): '
+                    f'{baselineName} vs {optimizedName}',
+                    baselineName, optimizedName, chartBase, unit='')
+
+    # ---- HTML Report -----------------------------------------------------
     pageTitle = f'Shader Comparison: {baselineName} vs {optimizedName}'
+    toolInfo = ', '.join(foundTools) if foundTools else 'none'
+    footerText = (f'Generated by diff_shaders.py &mdash; '
+                  f'tools used: {toolInfo}')
+
     if reportSections:
         generateHtmlReport(reportPath, reportSections, pageTitle=pageTitle,
-                           footerText='Generated by diff_shaders.py')
+                           footerText=footerText)
         openReport(reportPath)
     else:
         print(f'\n{"=" * 85}')
