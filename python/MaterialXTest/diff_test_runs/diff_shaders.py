@@ -114,12 +114,23 @@ def computeLocMetrics(pairs):
 # =============================================================================
 
 def _compileToSpirv(glslPath, outputPath):
-    '''Compile a GLSL shader to SPIR-V using glslangValidator. Returns True on success.'''
+    '''
+    Compile a GLSL shader to SPIR-V using glslangValidator.
+
+    Uses OpenGL semantics (-G) since MaterialX generates OpenGL GLSL,
+    and --auto-map-locations to assign layout locations automatically
+    (MaterialX shaders don't have explicit layout qualifiers).
+
+    Returns True on success.
+    '''
     try:
         result = subprocess.run(
-            ['glslangValidator', '-V', '-S', 'frag', '-o', str(outputPath), str(glslPath)],
+            ['glslangValidator', '-G', '--auto-map-locations',
+             '-S', 'frag', '-o', str(outputPath), str(glslPath)],
             capture_output=True, text=True, timeout=30
         )
+        if result.returncode != 0:
+            logger.debug(f'glslangValidator stderr: {result.stderr.strip()}')
         return result.returncode == 0
     except (subprocess.TimeoutExpired, FileNotFoundError):
         return False
