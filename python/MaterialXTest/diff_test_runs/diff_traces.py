@@ -88,6 +88,9 @@ def loadSliceDurations(traceProcessor, trackName=None):
     '''
     Load slice durations from a Perfetto trace, optionally filtered by track.
 
+    Results are ordered by timestamp to preserve frame ordering within each
+    material (important for warmup frame discarding).
+
     Args:
         traceProcessor: TraceProcessor instance
         trackName: Optional track name filter (e.g., "GPU")
@@ -102,14 +105,14 @@ def loadSliceDurations(traceProcessor, trackName=None):
         FROM slice
         JOIN track ON slice.track_id = track.id
         WHERE track.name = '{trackName}'
-        ORDER BY slice.name
+        ORDER BY slice.ts
         '''
     else:
         query = '''
         SELECT slice.name, slice.dur / 1000000.0 as dur_ms
         FROM slice
         JOIN track ON slice.track_id = track.id
-        ORDER BY slice.name
+        ORDER BY slice.ts
         '''
 
     df = traceProcessor.query(query).as_pandas_dataframe()
@@ -195,39 +198,64 @@ def loadOptimizationEvents(traceProcessor, optimizationName=None):
 # COMPARISON
 # =============================================================================
 
-def _aggregateByName(df):
-    '''Aggregate durations by name (averaging across multiple samples).'''
+def _aggregateByName(df, warmupFrames=0):
+    '''
+    Aggregate durations by name (averaging across multiple samples).
+
+    Args:
+        df: DataFrame with columns [name, dur_ms], ordered by timestamp.
+        warmupFrames: Number of initial frames per material to discard
+                      before averaging (burn-in period).
+    '''
     if df.empty:
         return pd.DataFrame(columns=['name', 'value'])
+
+    if warmupFrames > 0:
+        # Within each material group, drop the first N rows (preserving
+        # chronological order from the ORDER BY slice.ts query).
+        df = (df.groupby('name', sort=False)
+              .apply(lambda g: g.iloc[warmupFrames:] if len(g) > warmupFrames
+                     else g.iloc[0:0], include_groups=False)
+              .reset_index(level=0))
+        if df.empty:
+            logger.warning(f'All samples discarded by warmup ({warmupFrames} frames)')
+            return pd.DataFrame(columns=['name', 'value'])
+
     agg = df.groupby('name')['dur_ms'].mean().reset_index()
     agg.columns = ['name', 'value']
     return agg
 
 
-def compareGpuTraces(baselineTraceProcessor, optimizedTraceProcessor, minDeltaMs=0.0):
+def compareGpuTraces(baselineTraceProcessor, optimizedTraceProcessor,
+                     minDeltaMs=0.0, warmupFrames=0):
     '''
     Compare GPU render durations between baseline and optimized traces.
 
-    Reads the GPU async track and averages per material across frames.
+    Reads the GPU async track and averages per material across frames,
+    optionally discarding initial warmup frames.
 
     Returns:
-        (merged_df, samplesPerMaterial) -- the comparison DataFrame and the
-        typical number of samples per material (for display in titles).
+        (merged_df, totalFrames, usedFrames) -- the comparison DataFrame,
+        the total number of frames per material, and how many were used
+        after warmup discarding.
     '''
     logger.info('Comparing GPU traces...')
     baselineData = loadSliceDurations(baselineTraceProcessor, trackName='GPU')
-    baselineAgg = _aggregateByName(baselineData)
-
     optimizedData = loadSliceDurations(optimizedTraceProcessor, trackName='GPU')
-    optimizedAgg = _aggregateByName(optimizedData)
 
     # Determine typical samples per material (frames rendered)
     if not baselineData.empty:
-        samplesPerMaterial = int(baselineData.groupby('name').size().median())
+        totalFrames = int(baselineData.groupby('name').size().median())
     else:
-        samplesPerMaterial = 0
+        totalFrames = 0
 
-    return mergeComparisonDf(baselineAgg, optimizedAgg, minDelta=minDeltaMs), samplesPerMaterial
+    usedFrames = max(0, totalFrames - warmupFrames)
+
+    baselineAgg = _aggregateByName(baselineData, warmupFrames=warmupFrames)
+    optimizedAgg = _aggregateByName(optimizedData, warmupFrames=warmupFrames)
+
+    return (mergeComparisonDf(baselineAgg, optimizedAgg, minDelta=minDeltaMs),
+            totalFrames, usedFrames)
 
 
 def compareChildSlices(baselineTraceProcessor, optimizedTraceProcessor, sliceName, minDeltaMs=0.0):
@@ -284,6 +312,9 @@ For image comparison, see diff_images.py in the same directory.
     optGroup.add_argument('-o', '--outputfile', dest='outputfile', type=str,
                           default=None,
                           help='Output HTML report file name (default: <baseline>_vs_<optimized>.html)')
+    optGroup.add_argument('--warmup-frames', type=int, default=0,
+                          help='Number of initial GPU frames per material to discard '
+                               'as burn-in before averaging (default: 0)')
     optGroup.add_argument('--show-opt', type=str, metavar='OPT_NAME',
                           help='Highlight materials affected by optimization pass')
 
@@ -341,6 +372,8 @@ For image comparison, see diff_images.py in the same directory.
     filterParts = []
     if args.min_delta_ms > 0:
         filterParts.append(f'min delta: {args.min_delta_ms:.1f} ms')
+    if args.warmup_frames > 0:
+        filterParts.append(f'warmup: {args.warmup_frames} frames discarded')
     if args.show_opt:
         filterParts.append(f'highlighting: {args.show_opt}')
     subtitle = 'Filters: ' + ', '.join(filterParts) if filterParts else None
@@ -357,9 +390,17 @@ For image comparison, see diff_images.py in the same directory.
         for label in comparisons:
             # Run comparison and build title
             if label == 'GPU':
-                traceData, samplesPerMaterial = compareGpuTraces(
-                    baselineTraceProcessor, optimizedTraceProcessor, args.min_delta_ms)
-                avgNote = f' (averaged over {samplesPerMaterial} frames)' if samplesPerMaterial > 1 else ''
+                traceData, totalFrames, usedFrames = compareGpuTraces(
+                    baselineTraceProcessor, optimizedTraceProcessor,
+                    args.min_delta_ms, args.warmup_frames)
+                if usedFrames > 1:
+                    if args.warmup_frames > 0:
+                        avgNote = (f' (averaged over {usedFrames} of {totalFrames} frames, '
+                                   f'{args.warmup_frames} warmup discarded)')
+                    else:
+                        avgNote = f' (averaged over {totalFrames} frames)'
+                else:
+                    avgNote = ''
                 title = f'GPU Render Duration per Material{avgNote}: {baselineName} vs {optimizedName}'
             else:
                 traceData = compareChildSlices(
