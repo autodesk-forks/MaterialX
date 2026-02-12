@@ -937,7 +937,19 @@ void ShaderGraph::finalize(GenContext& context)
                         ShaderGraphInputSocket* inputSocket = getInputSocket(interfaceName);
                         if (!inputSocket)
                         {
-                            inputSocket = addInputSocket(interfaceName, input->getType());
+                            // Check if a socket with just the input name exists (from addInputSockets)
+                            // If so, rename it to use the interfaceName to ensure consistent naming
+                            ShaderGraphInputSocket* existingSocket = getInputSocket(input->getName());
+                            if (existingSocket && existingSocket->getConnections().empty())
+                            {
+                                // Rename the existing socket to use the interfaceName
+                                existingSocket->setName(interfaceName);
+                                inputSocket = existingSocket;
+                            }
+                            else
+                            {
+                                inputSocket = addInputSocket(interfaceName, input->getType());
+                            }
                             inputSocket->setPath(input->getPath());
                             inputSocket->setValue(input->getValue());
                             inputSocket->setUnit(input->getUnit());
