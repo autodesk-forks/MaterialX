@@ -339,7 +339,6 @@ bool GlslShaderRenderTester::runRenderer(const std::string& shaderName,
                 _renderer->setLightHandler(isShader ? _lightHandler : nullptr);
 
                 {
-<<<<<<< ours
                     MX_TRACE_SCOPE(mx::Tracing::Category::Render, "CompileShader");
                     mx::ScopedTimer compileTimer(&profileTimes.languageTimes.compileTime);
                     _renderer->createProgram(shader);
