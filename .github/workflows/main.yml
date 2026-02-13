@@ -31,6 +31,7 @@ jobs:
           compiler: gcc
           compiler_version: "14"
           python: 3.13
+          extended_build_perfetto: ON
 
         - name: Linux_GCC_14_Python314
           os: ubuntu-24.04
@@ -174,8 +175,8 @@ jobs:
     - name: Install MDL SDK
       if: env.IS_EXTENDED_BUILD == 'true' && matrix.extended_build_mdl_sdk == 'ON' && runner.os == 'Windows'
       run: |
-        C:/vcpkg/vcpkg install mdl-sdk --triplet=x64-windows
-        Add-Content $env:GITHUB_PATH "C:/vcpkg/installed/x64-windows/bin"
+        C:/vcpkg/vcpkg install mdl-sdk[dds,df-vulkan,openimageio] --triplet=x64-windows-release
+        Add-Content $env:GITHUB_PATH "C:/vcpkg/installed/x64-windows-release/bin"
 
     - name: Install Python ${{ matrix.python }}
       if: matrix.python != 'None'
@@ -198,16 +199,17 @@ jobs:
         EXTENDED_BUILD_CONFIG=""
         if [ "${{ env.IS_EXTENDED_BUILD }}" == "true" ]; then
           if [ "${{ runner.os }}" == "Windows" ]; then
-            EXTENDED_BUILD_CONFIG="-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake -DVCPKG_TARGET_TRIPLET=x64-windows"
+            EXTENDED_BUILD_CONFIG="-DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake"
           fi
           if [ "${{ matrix.extended_build_oiio }}" == "ON" ]; then
-            EXTENDED_BUILD_CONFIG="$EXTENDED_BUILD_CONFIG -DMATERIALX_BUILD_OIIO=ON"
+            EXTENDED_BUILD_CONFIG="$EXTENDED_BUILD_CONFIG -DVCPKG_TARGET_TRIPLET=x64-windows -DMATERIALX_BUILD_OIIO=ON"
           fi
           if [ "${{ matrix.extended_build_mdl_sdk }}" == "ON" -a "${{ runner.os }}" == "Windows" ]; then
-            EXTENDED_BUILD_CONFIG="$EXTENDED_BUILD_CONFIG -DMATERIALX_MDL_SDK_DIR=C:/vcpkg/installed/x64-windows"
+            EXTENDED_BUILD_CONFIG="$EXTENDED_BUILD_CONFIG -DVCPKG_TARGET_TRIPLET=x64-windows-release -DMATERIALX_MDL_SDK_DIR=C:/vcpkg/installed/x64-windows-release"
           fi
-          # Enable Perfetto tracing for nightly/extended builds
-          EXTENDED_BUILD_CONFIG="$EXTENDED_BUILD_CONFIG -DMATERIALX_BUILD_TRACING=ON"
+          if [ "${{ matrix.extended_build_perfetto }}" == "ON" ]; then
+            EXTENDED_BUILD_CONFIG="$EXTENDED_BUILD_CONFIG -DMATERIALX_BUILD_PERFETTO_TRACING=ON"
+          fi
         fi
         TEST_RENDER_CONFIG="-DMATERIALX_TEST_RENDER=OFF"
         if [ "${{ matrix.test_render }}" == "ON" ]; then
@@ -362,7 +364,7 @@ jobs:
 
     - name: Upload Perfetto Traces
       uses: actions/upload-artifact@v4
-      if: env.IS_EXTENDED_BUILD == 'true'
+      if: matrix.extended_build_perfetto == 'ON' && env.IS_EXTENDED_BUILD == 'true'
       with:
         name: Traces_${{ matrix.name }}
         path: build/**/*.perfetto-trace
@@ -409,14 +411,13 @@ jobs:
         npm run build
       working-directory: javascript/MaterialXView
 
-    # Disable the gh-pages deploy as we protect the gh-pages branch
-    #- name: Deploy Web Viewer
-    #  if: github.event_name != 'pull_request'
-    #  uses: JamesIves/github-pages-deploy-action@6c2d9db40f9296374acc17b90404b6e8864128c8 # v4.7.3
-    #  with:
-    #    branch: gh-pages
-    #    folder: javascript/MaterialXView/dist
-    #    single-commit: true
+    - name: Deploy Web Viewer
+      if: github.event_name != 'pull_request'
+      uses: JamesIves/github-pages-deploy-action@6c2d9db40f9296374acc17b90404b6e8864128c8 # v4.7.3
+      with:
+        branch: gh-pages
+        folder: javascript/MaterialXView/dist
+        single-commit: true
 
     - name: Upload JavaScript Package
       uses: actions/upload-artifact@v4
@@ -479,6 +480,10 @@ jobs:
         name: MaterialX_Python_SDist
         path: sdist
 
+    - name: Install Doxygen (Windows)
+      uses: ssciwr/doxygen-install@v1
+      if: runner.os == 'Windows'
+
     - name: Build Wheel
       uses: pypa/cibuildwheel@v2.23.2
       with:
@@ -490,7 +495,6 @@ jobs:
         CIBW_MANYLINUX_X86_64_IMAGE: manylinux_2_28
         CIBW_BEFORE_ALL_LINUX: yum install -y libXt-devel doxygen
         CIBW_BEFORE_ALL_MACOS: brew install doxygen
-        CIBW_BEFORE_ALL_WINDOWS: choco install doxygen.install -y
         CIBW_BUILD_VERBOSITY: 1
         CIBW_ENVIRONMENT: CMAKE_BUILD_PARALLEL_LEVEL=2
         MACOSX_DEPLOYMENT_TARGET: '11.0'

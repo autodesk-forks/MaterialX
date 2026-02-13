@@ -316,7 +316,7 @@ void testUniqueNames(mx::GenContext& context, const std::string& stage)
     // Make sure the output and internal node output has their variable names set
     const mx::ShaderGraphOutputSocket* sgOutputSocket = shader->getGraph().getOutputSocket();
     REQUIRE(sgOutputSocket->getVariable() != outputQualifier);
-    const mx::ShaderNode* sgNode1 = shader->getGraph().getNode(node1->getName());
+    const mx::ShaderNode* sgNode1 = shader->getGraph().getNode(node1->getNamePath());
     REQUIRE(sgNode1->getOutput()->getVariable() == "unique_names_out");
 }
 
@@ -669,7 +669,7 @@ void ShaderGeneratorTester::validate(const mx::GenOptions& generateOptions, cons
         return;
     }
 
-#ifdef MATERIALX_BUILD_TRACING
+#ifdef MATERIALX_BUILD_PERFETTO_TRACING
     // Set up Perfetto tracing if enabled
     std::optional<mx::Tracing::Dispatcher::ShutdownGuard> tracingGuard;
     if (options.enableTracing)

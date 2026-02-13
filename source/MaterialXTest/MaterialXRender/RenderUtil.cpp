@@ -12,7 +12,7 @@
 #include <MaterialXGenShader/OcioColorManagementSystem.h>
 #endif
 
-#ifdef MATERIALX_BUILD_TRACING
+#ifdef MATERIALX_BUILD_PERFETTO_TRACING
 #include <MaterialXTrace/Tracing.h>
 #include <optional>
 #endif
@@ -38,19 +38,11 @@ void ShaderRenderTester::getGenerationOptions(const GenShaderUtil::TestSuiteOpti
                                               const mx::GenOptions& originalOptions,
                                               std::vector<mx::GenOptions>& optionsList)
 {
-    // Apply all optimization flags from test options to gen options
-    auto applyOptimizationFlags = [&testOptions](mx::GenOptions& genOptions) {
-        genOptions.optReplaceBsdfMixWithLinearCombination = testOptions.optReplaceBsdfMixWithLinearCombination;
-        genOptions.optPruneMixBsdf = testOptions.optPruneMixBsdf;
-        genOptions.optEarlyPruning = testOptions.optEarlyPruning;
-    };
-
     optionsList.clear();
     if (testOptions.shaderInterfaces & 1)
     {
         mx::GenOptions reducedOption = originalOptions;
         reducedOption.shaderInterfaceType = mx::SHADER_INTERFACE_REDUCED;
-        applyOptimizationFlags(reducedOption);
         optionsList.push_back(reducedOption);
     }
     // Always fallback to complete if no options specified.
@@ -58,7 +50,6 @@ void ShaderRenderTester::getGenerationOptions(const GenShaderUtil::TestSuiteOpti
     {
         mx::GenOptions completeOption = originalOptions;
         completeOption.shaderInterfaceType = mx::SHADER_INTERFACE_COMPLETE;
-        applyOptimizationFlags(completeOption);
         optionsList.push_back(completeOption);
     }
 }
@@ -108,7 +99,7 @@ bool ShaderRenderTester::validate(const mx::FilePath optionsFilePath)
         return false;
     }
 
-#ifdef MATERIALX_BUILD_TRACING
+#ifdef MATERIALX_BUILD_PERFETTO_TRACING
     // Initialize tracing with target-specific trace filename (if enabled in options)
     std::optional<mx::Tracing::Dispatcher::ShutdownGuard> tracingGuard;
     if (options.enableTracing)

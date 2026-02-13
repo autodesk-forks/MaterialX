@@ -25,7 +25,6 @@
 #endif
 
 namespace mx = MaterialX;
-using Cat = mx::Tracing::Category;
 
 #ifdef MATERIALX_BUILD_TRACING
 // GPU timing utilities
@@ -218,8 +217,8 @@ bool GlslShaderRenderTester::runRenderer(const std::string& shaderName,
                                           const std::string& outputPath,
                                           mx::ImageVec* imageVec)
 {
-    MX_TRACE_FUNCTION(Cat::Render);
-    MX_TRACE_SCOPE(Cat::Material, shaderName.c_str());
+    MX_TRACE_FUNCTION(mx::Tracing::Category::Render);
+    MX_TRACE_SCOPE(mx::Tracing::Category::Material, shaderName.c_str());
     std::cout << "Validating GLSL rendering for: " << doc->getSourceUri() << std::endl;
 
     mx::ScopedTimer totalGLSLTime(&profileTimes.languageTimes.totalTime);
@@ -262,7 +261,7 @@ bool GlslShaderRenderTester::runRenderer(const std::string& shaderName,
                 transpTimer.endTimer();
 
                 mx::ScopedTimer generationTimer(&profileTimes.languageTimes.generationTime);
-                MX_TRACE_SCOPE(Cat::ShaderGen, "GenerateShader");
+                MX_TRACE_SCOPE(mx::Tracing::Category::ShaderGen, "GenerateShader");
                 mx::GenOptions& contextOptions = context.getOptions();
                 contextOptions = options;
                 contextOptions.targetColorSpaceOverride = "lin_rec709";
@@ -288,7 +287,7 @@ bool GlslShaderRenderTester::runRenderer(const std::string& shaderName,
 
             if (testOptions.dumpGeneratedCode)
             {
-                MX_TRACE_SCOPE(Cat::Render, "DumpGeneratedCode");
+                MX_TRACE_SCOPE(mx::Tracing::Category::Render, "DumpGeneratedCode");
                 mx::ScopedTimer dumpTimer(&profileTimes.languageTimes.ioTime);
                 std::ofstream file;
                 file.open(shaderPath + "_vs.glsl");
@@ -340,7 +339,8 @@ bool GlslShaderRenderTester::runRenderer(const std::string& shaderName,
                 _renderer->setLightHandler(isShader ? _lightHandler : nullptr);
 
                 {
-                    MX_TRACE_SCOPE(Cat::Render, "CompileShader");
+<<<<<<< ours
+                    MX_TRACE_SCOPE(mx::Tracing::Category::Render, "CompileShader");
                     mx::ScopedTimer compileTimer(&profileTimes.languageTimes.compileTime);
                     _renderer->createProgram(shader);
                     _renderer->validateInputs();
@@ -348,7 +348,7 @@ bool GlslShaderRenderTester::runRenderer(const std::string& shaderName,
 
                 if (testOptions.dumpUniformsAndAttributes)
                 {
-                    MX_TRACE_SCOPE(Cat::Render, "DumpUniformsAndAttributes");
+                    MX_TRACE_SCOPE(mx::Tracing::Category::Render, "DumpUniformsAndAttributes");
                     mx::ScopedTimer printTimer(&profileTimes.languageTimes.ioTime);
                     log << "* Uniform:" << std::endl;
                     program->printUniforms(log);
@@ -408,7 +408,7 @@ bool GlslShaderRenderTester::runRenderer(const std::string& shaderName,
                 int supersampleFactor = testOptions.enableReferenceQuality ? 8 : 1;
 
                 {
-                    MX_TRACE_SCOPE(Cat::Render, "RenderMaterial");
+                    MX_TRACE_SCOPE(mx::Tracing::Category::Render, "RenderMaterial");
                     mx::ScopedTimer renderTimer(&profileTimes.languageTimes.renderTime);
                     _renderer->getImageHandler()->setSearchPath(imageSearchPath);
                     unsigned int width = (unsigned int) testOptions.renderSize[0] * supersampleFactor;
@@ -437,13 +437,13 @@ bool GlslShaderRenderTester::runRenderer(const std::string& shaderName,
                         uint64_t gpuDurationNs = gpuTimer.getDurationNs();
                         
                         // Emit async event on GPU track showing actual GPU work duration
-                        MX_TRACE_ASYNC(mx::Tracing::AsyncTrack::GPU, Cat::Render, shaderName.c_str(), cpuStartNs, gpuDurationNs);
+                        MX_TRACE_ASYNC(mx::Tracing::AsyncTrack::GPU, mx::Tracing::Category::Render, shaderName.c_str(), cpuStartNs, gpuDurationNs);
 #endif
                     }
                 }
 
                 {
-                    MX_TRACE_SCOPE(Cat::Render, "CaptureAndSaveImage");
+                    MX_TRACE_SCOPE(mx::Tracing::Category::Render, "CaptureAndSaveImage");
                     mx::ScopedTimer ioTimer(&profileTimes.languageTimes.imageSaveTime);
                     std::string fileName = shaderPath + "_glsl.png";
                     mx::ImagePtr image = _renderer->captureImage();

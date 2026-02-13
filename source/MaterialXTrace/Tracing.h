@@ -22,7 +22,6 @@
 
 #include <cassert>
 #include <cstddef>
-#include <cstdint>
 #include <memory>
 #include <string>
 
@@ -56,15 +55,6 @@ enum class Category
     Count
 };
 
-/// @enum AsyncTrack
-/// Async track identifiers for operations with explicit timing (e.g., GPU work).
-enum class AsyncTrack
-{
-    /// GPU render operations (measured via GL timer queries)
-    GPU = 0
-    // Add more tracks here as needed (e.g., Compile, Transfer)
-};
-
 /// @class Sink
 /// Abstract tracing sink interface.
 /// 
@@ -83,17 +73,6 @@ class MX_TRACE_API Sink
 
     /// Record a counter value (e.g., GPU time, memory usage).
     virtual void counter(Category category, const char* name, double value) = 0;
-
-    /// Record an async event with explicit timing (e.g., GPU operations).
-    /// This creates a slice on a separate track, useful for GPU work that
-    /// runs asynchronously from CPU traces.
-    /// @param track The async track to record on (e.g., AsyncTrack::GPU)
-    /// @param category The trace category for filtering
-    /// @param eventName Name of the event (e.g., material name)
-    /// @param startNs Start timestamp in nanoseconds (can be approximate)
-    /// @param durationNs Duration in nanoseconds (should be accurate)
-    virtual void asyncEvent(AsyncTrack track, Category category,
-                           const char* eventName, uint64_t startNs, uint64_t durationNs) = 0;
 
     /// Set the current thread's name for trace visualization.
     virtual void setThreadName(const char* name) = 0;
@@ -163,14 +142,6 @@ class MX_TRACE_API Dispatcher
             _sink->counter(category, name, value);
     }
 
-    /// Record an async event with explicit timing.
-    void asyncEvent(AsyncTrack track, Category category,
-                   const char* eventName, uint64_t startNs, uint64_t durationNs)
-    {
-        if (_sink)
-            _sink->asyncEvent(track, category, eventName, startNs, durationNs);
-    }
-
   private:
     Dispatcher() = default;
     Dispatcher(const Dispatcher&) = delete;
@@ -213,7 +184,7 @@ class Scope
 // Sink Factory Functions
 // ============================================================================
 
-#ifdef MATERIALX_BUILD_TRACING
+#ifdef MATERIALX_BUILD_PERFETTO_TRACING
 
 /// Create a Perfetto-based tracing sink.
 /// 
@@ -232,7 +203,7 @@ class Scope
 MX_TRACE_API std::unique_ptr<Sink> createPerfettoSink(
     const std::string& outputPath, size_t bufferSizeKb = 32768);
 
-#endif // MATERIALX_BUILD_TRACING
+#endif // MATERIALX_BUILD_PERFETTO_TRACING
 
 } // namespace Tracing
 
@@ -241,14 +212,14 @@ MATERIALX_NAMESPACE_END
 // ============================================================================
 // Tracing Macros
 // ============================================================================
-// When MATERIALX_BUILD_TRACING is defined, these macros generate trace events.
+// When MATERIALX_BUILD_PERFETTO_TRACING is defined, these macros generate trace events.
 // Otherwise, they compile to nothing (zero overhead).
 
 // Helper macros for token pasting with __LINE__ expansion
 #define MX_TRACE_CONCAT_IMPL(a, b) a##b
 #define MX_TRACE_CONCAT(a, b) MX_TRACE_CONCAT_IMPL(a, b)
 
-#ifdef MATERIALX_BUILD_TRACING
+#ifdef MATERIALX_BUILD_PERFETTO_TRACING
 
 /// Create a scoped trace event. Event ends when scope exits.
 /// Category must be a Tracing::Category enum value.
@@ -263,10 +234,6 @@ MATERIALX_NAMESPACE_END
 #define MX_TRACE_COUNTER(category, name, value) \
     MaterialX::Tracing::Dispatcher::getInstance().counter(category, name, value)
 
-/// Record an async event with explicit timing (e.g., GPU operations).
-#define MX_TRACE_ASYNC(track, category, eventName, startNs, durationNs) \
-    MaterialX::Tracing::Dispatcher::getInstance().asyncEvent(track, category, eventName, startNs, durationNs)
-
 /// Begin a trace event (must be paired with MX_TRACE_END).
 #define MX_TRACE_BEGIN(category, name) \
     MaterialX::Tracing::Dispatcher::getInstance().beginEvent(category, name)
@@ -275,15 +242,14 @@ MATERIALX_NAMESPACE_END
 #define MX_TRACE_END(category) \
     MaterialX::Tracing::Dispatcher::getInstance().endEvent(category)
 
-#else // MATERIALX_BUILD_TRACING not defined
+#else // MATERIALX_BUILD_PERFETTO_TRACING not defined
 
 #define MX_TRACE_SCOPE(category, name)
 #define MX_TRACE_FUNCTION(category)
 #define MX_TRACE_COUNTER(category, name, value)
-#define MX_TRACE_ASYNC(category, trackName, eventName, startNs, durationNs)
 #define MX_TRACE_BEGIN(category, name)
 #define MX_TRACE_END(category)
 
-#endif // MATERIALX_BUILD_TRACING
+#endif // MATERIALX_BUILD_PERFETTO_TRACING
 
 #endif // MATERIALX_TRACING_H

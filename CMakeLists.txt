@@ -51,7 +51,7 @@ option(MATERIALX_BUILD_OCIO "Build OpenColorIO support for shader generators." O
 option(MATERIALX_BUILD_TESTS "Build unit tests." OFF)
 option(MATERIALX_BUILD_BENCHMARK_TESTS "Build benchmark tests." OFF)
 option(MATERIALX_BUILD_OSOS "Build OSL .oso's of standard library shaders for the OSL Network generator" OFF)
-option(MATERIALX_BUILD_TRACING "Build with Perfetto tracing support for performance analysis." OFF)
+option(MATERIALX_BUILD_PERFETTO_TRACING "Build with Perfetto tracing support for performance analysis." OFF)
 
 option(MATERIALX_BUILD_SHARED_LIBS "Build MaterialX libraries as shared rather than static." OFF)
 option(MATERIALX_BUILD_DATA_LIBRARY "Build generated products from the MaterialX data library." OFF)
@@ -129,7 +129,6 @@ endif()
 if(MATERIALX_BUILD_GEN_MSL)
     set(MATERIALX_BUILD_GEN_GLSL ON)
 endif()
-option(MATERIALX_CONTRIB "Build MaterialX Contrib." ON) 
 
 set(MATERIALX_PYTHON_VERSION "" CACHE STRING
     "Python version to be used in building the MaterialX Python package (e.g. '3.9').")
@@ -226,13 +225,14 @@ mark_as_advanced(MATERIALX_EMSDK_PATH)
 mark_as_advanced(MATERIALX_BUILD_IOS)
 mark_as_advanced(MATERIALX_BUILD_APPLE_FRAMEWORK)
 mark_as_advanced(MATERIALX_MDL_BINARY_MDLC)
+mark_as_advanced(MATERIALX_MDL_BINARY_TESTRENDER)
 mark_as_advanced(MATERIALX_MDL_MODULE_PATHS)
 mark_as_advanced(MATERIALX_MDL_SDK_DIR)
 mark_as_advanced(MATERIALX_SLANG_RHI_SOURCE_DIR)
-mark_as_advanced(MATERIALX_BUILD_TRACING)
+mark_as_advanced(MATERIALX_BUILD_PERFETTO_TRACING)
 
 # Perfetto tracing support
-if(MATERIALX_BUILD_TRACING)
+if(MATERIALX_BUILD_PERFETTO_TRACING)
     include(FetchContent)
     FetchContent_Declare(
         perfetto
@@ -243,7 +243,7 @@ if(MATERIALX_BUILD_TRACING)
     # Only fetch the SDK, not the full Perfetto source
     set(PERFETTO_SDK_INCLUDE_DIR "${CMAKE_BINARY_DIR}/_deps/perfetto-src/sdk")
     FetchContent_MakeAvailable(perfetto)
-    add_definitions(-DMATERIALX_BUILD_TRACING)
+    add_definitions(-DMATERIALX_BUILD_PERFETTO_TRACING)
     
     # Define compile flags for perfetto.cc (Perfetto SDK triggers various warnings)
     # These variables are used in source/CMakeLists.txt (monolithic) and MaterialXTrace (non-monolithic)
@@ -301,11 +301,23 @@ if (MATERIALX_BUILD_BENCHMARK_TESTS)
     add_definitions(-DMATERIALX_BUILD_BENCHMARK_TESTS)
 endif()
 
-# GEN MDL does not have any additional dependencies. For loading and compiling MDL, e.g., in the test renderer, the MDL SDK is needed.
+# MaterialXGenMdl does not have any additional dependencies.
+# MaterialXTest/MaterialXGenMdl performs a syntax check if the mdlc binary is available.
+# MaterialXTest/MaterialXRenderMdl needs the df_vulkan example, SDK library, and image plugins.
 if(MATERIALX_MDL_SDK_DIR)
     find_package(mdl QUIET CONFIG REQUIRED PATHS ${MATERIALX_MDL_SDK_DIR})
     get_target_property(MATERIALX_MDL_BINARY_MDLC mdl::mdlc LOCATION)
     set(MATERIALX_MDL_BINARY_MDLC ${MATERIALX_MDL_BINARY_MDLC} CACHE FILEPATH "Full path to the mdlc binary." FORCE)
+    if((${mdl_VERSION} VERSION_GREATER_EQUAL "2025.0.3") OR (${mdl_VERSION} STREQUAL "trunk"))
+        find_program(MATERIALX_MDL_BINARY_TESTRENDER
+            NAMES df_vulkan
+            HINTS
+                ${MATERIALX_MDL_SDK_DIR}/examples/mdl_sdk/df_vulkan   # regular install layout
+                ${MATERIALX_MDL_SDK_DIR}/tools/mdl-sdk)               # vcpkg layout
+    else()
+        message(WARNING "The MDL df_vulkan test renderer requires an MDL SDK >= 2025.0.3 (found ${mdl_VERSION}).")
+        set(MATERIALX_MDL_BINARY_TESTRENDER "" CACHE FILEPATH "Full path to the MDL df_vulkan test renderer.")
+    endif()
 endif()
 
 # Adjust the default installation path
@@ -515,7 +527,7 @@ endif()
 # Add core subdirectories
 add_subdirectory(source/MaterialXCore)
 add_subdirectory(source/MaterialXFormat)
-if(MATERIALX_BUILD_TRACING)
+if(MATERIALX_BUILD_PERFETTO_TRACING)
     add_subdirectory(source/MaterialXTrace)
 endif()
 
@@ -602,10 +614,6 @@ endif()
 
 if(MATERIALX_BUILD_JS)
     add_subdirectory(source/JsMaterialX)
-endif()
-
-if(MATERIALX_CONTRIB)
-    add_subdirectory(contrib)
 endif()
 
 if(MATERIALX_BUILD_MONOLITHIC)
