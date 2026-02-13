@@ -92,6 +92,13 @@
     -->
     <input name="framesPerMaterial" type="integer" value="1" />
 
+    <!-- Number of environment radiance samples for IBL lighting.
+         Default is 1024. Lower values (1-16) are more representative
+         of real-time rendering and make shader complexity a larger
+         fraction of GPU time.
+    -->
+    <input name="envSampleCount" type="integer" value="1024" />
+
     <!-- Enable mix_bsdf to linear combination optimization (Lee's optimization).
          Transforms mix(A, B, weight) into add(A * (1-weight), B * weight) for BSDFs.
          Default is false. Enable to test optimization impact on GPU performance.
