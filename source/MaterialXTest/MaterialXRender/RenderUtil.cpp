@@ -222,17 +222,6 @@ bool ShaderRenderTester::validate(const mx::FilePath optionsFilePath)
     context.registerSourceCodeSearchPath(searchPath);
     context.registerSourceCodeSearchPath(searchPath.find("libraries/stdlib/genosl/include"));
 
-    // Register extra library paths as source code search paths so that
-    // wrapper GLSL files in extra libraries can resolve #include directives
-    // for standard library source files.
-    for (size_t i = 0; i < options.extraLibraryPaths.size(); i++)
-    {
-        context.registerSourceCodeSearchPath(options.extraLibraryPaths[i]);
-    }
-    // Also register the standard pbrlib genglsl source directory so that
-    // extra library wrappers can #include standard pbrlib GLSL files.
-    context.registerSourceCodeSearchPath(searchPath.find("libraries/pbrlib/genglsl"));
-
     // Set target unit space
     context.getOptions().targetDistanceUnit = "meter";
 
