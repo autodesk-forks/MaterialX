@@ -69,16 +69,19 @@ void ShaderRenderTester::loadDependentLibraries(GenShaderUtil::TestSuiteOptions 
 {
     dependLib = mx::createDocument();
 
-    mx::loadLibraries({ "libraries" }, searchPath, dependLib);
+    // Load extra libraries BEFORE standard libraries so that extra
+    // implementations take priority. NodeDef::getImplementation() returns
+    // the first matching target, using document insertion order.
     for (size_t i = 0; i < options.extraLibraryPaths.size(); i++)
     {
         const mx::FilePath& libraryPath = options.extraLibraryPaths[i];
         for (const mx::FilePath& libraryFile : libraryPath.getFilesInDirectory("mtlx"))
         {
-            std::cout << "Extra library path: " << (libraryPath / libraryFile).asString() << std::endl;
+            std::cout << "Extra library path (override): " << (libraryPath / libraryFile).asString() << std::endl;
             mx::loadLibrary((libraryPath / libraryFile), dependLib);
         }
     }
+    mx::loadLibraries({ "libraries" }, searchPath, dependLib);
 
     // Load any addition per renderer libraries
     loadAdditionalLibraries(dependLib, options);
@@ -218,6 +221,17 @@ bool ShaderRenderTester::validate(const mx::FilePath optionsFilePath)
     mx::GenContext context(_shaderGenerator);
     context.registerSourceCodeSearchPath(searchPath);
     context.registerSourceCodeSearchPath(searchPath.find("libraries/stdlib/genosl/include"));
+
+    // Register extra library paths as source code search paths so that
+    // wrapper GLSL files in extra libraries can resolve #include directives
+    // for standard library source files.
+    for (size_t i = 0; i < options.extraLibraryPaths.size(); i++)
+    {
+        context.registerSourceCodeSearchPath(options.extraLibraryPaths[i]);
+    }
+    // Also register the standard pbrlib genglsl source directory so that
+    // extra library wrappers can #include standard pbrlib GLSL files.
+    context.registerSourceCodeSearchPath(searchPath.find("libraries/pbrlib/genglsl"));
 
     // Set target unit space
     context.getOptions().targetDistanceUnit = "meter";
