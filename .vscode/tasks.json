@@ -128,6 +128,25 @@
             "options": {
                 "cwd": "${workspaceFolder}"
             }
+        },
+        {
+            "label": "Run MaterialXTest [genglsl]",
+            "type": "shell",
+            "command": "\"${workspaceFolder}/build/bin/Debug/MaterialXTest.exe\"",
+            "args": [
+                "[renderglsl]"
+            ],
+            "group": "test",
+            "problemMatcher": [],
+            "isBackground": false,
+            "dependsOn": "Build MaterialX Debug",
+            "options": {
+                "cwd": "${workspaceFolder}"
+            },
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
         }
     ]
 }
