@@ -232,7 +232,8 @@ def printImageTable(results, threshold=0.05):
 # HTML REPORT
 # =============================================================================
 
-def generateHtmlReport(reportPath, imageResults, threshold=0.05):
+def generateHtmlReport(reportPath, imageResults, threshold=0.05,
+                       baselineName='Baseline', optimizedName='Optimized'):
     '''
     Generate an HTML report with side-by-side image comparisons and FLIP heatmaps.
 
@@ -240,6 +241,8 @@ def generateHtmlReport(reportPath, imageResults, threshold=0.05):
         reportPath: Path to output HTML file
         imageResults: Image comparison results from compareImages()
         threshold: FLIP threshold used for pass/fail
+        baselineName: Display name for baseline directory
+        optimizedName: Display name for optimized directory
     '''
     reportPath = Path(reportPath)
     reportDir = reportPath.parent
@@ -321,6 +324,7 @@ def generateHtmlReport(reportPath, imageResults, threshold=0.05):
 <body>
 <div class="container">
     <h1>MaterialX Image Comparison Report</h1>
+    <p style="color: #666; margin-top: -5px;">{baselineName} vs {optimizedName}</p>
 ''')
 
     # Summary cards
@@ -377,12 +381,12 @@ def generateHtmlReport(reportPath, imageResults, threshold=0.05):
                 </div>
             </div>
             <div class="image-cell">
-                <img src="{baselineRel}" alt="Baseline">
-                <div class="label">Baseline</div>
+                <img src="{baselineRel}" alt="{baselineName}">
+                <div class="label">{baselineName}</div>
             </div>
             <div class="image-cell">
-                <img src="{optimizedRel}" alt="Optimized">
-                <div class="label">Optimized</div>
+                <img src="{optimizedRel}" alt="{optimizedName}">
+                <div class="label">{optimizedName}</div>
             </div>
             <div class="image-cell">
 ''')
@@ -451,12 +455,18 @@ Examples:
         reportDir = args.report.parent
 
     try:
+        baselineName = args.baseline.resolve().name
+        optimizedName = args.optimized.resolve().name
+        print(f'\nComparing: {baselineName} vs {optimizedName}\n')
+
         results = compareImages(args.baseline, args.optimized,
                                 args.threshold, reportDir=reportDir)
         allPassed = printImageTable(results, args.threshold)
 
         if args.report and results:
-            generateHtmlReport(args.report, results, args.threshold)
+            generateHtmlReport(args.report, results, args.threshold,
+                               baselineName=baselineName,
+                               optimizedName=optimizedName)
 
         sys.exit(0 if allPassed else 1)
 
