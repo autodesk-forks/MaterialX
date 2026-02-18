@@ -21,6 +21,8 @@ import logging
 import sys
 from pathlib import Path
 
+from MaterialXTest.diff_test_runs._report import openReport
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('diff_images')
 
@@ -467,6 +469,7 @@ Examples:
             generateHtmlReport(args.report, results, args.threshold,
                                baselineName=baselineName,
                                optimizedName=optimizedName)
+            openReport(args.report)
 
         sys.exit(0 if allPassed else 1)
 
