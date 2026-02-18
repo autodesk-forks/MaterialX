@@ -21,7 +21,10 @@ import logging
 import sys
 from pathlib import Path
 
-from MaterialXTest.diff_test_runs._report import openReport
+try:
+    from ._report import openReport
+except ImportError:
+    from _report import openReport
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger('diff_images')
