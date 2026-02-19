@@ -81,8 +81,8 @@ class MX_GENSHADER_API NodeGraphPermutation
     /// Return the permutation key (e.g., "coat=0,sheen=x").
     const string& getKey() const { return _key; }
 
-    /// Return the set of nodes to skip for this permutation.
-    const StringSet& getSkipNodes() const { return _skipNodes; }
+    /// Check whether a node should be skipped (pruned) for this permutation.
+    bool shouldSkip(const string& nodeName) const { return _skipNodes.count(nodeName) != 0; }
 
     /// Check if this permutation has any optimizations.
     bool hasOptimizations() const { return !_skipNodes.empty(); }
