@@ -927,17 +927,25 @@ void ShaderGraph::finalize(GenContext& context)
                     // publish the input as an editable uniform.
                     if (!input->getType().isClosure() && node->isEditable(*input))
                     {
-                        // For surface shader nodes, use just the input name
+                        // For shader, closure, and material nodes, use just the input name
                         // so uniforms are consistent across different material instances.
                         // For all other nodes, use the full (node-prefixed) name
                         // to avoid collisions between nodes with same-named inputs.
-                        const bool isShaderNode = node->hasClassification(ShaderNode::Classification::SHADER) ||
-                                                  node->hasClassification(ShaderNode::Classification::CLOSURE);
-                        const string interfaceName = isShaderNode
+                        const bool useGenericName = node->hasClassification(ShaderNode::Classification::SHADER) ||
+                                                    node->hasClassification(ShaderNode::Classification::CLOSURE) ||
+                                                    node->hasClassification(ShaderNode::Classification::MATERIAL);
+                        string interfaceName = useGenericName
                             ? input->getName()
                             : input->getFullName();
 
                         ShaderGraphInputSocket* inputSocket = getInputSocket(interfaceName);
+                        if (inputSocket && inputSocket->getType() != input->getType())
+                        {
+                            // Type conflict with existing socket — fall back to the
+                            // full node-prefixed name to avoid a type mismatch.
+                            interfaceName = input->getFullName();
+                            inputSocket = getInputSocket(interfaceName);
+                        }
                         if (!inputSocket)
                         {
                             inputSocket = addInputSocket(interfaceName, input->getType());
