@@ -23,18 +23,17 @@ logger = logging.getLogger(__name__)
 
 
 # -----------------------------------------------------------------------------
-# Optional: matplotlib (for chart generation)
+# Required: matplotlib (for chart generation)
 # -----------------------------------------------------------------------------
 
-_have_matplotlib = False
 try:
     import matplotlib
     matplotlib.rcParams['svg.fonttype'] = 'none'  # Keep text as <text>, not paths
     import matplotlib.pyplot as plt
     from matplotlib.patches import Patch
-    _have_matplotlib = True
 except ImportError:
-    pass
+    import sys
+    sys.exit('ERROR: matplotlib is required. Install with: pip install matplotlib')
 
 
 # =============================================================================
@@ -210,9 +209,6 @@ def createComparisonChart(data, outputPath, title,
 
     if highlightNames is None:
         highlightNames = set()
-    if not _have_matplotlib:
-        logger.warning('Cannot create chart: matplotlib not installed.')
-        return
 
     chartDf = data.dropna(subset=['baseline', 'optimized']).copy()
     if chartDf.empty:
