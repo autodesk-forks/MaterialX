@@ -334,7 +334,7 @@ ShaderNodeImplPtr ShaderGenerator::getImplementation(const NodeDef& nodedef, Gen
             ConstNodePtr currentNode = parentNodes.back();
 
             // Get shared topology (cached per NodeGraph definition)
-            const NodeGraphTopology& topology = NodeGraphTopologyCache::instance().analyze(graph);
+            const NodeGraphTopology& topology = NodeGraphTopologyCache::instance().get(graph);
 
             // Create permutation for this specific call site
             permutation = topology.createPermutation(*currentNode);

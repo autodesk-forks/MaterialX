@@ -115,7 +115,7 @@ class MX_GENSHADER_API NodeGraphTopologyCache
 
     /// Get or create the topology for a NodeGraph.
     /// Returns the cached topology (creates if not present).
-    const NodeGraphTopology& analyze(const NodeGraph& nodeGraph);
+    const NodeGraphTopology& get(const NodeGraph& nodeGraph);
 
     /// Get cached topology for a NodeGraph, or nullptr if not analyzed.
     const NodeGraphTopology* getTopology(const string& nodeGraphName) const;

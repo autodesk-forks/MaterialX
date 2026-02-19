@@ -4,6 +4,7 @@
 //
 
 #include <MaterialXGenShader/NodeGraphTopology.h>
+#include <MaterialXGenShader/Exception.h>
 
 #include <MaterialXCore/Definition.h>
 #include <MaterialXCore/Document.h>
@@ -47,23 +48,10 @@ NodeGraphTopology::NodeGraphTopology(const NodeGraph& nodeGraph)
     MX_TRACE_FUNCTION(Tracing::Category::ShaderGen);
     MX_TRACE_SCOPE(Tracing::Category::ShaderGen, _nodeGraphName.c_str());
 
-    // Get the NodeDef for this NodeGraph
     NodeDefPtr nodeDef = nodeGraph.getNodeDef();
     if (!nodeDef)
     {
-        // Try to find via nodeDefString
-        const string& nodeDefString = nodeGraph.getNodeDefString();
-        if (!nodeDefString.empty())
-        {
-            ConstDocumentPtr doc = nodeGraph.getDocument();
-            nodeDef = doc->getNodeDef(nodeDefString);
-        }
-    }
-
-    if (!nodeDef)
-    {
-        // Can't analyze without a NodeDef
-        return;
+        throw ExceptionShaderGenError("Can't find nodedef for nodegraph '" + nodeGraph.getName() + "'");
     }
 
     // Build reference counts and upstream dependency map
@@ -481,7 +469,7 @@ NodeGraphTopologyCache& NodeGraphTopologyCache::instance()
     return theInstance;
 }
 
-const NodeGraphTopology& NodeGraphTopologyCache::analyze(const NodeGraph& nodeGraph)
+const NodeGraphTopology& NodeGraphTopologyCache::get(const NodeGraph& nodeGraph)
 {
     MX_TRACE_FUNCTION(Tracing::Category::ShaderGen);
     const string& ngName = nodeGraph.getName();
