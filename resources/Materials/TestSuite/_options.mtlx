@@ -99,6 +99,13 @@
     -->
     <input name="envSampleCount" type="integer" value="1024" />
 
+    <!-- Enable early pruning during ShaderGraph construction.
+         When a NodeGraph has topological inputs (e.g. mix weights) that are
+         compile-time constant 0 or 1, skip creating the dead branch nodes.
+         Default is false.
+    -->
+    <input name="optEarlyPruning" type="boolean" value="true" />
+
     <!-- Enable mix_bsdf to linear combination optimization (Lee's optimization).
          Transforms mix(A, B, weight) into add(A * (1-weight), B * weight) for BSDFs.
          Default is false. Enable to test optimization impact on GPU performance.
