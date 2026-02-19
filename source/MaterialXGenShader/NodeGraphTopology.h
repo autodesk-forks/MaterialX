@@ -63,7 +63,6 @@ class MX_GENSHADER_API NodeGraphTopology
     /// Build reference counts and upstream dependency map for the graph
     void buildRefCounts(const NodeGraph& nodeGraph);
 
-    string _nodeGraphName;
     std::map<string, TopologicalInput> _topologicalInputs;  ///< Keyed by input name
     std::unordered_map<string, size_t> _refCounts;          ///< Reference count for each node
     std::unordered_map<string, StringSet> _nodeUpstreams;   ///< Upstream dependencies for each node
@@ -83,9 +82,6 @@ class MX_GENSHADER_API NodeGraphPermutation
 
     /// Check whether a node should be skipped (pruned) for this permutation.
     bool shouldSkip(const string& nodeName) const { return _skipNodes.count(nodeName) != 0; }
-
-    /// Check if this permutation has any optimizations.
-    bool hasOptimizations() const { return !_skipNodes.empty(); }
 
   private:
     /// Private constructor - use NodeGraphTopology::createPermutation() instead.
@@ -116,12 +112,6 @@ class MX_GENSHADER_API NodeGraphTopologyCache
     /// Get or create the topology for a NodeGraph.
     /// Returns the cached topology (creates if not present).
     const NodeGraphTopology& get(const NodeGraph& nodeGraph);
-
-    /// Get cached topology for a NodeGraph, or nullptr if not analyzed.
-    const NodeGraphTopology* getTopology(const string& nodeGraphName) const;
-
-    /// Clear the cache (mainly for testing)
-    void clearCache();
 
   private:
     mutable std::mutex _cacheMutex;

@@ -43,10 +43,9 @@ const std::set<string> kLayerPbrNodes = {
 //
 
 NodeGraphTopology::NodeGraphTopology(const NodeGraph& nodeGraph)
-    : _nodeGraphName(nodeGraph.getName())
 {
     MX_TRACE_FUNCTION(Tracing::Category::ShaderGen);
-    MX_TRACE_SCOPE(Tracing::Category::ShaderGen, _nodeGraphName.c_str());
+    MX_TRACE_SCOPE(Tracing::Category::ShaderGen, nodeGraph.getName().c_str());
 
     NodeDefPtr nodeDef = nodeGraph.getNodeDef();
     if (!nodeDef)
@@ -498,19 +497,6 @@ const NodeGraphTopology& NodeGraphTopologyCache::get(const NodeGraph& nodeGraph)
     std::lock_guard<std::mutex> lock(_cacheMutex);
     auto result = _cache.emplace(ngName, std::move(topology));
     return result.first->second;
-}
-
-const NodeGraphTopology* NodeGraphTopologyCache::getTopology(const string& nodeGraphName) const
-{
-    std::lock_guard<std::mutex> lock(_cacheMutex);
-    auto it = _cache.find(nodeGraphName);
-    return (it != _cache.end()) ? &it->second : nullptr;
-}
-
-void NodeGraphTopologyCache::clearCache()
-{
-    std::lock_guard<std::mutex> lock(_cacheMutex);
-    _cache.clear();
 }
 
 MATERIALX_NAMESPACE_END
