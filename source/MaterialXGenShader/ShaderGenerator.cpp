@@ -333,11 +333,11 @@ ShaderNodeImplPtr ShaderGenerator::getImplementation(const NodeDef& nodedef, Gen
         {
             permutation = NodeGraphTopologyCache::instance().createPermutation(
                 graph, *parentNodes.back());
-        }
 
-        if (permutation && !permutation->getKey().empty())
-        {
-            name += "_" + permutation->getKey();
+            if (permutation && !permutation->getKey().empty())
+            {
+                name += "_" + permutation->getKey();
+            }
         }
     }
 
