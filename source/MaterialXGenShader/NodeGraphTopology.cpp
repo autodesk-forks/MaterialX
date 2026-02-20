@@ -12,6 +12,9 @@
 
 #include <MaterialXTrace/Tracing.h>
 
+#include <map>
+#include <set>
+
 MATERIALX_NAMESPACE_BEGIN
 
 namespace
@@ -39,8 +42,35 @@ const std::set<string> kLayerPbrNodes = {
 } // anonymous namespace
 
 //
-// NodeGraphTopology implementation
+// NodeGraphTopology - implementation detail, not exposed in the header.
+// Analyzes a NodeGraph to identify "topological" inputs that when constant
+// (0 or 1) can eliminate entire branches of the graph.
 //
+
+struct TopologicalInput
+{
+    string name;
+    StringSet nodesToSkipAt0;
+    StringSet nodesToSkipAt1;
+    StringSet maybeDeadAt0;
+    StringSet maybeDeadAt1;
+};
+
+class NodeGraphTopology
+{
+  public:
+    explicit NodeGraphTopology(const NodeGraph& nodeGraph);
+    std::unique_ptr<NodeGraphPermutation> createPermutation(const Node& node) const;
+
+  private:
+    static bool isTopologicalInput(const InputPtr& input, const NodeDefPtr& nodeDef);
+    void analyzeAffectedNodes(const NodePtr& node, const InputPtr& input, TopologicalInput& topoInput);
+    void buildRefCounts(const NodeGraph& nodeGraph);
+
+    std::map<string, TopologicalInput> _topologicalInputs;
+    std::unordered_map<string, size_t> _refCounts;
+    std::unordered_map<string, StringSet> _nodeUpstreams;
+};
 
 NodeGraphTopology::NodeGraphTopology(const NodeGraph& nodeGraph)
 {
@@ -462,13 +492,22 @@ std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const
 // NodeGraphTopologyCache implementation
 //
 
+NodeGraphTopologyCache::~NodeGraphTopologyCache() = default;
+
 NodeGraphTopologyCache& NodeGraphTopologyCache::instance()
 {
     static NodeGraphTopologyCache theInstance;
     return theInstance;
 }
 
-const NodeGraphTopology& NodeGraphTopologyCache::get(const NodeGraph& nodeGraph)
+std::unique_ptr<NodeGraphPermutation> NodeGraphTopologyCache::createPermutation(
+    const NodeGraph& nodeGraph, const Node& node)
+{
+    const NodeGraphTopology& topology = getTopology(nodeGraph);
+    return topology.createPermutation(node);
+}
+
+const NodeGraphTopology& NodeGraphTopologyCache::getTopology(const NodeGraph& nodeGraph)
 {
     MX_TRACE_FUNCTION(Tracing::Category::ShaderGen);
     const string& ngName = nodeGraph.getName();
@@ -479,24 +518,17 @@ const NodeGraphTopology& NodeGraphTopologyCache::get(const NodeGraph& nodeGraph)
         auto it = _cache.find(ngName);
         if (it != _cache.end())
         {
-            return it->second;
+            return *it->second;
         }
     }
 
-    // Not in cache - create topology outside lock to allow parallel construction
-    // of *different* topologies. This creates a race where two threads may both
-    // construct a topology for the same NodeGraph. This is safe because:
-    // 1. emplace() won't overwrite - it returns the existing element if key exists
-    // 2. Topology construction is cheap (~0.03ms), so the wasted work is minimal
-    // If contention on the same NodeGraph becomes a problem, we could hold the
-    // lock during construction (serializing all constructions) or use per-key
-    // synchronization (e.g., std::shared_future).
-    NodeGraphTopology topology(nodeGraph);
+    // Cache miss - construct outside lock to allow parallel construction
+    // of different topologies. Safe because emplace() won't overwrite.
+    auto topology = std::make_unique<NodeGraphTopology>(nodeGraph);
 
-    // Cache and return (emplace returns existing element if another thread won the race)
     std::lock_guard<std::mutex> lock(_cacheMutex);
-    auto result = _cache.emplace(ngName, std::move(topology));
-    return result.first->second;
+    auto [it, inserted] = _cache.emplace(ngName, std::move(topology));
+    return *it->second;
 }
 
 MATERIALX_NAMESPACE_END
