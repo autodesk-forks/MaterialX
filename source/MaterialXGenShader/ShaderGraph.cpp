@@ -118,11 +118,11 @@ void ShaderGraph::createConnectedNodes(const ElementPtr& downstreamElement,
         {
             continue;
         }
-        
+
         InputPtr graphInput = activeInput->getInterfaceInput();
         if (graphInput && graphInput->hasDefaultGeomPropString())
         {
-            ShaderInput* shaderInput = getNode(upstreamNode->getName())->getInput(activeInput->getName());
+            ShaderInput* shaderInput = newNode->getInput(activeInput->getName());
             addDefaultGeomNode(shaderInput, *graphInput->getDefaultGeomProp(), context);
         }
     }
