@@ -317,10 +317,9 @@ ShaderNodeImplPtr ShaderGenerator::getImplementation(const NodeDef& nodedef, Gen
         return nullptr;
     }
 
-    const string& baseName = implElement->getName();
+    string name = implElement->getName();
 
-    // For NodeGraphs, compute permutation BEFORE creating ShaderNodeImpl
-    // This avoids creating an impl just to compute the cache key
+    // For NodeGraphs, compute permutation and append it to the cache key
     std::unique_ptr<NodeGraphPermutation> permutation;
 
     if (context.getOptions().optEarlyPruning && implElement->isA<NodeGraph>())
@@ -335,17 +334,15 @@ ShaderNodeImplPtr ShaderGenerator::getImplementation(const NodeDef& nodedef, Gen
             permutation = NodeGraphTopologyCache::instance().createPermutation(
                 graph, *parentNodes.back());
         }
-    }
 
-    // Build cache key
-    string cacheKey = baseName;
-    if (permutation && !permutation->getKey().empty())
-    {
-        cacheKey = baseName + "_" + permutation->getKey();
+        if (permutation && !permutation->getKey().empty())
+        {
+            name += "_" + permutation->getKey();
+        }
     }
 
     // Check if it's created and cached already.
-    ShaderNodeImplPtr impl = context.findNodeImplementation(cacheKey);
+    ShaderNodeImplPtr impl = context.findNodeImplementation(name);
     if (impl)
     {
         return impl;
@@ -354,19 +351,17 @@ ShaderNodeImplPtr ShaderGenerator::getImplementation(const NodeDef& nodedef, Gen
     // Cache miss - create the implementation
     if (implElement->isA<NodeGraph>())
     {
-        // Pass permutation to CompoundNode (transfers ownership)
         impl = createShaderNodeImplForNodeGraph(*implElement->asA<NodeGraph>(), std::move(permutation));
     }
     else if (implElement->isA<Implementation>())
     {
-        if (getColorManagementSystem() && getColorManagementSystem()->hasImplementation(baseName))
+        if (getColorManagementSystem() && getColorManagementSystem()->hasImplementation(name))
         {
-            impl = getColorManagementSystem()->createImplementation(baseName);
+            impl = getColorManagementSystem()->createImplementation(name);
         }
         else
         {
-            // Try creating a new in the factory.
-            impl = _implFactory.create(baseName);
+            impl = _implFactory.create(name);
         }
         if (!impl)
         {
@@ -380,8 +375,8 @@ ShaderNodeImplPtr ShaderGenerator::getImplementation(const NodeDef& nodedef, Gen
 
     impl->initialize(*implElement, context);
 
-    // Cache it with the permutation-aware key.
-    context.addNodeImplementation(cacheKey, impl);
+    // Cache it.
+    context.addNodeImplementation(name, impl);
 
     return impl;
 }
