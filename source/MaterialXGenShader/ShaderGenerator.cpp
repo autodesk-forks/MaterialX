@@ -327,7 +327,8 @@ ShaderNodeImplPtr ShaderGenerator::getImplementation(const NodeDef& nodedef, Gen
     {
         const NodeGraph& graph = *implElement->asA<NodeGraph>();
 
-        // Get the current node instance from context (if available)
+        // The node instance is needed to read call-site input values.
+        // It's on the parent node stack, pushed by createConnectedNodes().
         const vector<ConstNodePtr>& parentNodes = context.getParentNodes();
         if (!parentNodes.empty())
         {
