@@ -345,14 +345,13 @@ ShaderNodeImplPtr ShaderGenerator::getImplementation(const NodeDef& nodedef, Gen
     }
 
     // Check if it's created and cached already.
-    ShaderNodeImplPtr cachedImpl = context.findNodeImplementation(cacheKey);
-    if (cachedImpl)
+    ShaderNodeImplPtr impl = context.findNodeImplementation(cacheKey);
+    if (impl)
     {
-        return cachedImpl;
+        return impl;
     }
 
     // Cache miss - create the implementation
-    ShaderNodeImplPtr impl;
     if (implElement->isA<NodeGraph>())
     {
         // Pass permutation to CompoundNode (transfers ownership)
