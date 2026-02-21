@@ -43,6 +43,8 @@ class MX_GENGLSL_API WgslShaderGenerator : public VkShaderGenerator
 
     void emitInput(const ShaderInput* input, GenContext& context, ShaderStage& stage) const override;
 
+    void replaceTokens(const StringMap& substitutions, ShaderStage& stage) const override;
+
   protected:
     static const string LIGHTDATA_TYPEVAR_STRING;
 };
