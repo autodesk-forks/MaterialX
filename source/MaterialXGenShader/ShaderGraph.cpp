@@ -9,6 +9,8 @@
 #include <MaterialXGenShader/GenContext.h>
 #include <MaterialXGenShader/Util.h>
 
+#include <algorithm>
+#include <deque>
 #include <iostream>
 #include <set>
 
@@ -1134,21 +1136,20 @@ void ShaderGraph::topologicalSort()
     // Calculate a topological order of the children, using Kahn's algorithm
     // to avoid recursion.
     //
-    // Running time: O(numNodes + numEdges).
+    // Running time: O((numNodes + numEdges) + numNodes * log(numNodes)).
+    //
+    // The BFS traversal runs in O(numNodes + numEdges). A final stable sort
+    // over the result, keyed by topological depth then by name, ensures
+    // deterministic ordering of nodes at the same depth. This guarantees that
+    // materials with the same set of functions always emit them in the same
+    // order, regardless of which inputs happen to be connected.
 
-    // Use a sorted set for deterministic ordering of nodes at the same
-    // topological level. This ensures that materials with the same set of
-    // functions always emit them in the same order, regardless of which
-    // inputs happen to be connected.
-    auto compareNodes = [](const ShaderNode* a, const ShaderNode* b) {
-        if (a->getName() != b->getName())
-            return a->getName() < b->getName();
-        return a->getUniqueId() < b->getUniqueId();
-    };
-
-    // Calculate in-degrees for all nodes, and enqueue those with degree 0.
+    // Calculate in-degrees and topological depth for all nodes,
+    // and enqueue those with degree 0.
     std::unordered_map<ShaderNode*, int> inDegree(_nodeMap.size());
-    std::set<ShaderNode*, decltype(compareNodes)> nodeQueue(compareNodes);
+    std::unordered_map<ShaderNode*, int> depth(_nodeMap.size());
+    std::deque<ShaderNode*> nodeQueue;
+
     for (ShaderNode* node : _nodeOrder)
     {
         int connectionCount = 0;
@@ -1161,10 +1162,11 @@ void ShaderGraph::topologicalSort()
         }
 
         inDegree[node] = connectionCount;
+        depth[node] = 0;
 
         if (connectionCount == 0)
         {
-            nodeQueue.insert(node);
+            nodeQueue.push_back(node);
         }
     }
 
@@ -1173,14 +1175,12 @@ void ShaderGraph::topologicalSort()
 
     while (!nodeQueue.empty())
     {
-        // Pop the smallest node and add to topological order.
-        auto it = nodeQueue.begin();
-        ShaderNode* node = *it;
-        nodeQueue.erase(it);
+        ShaderNode* node = nodeQueue.front();
+        nodeQueue.pop_front();
         _nodeOrder[count++] = node;
 
         // Find connected nodes and decrease their in-degree,
-        // adding node to the queue if in-degrees becomes 0.
+        // adding node to the queue if in-degree becomes 0.
         for (const ShaderOutput* output : node->getOutputs())
         {
             for (const ShaderInput* input : output->getConnections())
@@ -1188,14 +1188,26 @@ void ShaderGraph::topologicalSort()
                 ShaderNode* downstreamNode = const_cast<ShaderNode*>(input->getNode());
                 if (downstreamNode != this)
                 {
+                    depth[downstreamNode] = std::max(depth[downstreamNode], depth[node] + 1);
                     if (--inDegree[downstreamNode] <= 0)
                     {
-                        nodeQueue.insert(downstreamNode);
+                        nodeQueue.push_back(downstreamNode);
                     }
                 }
             }
         }
     }
+
+    // Stable sort by (depth, name, uniqueId) for deterministic output
+    // while preserving topological correctness.
+    std::stable_sort(_nodeOrder.begin(), _nodeOrder.begin() + count,
+        [&depth](ShaderNode* a, ShaderNode* b) {
+            if (depth[a] != depth[b])
+                return depth[a] < depth[b];
+            if (a->getName() != b->getName())
+                return a->getName() < b->getName();
+            return a->getUniqueId() < b->getUniqueId();
+        });
 }
 
 void ShaderGraph::setVariableNames(GenContext& context)
