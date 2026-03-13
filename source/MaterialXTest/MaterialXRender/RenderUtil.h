@@ -13,6 +13,9 @@
 #include <MaterialXRender/Timer.h>
 #include <MaterialXRender/Util.h>
 
+#include <fstream>
+#include <memory>
+
 #define LOG_TO_FILE
 
 namespace mx = MaterialX;
@@ -84,6 +87,30 @@ class RenderProfileTimes
     unsigned int elementsTested = 0;
 };
 
+// Holds log stream references and their backing file streams.
+// The owning ofstreams keep files open for the lifetime of this struct.
+struct LogStreams
+{
+    std::unique_ptr<std::ofstream> logFile;
+    std::unique_ptr<std::ofstream> docValidLogFile;
+    std::unique_ptr<std::ofstream> profilingLogFile;
+
+    std::ostream& log;
+    std::ostream& docValidLog;
+    std::string docValidLogFilename;
+    std::ostream& profilingLog;
+};
+
+// Result of loading and validating a single .mtlx test document.
+struct DocumentInfo
+{
+    mx::DocumentPtr doc;
+    mx::FileSearchPath imageSearchPath;
+    mx::FilePath outputPath;
+    std::vector<mx::TypedElementPtr> elements;
+    bool valid = false;
+};
+
 // Base class used for performing compilation and render tests for a given
 // shading language and target.
 //
@@ -108,6 +135,31 @@ class ShaderRenderTester
         return false;
     }
 #endif
+
+    // Set up log streams (file-backed when LOG_TO_FILE is defined, stdout otherwise).
+    LogStreams initializeLogging(const GenShaderUtil::TestSuiteOptions& options);
+
+    // Discover .mtlx test files from the configured test paths.
+    mx::FilePathVec collectTestFiles(const GenShaderUtil::TestSuiteOptions& options,
+                                     const mx::FileSearchPath& searchPath);
+
+    // Create the GenContext with renderer, color management, unit system, and lights.
+    mx::GenContext initializeGeneratorContext(mx::DocumentPtr dependLib,
+                                             const GenShaderUtil::TestSuiteOptions& options,
+                                             const mx::FileSearchPath& searchPath,
+                                             std::ostream& log,
+                                             RenderProfileTimes& profileTimes);
+
+    // Load a single .mtlx document, validate it, and find its renderable elements.
+    DocumentInfo loadAndValidateDocument(const mx::FilePath& filename,
+                                         mx::DocumentPtr dependLib,
+                                         const GenShaderUtil::TestSuiteOptions& options,
+                                         const mx::FileSearchPath& searchPath,
+                                         mx::GenContext& context,
+                                         std::ostream& log,
+                                         std::ostream& docValidLog,
+                                         const std::string& docValidLogFilename,
+                                         RenderProfileTimes& profileTimes);
 
     // Load dependencies
     void loadDependentLibraries(GenShaderUtil::TestSuiteOptions options, mx::FileSearchPath searchPath,
