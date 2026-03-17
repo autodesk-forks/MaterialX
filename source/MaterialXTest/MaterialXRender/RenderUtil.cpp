@@ -241,7 +241,7 @@ DocumentInfo ShaderRenderTester::loadAndValidateDocument(const mx::FilePath& fil
     catch (mx::Exception& e)
     {
         docValidLog << "Failed to load in file: " << filename.asString() << ". Error: " << e.what() << std::endl;
-        WARN("Failed to load in file: " + filename.asString() + "See: " + docValidLogFilename + " for details.");
+        WARN("Failed to load in file: " + filename.asString() + ". See: " + docValidLogFilename + " for details.");
         return info;
     }
 
