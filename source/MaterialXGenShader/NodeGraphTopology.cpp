@@ -461,11 +461,19 @@ std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const
 
 NodeGraphTopologyCache::~NodeGraphTopologyCache() = default;
 
-NodeGraphTopologyCache::NodeGraphTopologyCache(const NodeGraphTopologyCache&) {}
-
-NodeGraphTopologyCache& NodeGraphTopologyCache::operator=(const NodeGraphTopologyCache&)
+NodeGraphTopologyCache::NodeGraphTopologyCache(const NodeGraphTopologyCache& other)
 {
-    clear();
+    std::lock_guard<std::mutex> lock(other._cacheMutex);
+    _cache = other._cache;
+}
+
+NodeGraphTopologyCache& NodeGraphTopologyCache::operator=(const NodeGraphTopologyCache& other)
+{
+    if (this != &other)
+    {
+        std::scoped_lock lock(_cacheMutex, other._cacheMutex);
+        _cache = other._cache;
+    }
     return *this;
 }
 
@@ -499,7 +507,7 @@ const NodeGraphTopology& NodeGraphTopologyCache::getTopology(const NodeGraph& no
 
     // Cache miss - construct outside lock to allow parallel construction
     // of different topologies. Safe because emplace() won't overwrite.
-    auto topology = std::make_unique<NodeGraphTopology>(nodeGraph);
+    auto topology = std::make_shared<NodeGraphTopology>(nodeGraph);
 
     std::lock_guard<std::mutex> lock(_cacheMutex);
     auto [it, inserted] = _cache.emplace(ngName, std::move(topology));

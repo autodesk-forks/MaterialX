@@ -96,7 +96,7 @@ class MX_GENSHADER_API NodeGraphTopologyCache
     const NodeGraphTopology& getTopology(const NodeGraph& nodeGraph);
 
     mutable std::mutex _cacheMutex;
-    std::unordered_map<string, std::unique_ptr<NodeGraphTopology>> _cache;
+    std::unordered_map<string, std::shared_ptr<NodeGraphTopology>> _cache;
 };
 
 MATERIALX_NAMESPACE_END
