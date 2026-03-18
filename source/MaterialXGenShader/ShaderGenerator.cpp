@@ -331,7 +331,7 @@ ShaderNodeImplPtr ShaderGenerator::getImplementation(const NodeDef& nodedef, Gen
         const vector<ConstNodePtr>& parentNodes = context.getParentNodes();
         if (!parentNodes.empty())
         {
-            permutation = NodeGraphTopologyCache::instance().createPermutation(
+            permutation = context.getNodeGraphTopologyCache().createPermutation(
                 graph, *parentNodes.back());
 
             const string& key = permutation->getKey();

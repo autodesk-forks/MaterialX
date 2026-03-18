@@ -11,13 +11,12 @@
 #include <MaterialXCore/Library.h>
 #include <MaterialXCore/Node.h>
 
+#include <map>
 #include <memory>
 #include <mutex>
 #include <unordered_map>
 
 MATERIALX_NAMESPACE_BEGIN
-
-class NodeGraphTopology;
 
 /// @class NodeGraphPermutation
 /// Represents a specific permutation of a NodeGraph based on call-site input values.
@@ -41,27 +40,57 @@ class MX_GENSHADER_API NodeGraphPermutation
     StringSet _skipNodes;
 };
 
+/// Describes a single topological input and the nodes it can eliminate.
+struct MX_GENSHADER_API TopologicalInput
+{
+    string name;
+    StringSet nodesToSkipAt0;
+    StringSet nodesToSkipAt1;
+    StringSet maybeDeadAt0;
+    StringSet maybeDeadAt1;
+};
+
+/// @class NodeGraphTopology
+/// Analyzes a NodeGraph to identify "topological" inputs that, when constant
+/// (0 or 1), can eliminate entire branches of the graph.
+class MX_GENSHADER_API NodeGraphTopology
+{
+  public:
+    explicit NodeGraphTopology(const NodeGraph& nodeGraph);
+    std::unique_ptr<NodeGraphPermutation> createPermutation(const Node& node) const;
+
+  private:
+    static bool isTopologicalInput(const InputPtr& input, const NodeDefPtr& nodeDef);
+    void analyzeAffectedNodes(const NodePtr& node, const InputPtr& input, TopologicalInput& topoInput);
+    void buildRefCounts(const NodeGraph& nodeGraph);
+
+    std::map<string, TopologicalInput> _topologicalInputs;
+    std::unordered_map<string, size_t> _refCounts;
+    std::unordered_map<string, StringSet> _nodeUpstreams;
+};
+
 /// @class NodeGraphTopologyCache
 /// Caches topology analyses per NodeGraph definition and creates permutations.
-/// Thread-safe singleton; kept as an explicit object so its lifetime can be
-/// controlled (e.g., moved to GenContext in the future).
+/// Thread-safe; lives on GenContext so clients control its lifetime and
+/// invalidation.
 class MX_GENSHADER_API NodeGraphTopologyCache
 {
   public:
     NodeGraphTopologyCache() = default;
     ~NodeGraphTopologyCache();
 
-    NodeGraphTopologyCache(const NodeGraphTopologyCache&) = delete;
-    NodeGraphTopologyCache& operator=(const NodeGraphTopologyCache&) = delete;
-
-    /// Get the global instance.
-    static NodeGraphTopologyCache& instance();
+    /// Copy creates a fresh empty cache (it's a cache — rebuilds on demand).
+    NodeGraphTopologyCache(const NodeGraphTopologyCache&);
+    NodeGraphTopologyCache& operator=(const NodeGraphTopologyCache&);
 
     /// Analyze a NodeGraph's topology (cached) and create a permutation for a
     /// specific call-site node instance.
     /// @return The permutation, or nullptr if no optimization is possible.
     std::unique_ptr<NodeGraphPermutation> createPermutation(
         const NodeGraph& nodeGraph, const Node& node);
+
+    /// Discard all cached topology analyses.
+    void clear();
 
   private:
     const NodeGraphTopology& getTopology(const NodeGraph& nodeGraph);

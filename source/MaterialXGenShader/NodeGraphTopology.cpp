@@ -12,7 +12,6 @@
 
 #include <MaterialXTrace/Tracing.h>
 
-#include <map>
 #include <set>
 
 MATERIALX_NAMESPACE_BEGIN
@@ -40,37 +39,6 @@ const std::set<string> kLayerPbrNodes = {
 };
 
 } // anonymous namespace
-
-//
-// NodeGraphTopology - implementation detail, not exposed in the header.
-// Analyzes a NodeGraph to identify "topological" inputs that when constant
-// (0 or 1) can eliminate entire branches of the graph.
-//
-
-struct TopologicalInput
-{
-    string name;
-    StringSet nodesToSkipAt0;
-    StringSet nodesToSkipAt1;
-    StringSet maybeDeadAt0;
-    StringSet maybeDeadAt1;
-};
-
-class NodeGraphTopology
-{
-  public:
-    explicit NodeGraphTopology(const NodeGraph& nodeGraph);
-    std::unique_ptr<NodeGraphPermutation> createPermutation(const Node& node) const;
-
-  private:
-    static bool isTopologicalInput(const InputPtr& input, const NodeDefPtr& nodeDef);
-    void analyzeAffectedNodes(const NodePtr& node, const InputPtr& input, TopologicalInput& topoInput);
-    void buildRefCounts(const NodeGraph& nodeGraph);
-
-    std::map<string, TopologicalInput> _topologicalInputs;
-    std::unordered_map<string, size_t> _refCounts;
-    std::unordered_map<string, StringSet> _nodeUpstreams;
-};
 
 NodeGraphTopology::NodeGraphTopology(const NodeGraph& nodeGraph)
 {
@@ -165,7 +133,6 @@ bool NodeGraphTopology::isTopologicalInput(const InputPtr& input, const NodeDefP
     {
         return false;
     }
-
     // Check for uimin=0, uimax=1 (indicates a 0-1 weight parameter)
     if (!ndInput->hasAttribute("uimin") || !ndInput->hasAttribute("uimax"))
     {
@@ -494,10 +461,18 @@ std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const
 
 NodeGraphTopologyCache::~NodeGraphTopologyCache() = default;
 
-NodeGraphTopologyCache& NodeGraphTopologyCache::instance()
+NodeGraphTopologyCache::NodeGraphTopologyCache(const NodeGraphTopologyCache&) {}
+
+NodeGraphTopologyCache& NodeGraphTopologyCache::operator=(const NodeGraphTopologyCache&)
 {
-    static NodeGraphTopologyCache theInstance;
-    return theInstance;
+    clear();
+    return *this;
+}
+
+void NodeGraphTopologyCache::clear()
+{
+    std::lock_guard<std::mutex> lock(_cacheMutex);
+    _cache.clear();
 }
 
 std::unique_ptr<NodeGraphPermutation> NodeGraphTopologyCache::createPermutation(
