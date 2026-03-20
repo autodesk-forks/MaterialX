@@ -49,8 +49,8 @@ NodeGraphTopology::NodeGraphTopology(const NodeGraph& nodeGraph)
         throw ExceptionShaderGenError("Can't find nodedef for nodegraph '" + nodeGraph.getName() + "'");
     }
 
-    // Build reference counts and upstream dependency map
-    buildRefCounts(nodeGraph);
+    // Build per-node info (downstream ref counts and upstream dependencies)
+    buildNodeInfos(nodeGraph);
 
     // Scan all nodes in the NodeGraph for optimization opportunities
     for (const NodePtr& node : nodeGraph.getNodes())
@@ -198,38 +198,30 @@ void NodeGraphTopology::analyzeAffectedNodes(
     }
 }
 
-void NodeGraphTopology::buildRefCounts(const NodeGraph& nodeGraph)
+void NodeGraphTopology::buildNodeInfos(const NodeGraph& nodeGraph)
 {
-    // Build reference counts: how many downstream nodes consume each node's output
-    // Also build upstream dependency map for efficient propagation
-
     for (const NodePtr& node : nodeGraph.getNodes())
     {
         const string& nodeName = node->getName();
-        StringSet upstreams;
+        NodeInfo& info = _nodeInfos[nodeName];
 
         for (const InputPtr& input : node->getActiveInputs())
         {
             if (input->hasNodeName())
             {
                 const string& upstreamName = input->getNodeName();
-                _refCounts[upstreamName]++;
-                upstreams.insert(upstreamName);
+                _nodeInfos[upstreamName].downstreamRefCount++;
+                info.upstreams.insert(upstreamName);
             }
-        }
-
-        if (!upstreams.empty())
-        {
-            _nodeUpstreams[nodeName] = std::move(upstreams);
         }
     }
 
-    // Count references from NodeGraph outputs (these are the "roots" of the graph)
+    // NodeGraph outputs are roots -- they also count as downstream consumers
     for (const OutputPtr& output : nodeGraph.getOutputs())
     {
         if (output->hasNodeName())
         {
-            _refCounts[output->getNodeName()]++;
+            _nodeInfos[output->getNodeName()].downstreamRefCount++;
         }
     }
 }
@@ -247,8 +239,13 @@ std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const
     StringSet skipNodes;
     bool hasOptimization = false;
 
-    // Working copy of reference counts for this permutation
-    std::unordered_map<string, size_t> refCounts = _refCounts;
+    // Working copy of ref counts for this permutation
+    std::unordered_map<string, size_t> refCounts;
+    refCounts.reserve(_nodeInfos.size());
+    for (const auto& pair : _nodeInfos)
+    {
+        refCounts[pair.first] = pair.second.downstreamRefCount;
+    }
 
     // Worklist for propagating death through the graph
     std::vector<string> worklist;
@@ -416,19 +413,18 @@ std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const
         key += inputName + "=" + flag;
     }
 
-    // Propagate death through the graph using reference counting
-    // When a node dies, decrement ref counts of all its upstream dependencies
-    // If any upstream's ref count hits 0, it's also dead
+    // Propagate death through the graph using reference counting.
+    // When a node dies, decrement ref counts of all its upstream dependencies.
+    // If any upstream's ref count hits 0, it's also dead.
     while (!worklist.empty())
     {
         string nodeName = worklist.back();
         worklist.pop_back();
 
-        // Find upstream dependencies of this node
-        auto upstreamIt = _nodeUpstreams.find(nodeName);
-        if (upstreamIt != _nodeUpstreams.end())
+        auto infoIt = _nodeInfos.find(nodeName);
+        if (infoIt != _nodeInfos.end())
         {
-            for (const string& upstream : upstreamIt->second)
+            for (const string& upstream : infoIt->second.upstreams)
             {
                 auto refIt = refCounts.find(upstream);
                 if (refIt != refCounts.end() && refIt->second > 0)

@@ -62,11 +62,16 @@ class MX_GENSHADER_API NodeGraphTopology
   private:
     static bool isTopologicalInput(const InputPtr& input, const NodeDefPtr& nodeDef);
     void analyzeAffectedNodes(const NodePtr& node, const InputPtr& input, TopologicalInput& topoInput);
-    void buildRefCounts(const NodeGraph& nodeGraph);
+    void buildNodeInfos(const NodeGraph& nodeGraph);
+
+    struct NodeInfo
+    {
+        size_t downstreamRefCount = 0;
+        StringSet upstreams;
+    };
 
     std::map<string, TopologicalInput> _topologicalInputs;
-    std::unordered_map<string, size_t> _refCounts;
-    std::unordered_map<string, StringSet> _nodeUpstreams;
+    std::unordered_map<string, NodeInfo> _nodeInfos;
 };
 
 /// @class NodeGraphTopologyCache
