@@ -12,24 +12,22 @@
 
 #include <MaterialXTrace/Tracing.h>
 
-#include <set>
+#include <unordered_set>
 
 MATERIALX_NAMESPACE_BEGIN
 
 namespace
 {
-// Base PBR nodes - when weight=0, output is completely dark/opaque
-const std::set<string> kBasePbrNodes = {
+// PBR nodes with a weight parameter -- when weight=0, the node can be skipped.
+// TODO: Could this allowlist be replaced by checking output type == BSDF and the
+// presence of a topological weight input (see isTopologicalInput)?
+const std::unordered_set<string> kWeightedPbrNodes = {
     "oren_nayar_diffuse_bsdf",
     "compensating_oren_nayar_diffuse_bsdf",
     "burley_diffuse_bsdf",
     "conductor_bsdf",
     "subsurface_bsdf",
     "translucent_bsdf",
-};
-
-// Layer PBR nodes - when weight=0, output is transparent (pass-through)
-const std::set<string> kLayerPbrNodes = {
     "dielectric_bsdf",
     "generalized_schlick_bsdf",
     "sheen_bsdf",
@@ -93,7 +91,7 @@ NodeGraphTopology::NodeGraphTopology(const NodeGraph& nodeGraph)
                 }
             }
         }
-        else if (kBasePbrNodes.count(category) || kLayerPbrNodes.count(category))
+        else if (kWeightedPbrNodes.count(category))
         {
             // PBR nodes: weight at 0 makes the node output dark/transparent
             InputPtr weightInput = node->getActiveInput("weight");
@@ -191,7 +189,7 @@ void NodeGraphTopology::analyzeAffectedNodes(
             }
         }
     }
-    else if (kBasePbrNodes.count(category) || kLayerPbrNodes.count(category))
+    else if (kWeightedPbrNodes.count(category))
     {
         // For PBR nodes with weight=0:
         // The PBR node itself is unconditionally skipped (replaced with dark/transparent)
