@@ -209,10 +209,14 @@ void NodeGraphTopology::buildNodeInfos(const NodeGraph& nodeGraph)
         {
             if (input->hasNodeName())
             {
-                const string& upstreamName = input->getNodeName();
-                _nodeInfos[upstreamName].downstreamRefCount++;
-                info.upstreams.insert(upstreamName);
+                info.upstreams.insert(input->getNodeName());
             }
+        }
+
+        // Increment downstream ref counts once per unique upstream
+        for (const string& upstreamName : info.upstreams)
+        {
+            _nodeInfos[upstreamName].downstreamRefCount++;
         }
     }
 
