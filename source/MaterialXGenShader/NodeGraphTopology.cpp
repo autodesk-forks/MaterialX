@@ -160,13 +160,13 @@ TopologicalInput::TopologicalInput(
         if (fgInput && fgInput->hasNodeName())
         {
             // mix=0 means fg branch loses this consumer
-            maybeDead[0].insert(fgInput->getNodeName());
+            potentiallyPrunableAtValue[0].insert(fgInput->getNodeName());
         }
 
         if (bgInput && bgInput->hasNodeName())
         {
             // mix=1 means bg branch loses this consumer
-            maybeDead[1].insert(bgInput->getNodeName());
+            potentiallyPrunableAtValue[1].insert(bgInput->getNodeName());
         }
     }
     else if (category == "multiply")
@@ -177,7 +177,7 @@ TopologicalInput::TopologicalInput(
         {
             if (otherInput != input && otherInput->hasNodeName())
             {
-                maybeDead[0].insert(otherInput->getNodeName());
+                potentiallyPrunableAtValue[0].insert(otherInput->getNodeName());
             }
         }
     }
@@ -186,7 +186,7 @@ TopologicalInput::TopologicalInput(
         // For PBR nodes with weight=0:
         // The PBR node itself is unconditionally pruned (replaced with dark/transparent)
         // Its upstream dependencies will be handled via ref count propagation
-        nodesToPrune[0].insert(node->getName());
+        prunableAtValue[0].insert(node->getName());
     }
 }
 
@@ -276,14 +276,14 @@ std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const
         char flag = 'x';  // 'x' = not optimized (connected or intermediate value)
 
         auto applyConstantValue = [&pruneNode, &removeDownstream](
-            const std::unordered_set<std::string>& toPrune,
-            const std::unordered_set<std::string>& maybeDead)
+            const std::unordered_set<std::string>& prunable,
+            const std::unordered_set<std::string>& potentiallyPrunable)
         {
-            for (const string& nodeName : toPrune)
+            for (const string& nodeName : prunable)
             {
                 pruneNode(nodeName);
             }
-            for (const string& nodeName : maybeDead)
+            for (const string& nodeName : potentiallyPrunable)
             {
                 removeDownstream(nodeName);
             }
@@ -302,12 +302,12 @@ std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const
             if (value == 0.0f)
             {
                 flag = '0';
-                applyConstantValue(topoInput.nodesToPrune[0], topoInput.maybeDead[0]);
+                applyConstantValue(topoInput.prunableAtValue[0], topoInput.potentiallyPrunableAtValue[0]);
             }
             else if (value == 1.0f)
             {
                 flag = '1';
-                applyConstantValue(topoInput.nodesToPrune[1], topoInput.maybeDead[1]);
+                applyConstantValue(topoInput.prunableAtValue[1], topoInput.potentiallyPrunableAtValue[1]);
             }
         };
 

@@ -46,9 +46,15 @@ struct MX_GENSHADER_API TopologicalInput
     TopologicalInput(const string& inputName, const NodePtr& node, const InputPtr& input);
 
     string inputName;
-    std::unordered_set<std::string>
-      nodesToPrune[2],
-      maybeDead[2];
+    using UnorderedStringSet = std::unordered_set<std::string>;
+    
+    // If the value of this attribute is hardcoded to 0 or 1,
+    // these nodes are guaranteed to become prunable
+    UnorderedStringSet  prunableAtValue[2];
+
+    // If the value of this attribute is hardcoded to 0 or 1,
+    // these nodes may become prunable, depending on their downstream connections
+    UnorderedStringSet  potentiallyPrunableAtValue[2];
 };
 
 /// @class NodeGraphTopology
