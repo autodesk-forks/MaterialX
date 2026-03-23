@@ -23,21 +23,19 @@ MATERIALX_NAMESPACE_BEGIN
 /// Lightweight object used for cache key computation before ShaderNodeImpl creation.
 class MX_GENSHADER_API NodeGraphPermutation
 {
-    friend class NodeGraphTopology;
-
   public:
+    NodeGraphPermutation(string key, StringSet skipNodes) :
+        _key(std::move(key)), _nodesToSkip(std::move(skipNodes)) { }
+
     /// Return the permutation key (e.g., "coat=0,sheen=x").
     const string& getKey() const { return _key; }
 
     /// Check whether a node should be skipped (pruned) for this permutation.
-    bool shouldSkip(const string& nodeName) const { return _skipNodes.count(nodeName) != 0; }
+    bool shouldSkip(const string& nodeName) const { return _nodesToSkip.count(nodeName) != 0; }
 
   private:
-    NodeGraphPermutation(string key, StringSet skipNodes)
-        : _key(std::move(key)), _skipNodes(std::move(skipNodes)) {}
-
-    string _key;
-    StringSet _skipNodes;
+    const string _key;
+    const StringSet _nodesToSkip;
 };
 
 /// Describes a single topological input and the nodes it can eliminate.

@@ -446,8 +446,8 @@ std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const
         return nullptr;
     }
 
-    return std::unique_ptr<NodeGraphPermutation>(
-        new NodeGraphPermutation(std::move(permutationKey), std::move(skipNodes)));
+    return std::make_unique<NodeGraphPermutation>(
+        std::move(permutationKey), std::move(skipNodes));
 }
 
 //
