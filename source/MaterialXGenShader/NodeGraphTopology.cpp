@@ -254,7 +254,7 @@ std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const
     std::vector<string> worklist;
 
     // Mark a node as pruned (skipped) and enqueue for upstream propagation.
-    auto pruneNode = [&](const string& nodeName)
+    auto pruneNode = [&nodesToSkip, &worklist](const string& nodeName)
     {
         if (nodesToSkip.insert(nodeName).second)
         {
@@ -264,7 +264,7 @@ std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const
 
     // A downstream consumer of `nodeName` has been eliminated. Decrement ref count
     // and prune `nodeName` if no consumers remain.
-    auto removeConsumer = [&](const string& nodeName)
+    auto removeConsumer = [&downstreamRefCounts, &pruneNode](const string& nodeName)
     {
         auto itDownstreamRefCount = downstreamRefCounts.find(nodeName);
         if (itDownstreamRefCount != downstreamRefCounts.end() && itDownstreamRefCount->second > 0)
@@ -282,24 +282,8 @@ std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const
     {
         char flag = 'x';  // 'x' = not optimized (connected or intermediate value)
 
-        // Apply the effects of a topological input being constant (0 or 1).
-        auto applyConstantInput = [&](const TopologicalInput& topoInput, Input& input)
+        auto applyConstantValue = [&pruneNode, &removeConsumer](const StringSet& toSkip, const StringSet& maybeDead)
         {
-            if (!input.hasValue())
-            {
-                return;
-            }
-
-            const float value = input.getValue()->asA<float>();
-            if (!(value == 0.0f || value == 1.0f))
-            {
-                return;
-            }
-
-            const StringSet& toSkip = (value == 0.0f) ? topoInput.nodesToSkipAt0 : topoInput.nodesToSkipAt1;
-            const StringSet& maybeDead = (value == 0.0f) ? topoInput.maybeDeadAt0 : topoInput.maybeDeadAt1;
-            flag = (value == 0.0f) ? '0' : '1';
-
             for (const string& nodeName : toSkip)
             {
                 pruneNode(nodeName);
@@ -308,8 +292,27 @@ std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const
             {
                 removeConsumer(nodeName);
             }
+        };
 
-            hasOptimization = true;
+        // Apply the effects of a topological input being constant (0 or 1).
+        auto applyConstantInput = [&applyConstantValue, &flag](const TopologicalInput& topoInput, Input& input)
+        {
+            if (!input.hasValue())
+            {
+                return;
+            }
+
+            const float value = input.getValue()->asA<float>();
+            if (value == 0.0f)
+            {
+                flag = '0';
+                applyConstantValue(topoInput.nodesToSkipAt0, topoInput.maybeDeadAt0);
+            }
+            else if (value == 1.0f)
+            {
+                flag = '1';
+                applyConstantValue(topoInput.nodesToSkipAt1, topoInput.maybeDeadAt1);
+            }
         };
 
         // Check if this input is connected on the node instance
@@ -334,6 +337,10 @@ std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const
             permutationKey += ",";
         }
         permutationKey += inputName + "=" + flag;
+        if (flag != 'x')
+        {
+            hasOptimization = true;
+        }
     }
 
     // Worklist-driven DCE: when a node is pruned, decrement ref counts of
