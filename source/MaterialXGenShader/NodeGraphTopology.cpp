@@ -168,13 +168,13 @@ void NodeGraphTopology::analyzeAffectedNodes(
         if (fgInput && fgInput->hasNodeName())
         {
             // mix=0 means fg branch loses this consumer
-            topoInput.maybeDeadAt0.insert(fgInput->getNodeName());
+            topoInput.maybeDead[0].insert(fgInput->getNodeName());
         }
 
         if (bgInput && bgInput->hasNodeName())
         {
             // mix=1 means bg branch loses this consumer
-            topoInput.maybeDeadAt1.insert(bgInput->getNodeName());
+            topoInput.maybeDead[1].insert(bgInput->getNodeName());
         }
     }
     else if (category == "multiply")
@@ -185,7 +185,7 @@ void NodeGraphTopology::analyzeAffectedNodes(
         {
             if (otherInput != input && otherInput->hasNodeName())
             {
-                topoInput.maybeDeadAt0.insert(otherInput->getNodeName());
+                topoInput.maybeDead[0].insert(otherInput->getNodeName());
             }
         }
     }
@@ -194,7 +194,7 @@ void NodeGraphTopology::analyzeAffectedNodes(
         // For PBR nodes with weight=0:
         // The PBR node itself is unconditionally pruned (replaced with dark/transparent)
         // Its upstream dependencies will be handled via ref count propagation
-        topoInput.nodesToPruneAt0.insert(node->getName());
+        topoInput.nodesToPrune[0].insert(node->getName());
     }
 }
 
@@ -310,12 +310,12 @@ std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const
             if (value == 0.0f)
             {
                 flag = '0';
-                applyConstantValue(topoInput.nodesToPruneAt0, topoInput.maybeDeadAt0);
+                applyConstantValue(topoInput.nodesToPrune[0], topoInput.maybeDead[0]);
             }
             else if (value == 1.0f)
             {
                 flag = '1';
-                applyConstantValue(topoInput.nodesToPruneAt1, topoInput.maybeDeadAt1);
+                applyConstantValue(topoInput.nodesToPrune[1], topoInput.maybeDead[1]);
             }
         };
 

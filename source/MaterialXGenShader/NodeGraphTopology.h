@@ -40,12 +40,13 @@ class MX_GENSHADER_API NodeGraphPermutation
 };
 
 /// Describes a single topological input and the nodes it can eliminate.
+/// Arrays are indexed by the constant value (0 or 1).
 struct MX_GENSHADER_API TopologicalInput
 {
     string inputName;
     std::unordered_set<std::string>
-        nodesToPruneAt0, nodesToPruneAt1,
-        maybeDeadAt0, maybeDeadAt1;
+      nodesToPrune[2],
+      maybeDead[2];
 };
 
 /// @class NodeGraphTopology
