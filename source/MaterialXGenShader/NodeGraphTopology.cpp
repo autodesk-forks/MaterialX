@@ -240,7 +240,7 @@ std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const
     }
 
     string permutationKey;
-    StringSet skipNodes;
+    StringSet nodesToSkip;
     bool hasOptimization = false;
 
     // Working copy of ref counts for this permutation
@@ -251,8 +251,47 @@ std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const
         refCounts[name] = info.downstreamRefCount;
     }
 
-    // Worklist for propagating death through the graph
     std::vector<string> worklist;
+
+    // Mark a node as pruned (skipped) and enqueue for upstream propagation.
+    auto pruneNode = [&](const string& n)
+    {
+        if (nodesToSkip.insert(n).second)
+        {
+            worklist.push_back(n);
+        }
+    };
+
+    // A downstream consumer of `n` has been eliminated. Decrement ref count
+    // and prune `n` if no consumers remain.
+    auto removeConsumer = [&](const string& n)
+    {
+        auto it = refCounts.find(n);
+        if (it != refCounts.end() && it->second > 0)
+        {
+            it->second--;
+            if (it->second == 0)
+            {
+                pruneNode(n);
+            }
+        }
+    };
+
+    // Apply the effects of a topological input being constant (0 or 1).
+    auto applyConstantInput = [&](const TopologicalInput& topoInput, float value)
+    {
+        const StringSet& toSkip = (value == 0.0f) ? topoInput.nodesToSkipAt0 : topoInput.nodesToSkipAt1;
+        const StringSet& maybeDead = (value == 0.0f) ? topoInput.maybeDeadAt0 : topoInput.maybeDeadAt1;
+
+        for (const string& n : toSkip)
+        {
+            pruneNode(n);
+        }
+        for (const string& n : maybeDead)
+        {
+            removeConsumer(n);
+        }
+    };
 
     // First pass: build the key and collect initial dead nodes
     for (const auto& [inputName, topoInput] : _topologicalInputs)
@@ -269,67 +308,12 @@ std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const
             }
             else if (nodeInput->hasValue())
             {
-                // Has a constant value - check if it's 0 or 1
                 float value = nodeInput->getValue()->asA<float>();
-                if (value == 0.0f)
+                if (value == 0.0f || value == 1.0f)
                 {
-                    flag = '0';
+                    flag = (value == 0.0f) ? '0' : '1';
                     hasOptimization = true;
-
-                    // Unconditionally skip these nodes
-                    for (const string& n : topoInput.nodesToSkipAt0)
-                    {
-                        if (skipNodes.find(n) == skipNodes.end())
-                        {
-                            skipNodes.insert(n);
-                            worklist.push_back(n);
-                        }
-                    }
-
-                    // These nodes lose a consumer - decrement their ref count
-                    for (const string& n : topoInput.maybeDeadAt0)
-                    {
-                        auto it = refCounts.find(n);
-                        if (it != refCounts.end() && it->second > 0)
-                        {
-                            it->second--;
-                            if (it->second == 0 && skipNodes.find(n) == skipNodes.end())
-                            {
-                                skipNodes.insert(n);
-                                worklist.push_back(n);
-                            }
-                        }
-                    }
-                }
-                else if (value == 1.0f)
-                {
-                    flag = '1';
-                    hasOptimization = true;
-
-                    // Unconditionally skip these nodes
-                    for (const string& n : topoInput.nodesToSkipAt1)
-                    {
-                        if (skipNodes.find(n) == skipNodes.end())
-                        {
-                            skipNodes.insert(n);
-                            worklist.push_back(n);
-                        }
-                    }
-
-                    // These nodes lose a consumer - decrement their ref count
-                    for (const string& n : topoInput.maybeDeadAt1)
-                    {
-                        auto it = refCounts.find(n);
-                        if (it != refCounts.end() && it->second > 0)
-                        {
-                            it->second--;
-                            if (it->second == 0 && skipNodes.find(n) == skipNodes.end())
-                            {
-                                skipNodes.insert(n);
-                                worklist.push_back(n);
-                            }
-                        }
-                    }
+                    applyConstantInput(topoInput, value);
                 }
             }
         }
@@ -343,65 +327,11 @@ std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const
                 if (defaultInput && defaultInput->hasValue())
                 {
                     float value = defaultInput->getValue()->asA<float>();
-                    if (value == 0.0f)
+                    if (value == 0.0f || value == 1.0f)
                     {
-                        flag = '0';
+                        flag = (value == 0.0f) ? '0' : '1';
                         hasOptimization = true;
-
-                        // Unconditionally skip these nodes
-                        for (const string& n : topoInput.nodesToSkipAt0)
-                        {
-                            if (skipNodes.find(n) == skipNodes.end())
-                            {
-                                skipNodes.insert(n);
-                                worklist.push_back(n);
-                            }
-                        }
-
-                        // These nodes lose a consumer - decrement their ref count
-                        for (const string& n : topoInput.maybeDeadAt0)
-                        {
-                            auto it = refCounts.find(n);
-                            if (it != refCounts.end() && it->second > 0)
-                            {
-                                it->second--;
-                                if (it->second == 0 && skipNodes.find(n) == skipNodes.end())
-                                {
-                                    skipNodes.insert(n);
-                                    worklist.push_back(n);
-                                }
-                            }
-                        }
-                    }
-                    else if (value == 1.0f)
-                    {
-                        flag = '1';
-                        hasOptimization = true;
-
-                        // Unconditionally skip these nodes
-                        for (const string& n : topoInput.nodesToSkipAt1)
-                        {
-                            if (skipNodes.find(n) == skipNodes.end())
-                            {
-                                skipNodes.insert(n);
-                                worklist.push_back(n);
-                            }
-                        }
-
-                        // These nodes lose a consumer - decrement their ref count
-                        for (const string& n : topoInput.maybeDeadAt1)
-                        {
-                            auto it = refCounts.find(n);
-                            if (it != refCounts.end() && it->second > 0)
-                            {
-                                it->second--;
-                                if (it->second == 0 && skipNodes.find(n) == skipNodes.end())
-                                {
-                                    skipNodes.insert(n);
-                                    worklist.push_back(n);
-                                }
-                            }
-                        }
+                        applyConstantInput(topoInput, value);
                     }
                 }
             }
@@ -414,9 +344,8 @@ std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const
         permutationKey += inputName + "=" + flag;
     }
 
-    // Propagate death through the graph using reference counting.
-    // When a node dies, decrement ref counts of all its upstream dependencies.
-    // If any upstream's ref count hits 0, it's also dead.
+    // Worklist-driven DCE: when a node is pruned, decrement ref counts of
+    // its upstream dependencies. Prune any upstream whose count hits 0.
     while (!worklist.empty())
     {
         string nodeName = worklist.back();
@@ -427,16 +356,7 @@ std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const
         {
             for (const string& upstream : infoIt->second.upstreams)
             {
-                auto refIt = refCounts.find(upstream);
-                if (refIt != refCounts.end() && refIt->second > 0)
-                {
-                    refIt->second--;
-                    if (refIt->second == 0 && skipNodes.find(upstream) == skipNodes.end())
-                    {
-                        skipNodes.insert(upstream);
-                        worklist.push_back(upstream);
-                    }
-                }
+                removeConsumer(upstream);
             }
         }
     }
@@ -447,7 +367,7 @@ std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const
     }
 
     return std::make_unique<NodeGraphPermutation>(
-        std::move(permutationKey), std::move(skipNodes));
+        std::move(permutationKey), std::move(nodesToSkip));
 }
 
 //
