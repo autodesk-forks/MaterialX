@@ -67,7 +67,7 @@ NodeGraphTopology::NodeGraphTopology(const NodeGraph& nodeGraph)
                 if (_topologicalInputs.find(interfaceName) == _topologicalInputs.end())
                 {
                     TopologicalInput topoInput;
-                    topoInput.name = interfaceName;
+                    topoInput.inputName = interfaceName;
                     analyzeAffectedNodes(node, mixInput, topoInput);
                     _topologicalInputs[interfaceName] = topoInput;
                 }
@@ -84,7 +84,7 @@ NodeGraphTopology::NodeGraphTopology(const NodeGraph& nodeGraph)
                     if (_topologicalInputs.find(interfaceName) == _topologicalInputs.end())
                     {
                         TopologicalInput topoInput;
-                        topoInput.name = interfaceName;
+                        topoInput.inputName = interfaceName;
                         analyzeAffectedNodes(node, input, topoInput);
                         _topologicalInputs[interfaceName] = topoInput;
                     }
@@ -101,7 +101,7 @@ NodeGraphTopology::NodeGraphTopology(const NodeGraph& nodeGraph)
                 if (_topologicalInputs.find(interfaceName) == _topologicalInputs.end())
                 {
                     TopologicalInput topoInput;
-                    topoInput.name = interfaceName;
+                    topoInput.inputName = interfaceName;
                     analyzeAffectedNodes(node, weightInput, topoInput);
                     _topologicalInputs[interfaceName] = topoInput;
                 }
@@ -203,18 +203,18 @@ void NodeGraphTopology::buildNodeInfos(const NodeGraph& nodeGraph)
     for (const NodePtr& node : nodeGraph.getNodes())
     {
         const string& nodeName = node->getName();
-        NodeInfo& info = _nodeInfos[nodeName];
+        NodeInfo& nodeInfo = _nodeInfos[nodeName];
 
         for (const InputPtr& input : node->getActiveInputs())
         {
             if (input->hasNodeName())
             {
-                info.upstreams.insert(input->getNodeName());
+                nodeInfo.upstreams.insert(input->getNodeName());
             }
         }
 
         // Increment downstream ref counts once per unique upstream
-        for (const string& upstreamName : info.upstreams)
+        for (const string& upstreamName : nodeInfo.upstreams)
         {
             _nodeInfos[upstreamName].downstreamRefCount++;
         }
@@ -240,7 +240,7 @@ std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const
     }
 
     string permutationKey;
-    StringSet nodesToSkip;
+    std::unordered_set<std::string> nodesToPrune;
     bool hasOptimization = false;
 
     // Working copy of ref counts for this permutation
@@ -254,9 +254,9 @@ std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const
     std::vector<string> worklist;
 
     // Mark a node as pruned (skipped) and enqueue for upstream propagation.
-    auto pruneNode = [&nodesToSkip, &worklist](const string& nodeName)
+    auto pruneNode = [&nodesToPrune, &worklist](const string& nodeName)
     {
-        if (nodesToSkip.insert(nodeName).second)
+        if (nodesToPrune.insert(nodeName).second)
         {
             worklist.push_back(nodeName);
         }
@@ -264,10 +264,11 @@ std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const
 
     // A downstream consumer of `nodeName` has been eliminated. Decrement ref count
     // and prune `nodeName` if no consumers remain.
-    auto removeConsumer = [&downstreamRefCounts, &pruneNode](const string& nodeName)
+    auto removeDownstream = [&downstreamRefCounts, &pruneNode](const string& nodeName)
     {
         auto itDownstreamRefCount = downstreamRefCounts.find(nodeName);
-        if (itDownstreamRefCount != downstreamRefCounts.end() && itDownstreamRefCount->second > 0)
+        if (itDownstreamRefCount != downstreamRefCounts.end()
+            && itDownstreamRefCount->second > 0)
         {
             itDownstreamRefCount->second--;
             if (itDownstreamRefCount->second == 0)
@@ -282,7 +283,9 @@ std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const
     {
         char flag = 'x';  // 'x' = not optimized (connected or intermediate value)
 
-        auto applyConstantValue = [&pruneNode, &removeConsumer](const StringSet& toSkip, const StringSet& maybeDead)
+        auto applyConstantValue = [&pruneNode, &removeDownstream](
+            const std::unordered_set<std::string>& toSkip,
+            const std::unordered_set<std::string>& maybeDead)
         {
             for (const string& nodeName : toSkip)
             {
@@ -290,12 +293,13 @@ std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const
             }
             for (const string& nodeName : maybeDead)
             {
-                removeConsumer(nodeName);
+                removeDownstream(nodeName);
             }
         };
 
         // Apply the effects of a topological input being constant (0 or 1).
-        auto applyConstantInput = [&applyConstantValue, &flag](const TopologicalInput& topoInput, Input& input)
+        auto applyConstantInput = [&applyConstantValue, &flag](
+            const TopologicalInput& topoInput, Input& input )
         {
             if (!input.hasValue())
             {
@@ -319,7 +323,9 @@ std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const
         if (InputPtr nodeInput = node.getInput(inputName))
         {
             // If connected to another node, can't optimize
-            if (!(nodeInput->hasNodeName() || nodeInput->hasOutputString() || nodeInput->hasInterfaceName()))
+            if (!( nodeInput->hasNodeName()
+                || nodeInput->hasOutputString()
+                || nodeInput->hasInterfaceName()))
             {
                 applyConstantInput(topoInput, *nodeInput);
             }
@@ -355,7 +361,7 @@ std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const
         {
             for (const string& upstream : itNodeInfo->second.upstreams)
             {
-                removeConsumer(upstream);
+                removeDownstream(upstream);
             }
         }
     }
@@ -366,7 +372,7 @@ std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const
     }
 
     return std::make_unique<NodeGraphPermutation>(
-        std::move(permutationKey), std::move(nodesToSkip));
+        std::move(permutationKey), std::move(nodesToPrune));
 }
 
 //

@@ -15,6 +15,7 @@
 #include <memory>
 #include <mutex>
 #include <unordered_map>
+#include <unordered_set>
 
 MATERIALX_NAMESPACE_BEGIN
 
@@ -24,28 +25,27 @@ MATERIALX_NAMESPACE_BEGIN
 class MX_GENSHADER_API NodeGraphPermutation
 {
   public:
-    NodeGraphPermutation(string key, StringSet skipNodes) :
-        _key(std::move(key)), _nodesToSkip(std::move(skipNodes)) { }
+    NodeGraphPermutation(string key, std::unordered_set<std::string> skipNodes) :
+        _key(std::move(key)), _nodesToPrune(std::move(skipNodes)) { }
 
     /// Return the permutation key (e.g., "coat=0,sheen=x").
     const string& getKey() const { return _key; }
 
     /// Check whether a node should be skipped (pruned) for this permutation.
-    bool shouldSkip(const string& nodeName) const { return _nodesToSkip.count(nodeName) != 0; }
+    bool shouldPrune(const string& nodeName) const { return _nodesToPrune.count(nodeName) != 0; }
 
   private:
     const string _key;
-    const StringSet _nodesToSkip;
+    const std::unordered_set<std::string> _nodesToPrune;
 };
 
 /// Describes a single topological input and the nodes it can eliminate.
 struct MX_GENSHADER_API TopologicalInput
 {
-    string name;
-    StringSet nodesToSkipAt0;
-    StringSet nodesToSkipAt1;
-    StringSet maybeDeadAt0;
-    StringSet maybeDeadAt1;
+    string inputName;
+    std::unordered_set<std::string>
+        nodesToSkipAt0, nodesToSkipAt1,
+        maybeDeadAt0, maybeDeadAt1;
 };
 
 /// @class NodeGraphTopology
