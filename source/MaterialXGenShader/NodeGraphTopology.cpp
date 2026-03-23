@@ -239,31 +239,28 @@ std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const
         return nullptr;
     }
 
-    string key;
+    string permutationKey;
     StringSet skipNodes;
     bool hasOptimization = false;
 
     // Working copy of ref counts for this permutation
     std::unordered_map<string, size_t> refCounts;
     refCounts.reserve(_nodeInfos.size());
-    for (const auto& pair : _nodeInfos)
+    for (const auto& [name, info] : _nodeInfos)
     {
-        refCounts[pair.first] = pair.second.downstreamRefCount;
+        refCounts[name] = info.downstreamRefCount;
     }
 
     // Worklist for propagating death through the graph
     std::vector<string> worklist;
 
     // First pass: build the key and collect initial dead nodes
-    for (const auto& pair : _topologicalInputs)
+    for (const auto& [inputName, topoInput] : _topologicalInputs)
     {
-        const string& inputName = pair.first;
-        const TopologicalInput& topoInput = pair.second;
         char flag = 'x';  // 'x' = not optimized (connected or intermediate value)
 
         // Check if this input is connected on the node instance
-        InputPtr nodeInput = node.getInput(inputName);
-        if (nodeInput)
+        if (InputPtr nodeInput = node.getInput(inputName))
         {
             // If connected to another node, can't optimize
             if (nodeInput->hasNodeName() || nodeInput->hasOutputString() || nodeInput->hasInterfaceName())
@@ -410,11 +407,11 @@ std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const
             }
         }
 
-        if (!key.empty())
+        if (!permutationKey.empty())
         {
-            key += ",";
+            permutationKey += ",";
         }
-        key += inputName + "=" + flag;
+        permutationKey += inputName + "=" + flag;
     }
 
     // Propagate death through the graph using reference counting.
@@ -450,7 +447,7 @@ std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const
     }
 
     return std::unique_ptr<NodeGraphPermutation>(
-        new NodeGraphPermutation(std::move(key), std::move(skipNodes)));
+        new NodeGraphPermutation(std::move(permutationKey), std::move(skipNodes)));
 }
 
 //
