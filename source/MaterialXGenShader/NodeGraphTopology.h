@@ -25,13 +25,13 @@ MATERIALX_NAMESPACE_BEGIN
 class MX_GENSHADER_API NodeGraphPermutation
 {
   public:
-    NodeGraphPermutation(string key, std::unordered_set<std::string> skipNodes) :
-        _key(std::move(key)), _nodesToPrune(std::move(skipNodes)) { }
+    NodeGraphPermutation(string key, std::unordered_set<std::string> nodesToPrune) :
+        _key(std::move(key)), _nodesToPrune(std::move(nodesToPrune)) { }
 
     /// Return the permutation key (e.g., "coat=0,sheen=x").
     const string& getKey() const { return _key; }
 
-    /// Check whether a node should be skipped (pruned) for this permutation.
+    /// Check whether a node should be pruned for this permutation.
     bool shouldPrune(const string& nodeName) const { return _nodesToPrune.count(nodeName) != 0; }
 
   private:
@@ -44,7 +44,7 @@ struct MX_GENSHADER_API TopologicalInput
 {
     string inputName;
     std::unordered_set<std::string>
-        nodesToSkipAt0, nodesToSkipAt1,
+        nodesToPruneAt0, nodesToPruneAt1,
         maybeDeadAt0, maybeDeadAt1;
 };
 

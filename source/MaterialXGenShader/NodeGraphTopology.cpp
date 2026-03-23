@@ -18,7 +18,7 @@ MATERIALX_NAMESPACE_BEGIN
 
 namespace
 {
-// PBR nodes with a weight parameter -- when weight=0, the node can be skipped.
+// PBR nodes with a weight parameter -- when weight=0, the node can be pruned.
 // TODO: Could this allowlist be replaced by checking output type == BSDF and the
 // presence of a topological weight input (see isTopologicalInput)?
 const std::unordered_set<string> kWeightedPbrNodes = {
@@ -192,9 +192,9 @@ void NodeGraphTopology::analyzeAffectedNodes(
     else if (kWeightedPbrNodes.count(category))
     {
         // For PBR nodes with weight=0:
-        // The PBR node itself is unconditionally skipped (replaced with dark/transparent)
+        // The PBR node itself is unconditionally pruned (replaced with dark/transparent)
         // Its upstream dependencies will be handled via ref count propagation
-        topoInput.nodesToSkipAt0.insert(node->getName());
+        topoInput.nodesToPruneAt0.insert(node->getName());
     }
 }
 
@@ -253,7 +253,7 @@ std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const
 
     std::vector<string> worklist;
 
-    // Mark a node as pruned (skipped) and enqueue for upstream propagation.
+    // Mark a node as pruned and enqueue for upstream propagation.
     auto pruneNode = [&nodesToPrune, &worklist](const string& nodeName)
     {
         if (nodesToPrune.insert(nodeName).second)
@@ -284,10 +284,10 @@ std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const
         char flag = 'x';  // 'x' = not optimized (connected or intermediate value)
 
         auto applyConstantValue = [&pruneNode, &removeDownstream](
-            const std::unordered_set<std::string>& toSkip,
+            const std::unordered_set<std::string>& toPrune,
             const std::unordered_set<std::string>& maybeDead)
         {
-            for (const string& nodeName : toSkip)
+            for (const string& nodeName : toPrune)
             {
                 pruneNode(nodeName);
             }
@@ -310,12 +310,12 @@ std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const
             if (value == 0.0f)
             {
                 flag = '0';
-                applyConstantValue(topoInput.nodesToSkipAt0, topoInput.maybeDeadAt0);
+                applyConstantValue(topoInput.nodesToPruneAt0, topoInput.maybeDeadAt0);
             }
             else if (value == 1.0f)
             {
                 flag = '1';
-                applyConstantValue(topoInput.nodesToSkipAt1, topoInput.maybeDeadAt1);
+                applyConstantValue(topoInput.nodesToPruneAt1, topoInput.maybeDeadAt1);
             }
         };
 

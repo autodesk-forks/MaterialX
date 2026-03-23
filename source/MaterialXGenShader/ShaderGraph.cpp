@@ -101,7 +101,7 @@ void ShaderGraph::createConnectedNodes(const ElementPtr& downstreamElement,
     // Check if this node should be pruned
     if (permutation && permutation->shouldPrune(newNodeName))
     {
-        // Skip creating this node entirely. The downstream input will remain
+        // Prune this node entirely. The downstream input will remain
         // unconnected and use its default value (e.g., transparent BSDF).
         MX_TRACE_SCOPE(Tracing::Category::ShaderGen, ("PRUNED:" + newNodeName).c_str());
         return;
