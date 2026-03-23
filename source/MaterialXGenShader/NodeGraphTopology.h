@@ -43,6 +43,8 @@ class MX_GENSHADER_API NodeGraphPermutation
 /// Arrays are indexed by the constant value (0 or 1).
 struct MX_GENSHADER_API TopologicalInput
 {
+    TopologicalInput(const string& inputName, const NodePtr& node, const InputPtr& input);
+
     string inputName;
     std::unordered_set<std::string>
       nodesToPrune[2],
@@ -60,7 +62,6 @@ class MX_GENSHADER_API NodeGraphTopology
 
   private:
     static bool isTopologicalInput(const InputPtr& input, const NodeDefPtr& nodeDef);
-    void analyzeAffectedNodes(const NodePtr& node, const InputPtr& input, TopologicalInput& topoInput);
     void buildNodeInfos(const NodeGraph& nodeGraph);
 
     struct NodeInfo

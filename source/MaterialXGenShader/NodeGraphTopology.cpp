@@ -66,10 +66,7 @@ NodeGraphTopology::NodeGraphTopology(const NodeGraph& nodeGraph)
                 const string& interfaceName = mixInput->getInterfaceName();
                 if (_topologicalInputs.find(interfaceName) == _topologicalInputs.end())
                 {
-                    TopologicalInput topoInput;
-                    topoInput.inputName = interfaceName;
-                    analyzeAffectedNodes(node, mixInput, topoInput);
-                    _topologicalInputs[interfaceName] = topoInput;
+                    _topologicalInputs.emplace(interfaceName, TopologicalInput(interfaceName, node, mixInput));
                 }
             }
         }
@@ -83,10 +80,7 @@ NodeGraphTopology::NodeGraphTopology(const NodeGraph& nodeGraph)
                     const string& interfaceName = input->getInterfaceName();
                     if (_topologicalInputs.find(interfaceName) == _topologicalInputs.end())
                     {
-                        TopologicalInput topoInput;
-                        topoInput.inputName = interfaceName;
-                        analyzeAffectedNodes(node, input, topoInput);
-                        _topologicalInputs[interfaceName] = topoInput;
+                        _topologicalInputs.emplace(interfaceName, TopologicalInput(interfaceName, node, input));
                     }
                 }
             }
@@ -100,10 +94,7 @@ NodeGraphTopology::NodeGraphTopology(const NodeGraph& nodeGraph)
                 const string& interfaceName = weightInput->getInterfaceName();
                 if (_topologicalInputs.find(interfaceName) == _topologicalInputs.end())
                 {
-                    TopologicalInput topoInput;
-                    topoInput.inputName = interfaceName;
-                    analyzeAffectedNodes(node, weightInput, topoInput);
-                    _topologicalInputs[interfaceName] = topoInput;
+                    _topologicalInputs.emplace(interfaceName, TopologicalInput(interfaceName, node, weightInput));
                 }
             }
         }
@@ -149,10 +140,11 @@ bool NodeGraphTopology::isTopologicalInput(const InputPtr& input, const NodeDefP
     }
 }
 
-void NodeGraphTopology::analyzeAffectedNodes(
+TopologicalInput::TopologicalInput(
+    const string& inputName_,
     const NodePtr& node,
-    const InputPtr& input,
-    TopologicalInput& topoInput)
+    const InputPtr& input) :
+    inputName(inputName_)
 {
     const string& category = node->getCategory();
 
@@ -168,13 +160,13 @@ void NodeGraphTopology::analyzeAffectedNodes(
         if (fgInput && fgInput->hasNodeName())
         {
             // mix=0 means fg branch loses this consumer
-            topoInput.maybeDead[0].insert(fgInput->getNodeName());
+            maybeDead[0].insert(fgInput->getNodeName());
         }
 
         if (bgInput && bgInput->hasNodeName())
         {
             // mix=1 means bg branch loses this consumer
-            topoInput.maybeDead[1].insert(bgInput->getNodeName());
+            maybeDead[1].insert(bgInput->getNodeName());
         }
     }
     else if (category == "multiply")
@@ -185,7 +177,7 @@ void NodeGraphTopology::analyzeAffectedNodes(
         {
             if (otherInput != input && otherInput->hasNodeName())
             {
-                topoInput.maybeDead[0].insert(otherInput->getNodeName());
+                maybeDead[0].insert(otherInput->getNodeName());
             }
         }
     }
@@ -194,7 +186,7 @@ void NodeGraphTopology::analyzeAffectedNodes(
         // For PBR nodes with weight=0:
         // The PBR node itself is unconditionally pruned (replaced with dark/transparent)
         // Its upstream dependencies will be handled via ref count propagation
-        topoInput.nodesToPrune[0].insert(node->getName());
+        nodesToPrune[0].insert(node->getName());
     }
 }
 
