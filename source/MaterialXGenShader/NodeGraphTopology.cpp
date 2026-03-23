@@ -244,52 +244,36 @@ std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const
     bool hasOptimization = false;
 
     // Working copy of ref counts for this permutation
-    std::unordered_map<string, size_t> refCounts;
-    refCounts.reserve(_nodeInfos.size());
-    for (const auto& [name, info] : _nodeInfos)
+    std::unordered_map<string, size_t> downstreamRefCounts;
+    downstreamRefCounts.reserve(_nodeInfos.size());
+    for (const auto& [name, nodeInfo] : _nodeInfos)
     {
-        refCounts[name] = info.downstreamRefCount;
+        downstreamRefCounts[name] = nodeInfo.downstreamRefCount;
     }
 
     std::vector<string> worklist;
 
     // Mark a node as pruned (skipped) and enqueue for upstream propagation.
-    auto pruneNode = [&](const string& n)
+    auto pruneNode = [&](const string& nodeName)
     {
-        if (nodesToSkip.insert(n).second)
+        if (nodesToSkip.insert(nodeName).second)
         {
-            worklist.push_back(n);
+            worklist.push_back(nodeName);
         }
     };
 
-    // A downstream consumer of `n` has been eliminated. Decrement ref count
-    // and prune `n` if no consumers remain.
-    auto removeConsumer = [&](const string& n)
+    // A downstream consumer of `nodeName` has been eliminated. Decrement ref count
+    // and prune `nodeName` if no consumers remain.
+    auto removeConsumer = [&](const string& nodeName)
     {
-        auto it = refCounts.find(n);
-        if (it != refCounts.end() && it->second > 0)
+        auto itDownstreamRefCount = downstreamRefCounts.find(nodeName);
+        if (itDownstreamRefCount != downstreamRefCounts.end() && itDownstreamRefCount->second > 0)
         {
-            it->second--;
-            if (it->second == 0)
+            itDownstreamRefCount->second--;
+            if (itDownstreamRefCount->second == 0)
             {
-                pruneNode(n);
+                pruneNode(nodeName);
             }
-        }
-    };
-
-    // Apply the effects of a topological input being constant (0 or 1).
-    auto applyConstantInput = [&](const TopologicalInput& topoInput, float value)
-    {
-        const StringSet& toSkip = (value == 0.0f) ? topoInput.nodesToSkipAt0 : topoInput.nodesToSkipAt1;
-        const StringSet& maybeDead = (value == 0.0f) ? topoInput.maybeDeadAt0 : topoInput.maybeDeadAt1;
-
-        for (const string& n : toSkip)
-        {
-            pruneNode(n);
-        }
-        for (const string& n : maybeDead)
-        {
-            removeConsumer(n);
         }
     };
 
@@ -298,42 +282,50 @@ std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const
     {
         char flag = 'x';  // 'x' = not optimized (connected or intermediate value)
 
+        // Apply the effects of a topological input being constant (0 or 1).
+        auto applyConstantInput = [&](const TopologicalInput& topoInput, Input& input)
+        {
+            if (!input.hasValue())
+            {
+                return;
+            }
+
+            const float value = input.getValue()->asA<float>();
+            if (!(value == 0.0f || value == 1.0f))
+            {
+                return;
+            }
+
+            const StringSet& toSkip = (value == 0.0f) ? topoInput.nodesToSkipAt0 : topoInput.nodesToSkipAt1;
+            const StringSet& maybeDead = (value == 0.0f) ? topoInput.maybeDeadAt0 : topoInput.maybeDeadAt1;
+            flag = (value == 0.0f) ? '0' : '1';
+
+            for (const string& nodeName : toSkip)
+            {
+                pruneNode(nodeName);
+            }
+            for (const string& nodeName : maybeDead)
+            {
+                removeConsumer(nodeName);
+            }
+
+            hasOptimization = true;
+        };
+
         // Check if this input is connected on the node instance
         if (InputPtr nodeInput = node.getInput(inputName))
         {
             // If connected to another node, can't optimize
-            if (nodeInput->hasNodeName() || nodeInput->hasOutputString() || nodeInput->hasInterfaceName())
+            if (!(nodeInput->hasNodeName() || nodeInput->hasOutputString() || nodeInput->hasInterfaceName()))
             {
-                flag = 'x';
-            }
-            else if (nodeInput->hasValue())
-            {
-                float value = nodeInput->getValue()->asA<float>();
-                if (value == 0.0f || value == 1.0f)
-                {
-                    flag = (value == 0.0f) ? '0' : '1';
-                    hasOptimization = true;
-                    applyConstantInput(topoInput, value);
-                }
+                applyConstantInput(topoInput, *nodeInput);
             }
         }
-        else
+        else if (NodeDefPtr nodeDef = node.getNodeDef()) // Input not set on node instance - check NodeDef default value
         {
-            // Input not set on node instance - check NodeDef default value
-            NodeDefPtr nodeDef = node.getNodeDef();
-            if (nodeDef)
+            if (InputPtr defaultInput = nodeDef->getActiveInput(inputName))
             {
-                InputPtr defaultInput = nodeDef->getActiveInput(inputName);
-                if (defaultInput && defaultInput->hasValue())
-                {
-                    float value = defaultInput->getValue()->asA<float>();
-                    if (value == 0.0f || value == 1.0f)
-                    {
-                        flag = (value == 0.0f) ? '0' : '1';
-                        hasOptimization = true;
-                        applyConstantInput(topoInput, value);
-                    }
-                }
+                applyConstantInput(topoInput, *defaultInput);
             }
         }
 
@@ -351,10 +343,10 @@ std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const
         string nodeName = worklist.back();
         worklist.pop_back();
 
-        auto infoIt = _nodeInfos.find(nodeName);
-        if (infoIt != _nodeInfos.end())
+        auto itNodeInfo = _nodeInfos.find(nodeName);
+        if (itNodeInfo != _nodeInfos.end())
         {
-            for (const string& upstream : infoIt->second.upstreams)
+            for (const string& upstream : itNodeInfo->second.upstreams)
             {
                 removeConsumer(upstream);
             }
