@@ -8,10 +8,6 @@
 #include <MaterialXGenShader/Exception.h>
 #include <MaterialXGenShader/GenContext.h>
 #include <MaterialXGenShader/NodeGraphTopology.h>
-#include <MaterialXGenShader/ShaderGraphDebug.h>
-#include <MaterialXGenShader/ShaderGraphMixBsdfPruningPass.h>
-#include <MaterialXGenShader/ShaderGraphOptimizationPass.h>
-#include <MaterialXGenShader/ShaderGraphStandardPasses.h>
 #include <MaterialXGenShader/Util.h>
 
 #include <MaterialXTrace/Tracing.h>
@@ -1051,27 +1047,96 @@ void ShaderGraph::disconnect(ShaderNode* node) const
 
 void ShaderGraph::optimize(GenContext& context)
 {
-    MX_TRACE_FUNCTION(Tracing::Category::ShaderGen);
-    MX_TRACE_SCOPE(Tracing::Category::ShaderGen, _name.c_str());
+    size_t numEdits = 0;
+    for (ShaderNode* node : getNodes())
+    {
+        if (node->hasClassification(ShaderNode::Classification::CONSTANT))
+        {
+            if (node->numInputs() != 1 || node->numOutputs() != 1)
+            {
+                // Constant node doesn't follow expected interface, cannot elide.
+                continue;
+            }
+            // Constant nodes can be elided by moving their value downstream.
+            bool canElide = context.getOptions().elideConstantNodes;
+            if (!canElide)
+            {
+                // We always elide filename constant nodes regardless of the
+                // option. See DOT below.
+                ShaderInput* in = node->getInput("value");
+                if (in && in->getType() == Type::FILENAME)
+                {
+                    canElide = true;
+                }
+            }
+            if (canElide)
+            {
+                bypass(node, 0);
+                ++numEdits;
+            }
+        }
+        else if (node->hasClassification(ShaderNode::Classification::DOT))
+        {
+            if (node->numOutputs() != 1)
+            {
+                // Dot node dosen't follow expected interface, cannot elide.
+                continue;
+            }
+            // Filename dot nodes must be elided so they do not create extra samplers.
+            ShaderInput* in = node->getInput("in");
+            if (in && in->getType() == Type::FILENAME)
+            {
+                bypass(node, 0);
+                ++numEdits;
+            }
+        }
+        // Adding more nodes here requires them to have an input that is tagged
+        // "uniform" in the NodeDef or to handle very specific cases, like FILENAME.
+    }
 
-    // Use the new pass manager infrastructure for iterative optimization
-    ShaderGraphPassManager passManager;
-    
-    // Add optimization passes in order (conditionally based on options)
-    passManager.addPass(std::make_shared<ConstantFoldingPass>());
-    
-    if (context.getOptions().optReplaceBsdfMixWithLinearCombination)
+    if (numEdits > 0)
     {
-        passManager.addPass(std::make_shared<PremultipliedAddPass>());
+        std::set<ShaderNode*> usedNodesSet;
+        std::vector<ShaderNode*> usedNodesVec;
+
+        // Traverse the graph to find nodes still in use
+        for (ShaderGraphOutputSocket* outputSocket : getOutputSockets())
+        {
+            // Make sure to not include connections to the graph itself.
+            ShaderOutput* upstreamPort = outputSocket->getConnection();
+            if (upstreamPort && upstreamPort->getNode() != this)
+            {
+                for (ShaderGraphEdge edge : traverseUpstream(upstreamPort))
+                {
+                    ShaderNode* node = edge.upstream->getNode();
+                    if (usedNodesSet.count(node) == 0)
+                    {
+                        usedNodesSet.insert(node);
+                        usedNodesVec.push_back(node);
+                    }
+                }
+            }
+        }
+
+        // Remove any unused nodes
+        for (auto it = _nodeMap.begin(); it != _nodeMap.end();)
+        {
+            if (usedNodesSet.count(it->second.get()) == 0)
+            {
+                // Break all connections
+                disconnect(it->second.get());
+
+                // Erase from storage
+                it = _nodeMap.erase(it);
+            }
+            else
+            {
+                ++it;
+            }
+        }
+
+        _nodeOrder = usedNodesVec;
     }
-    
-    if (context.getOptions().optPruneMixBsdf)
-    {
-        passManager.addPass(std::make_shared<MixBsdfPruningPass>());
-    }
-    
-    // Run all passes to fixed point (respecting configured iteration limit)
-    passManager.runToFixedPoint(*this, context, context.getOptions().optMaxPassIterations);
 }
 void ShaderGraph::bypass(ShaderNode* node, size_t inputIndex, size_t outputIndex)
 {
