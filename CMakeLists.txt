@@ -617,6 +617,10 @@ if(MATERIALX_BUILD_JS)
     add_subdirectory(source/JsMaterialX)
 endif()
 
+if(MATERIALX_CONTRIB)
+    add_subdirectory(contrib)
+endif()
+
 if(MATERIALX_BUILD_MONOLITHIC)
     # MaterialX monolithic build target needs to be installed after any other included
     # modules to ensure the correct files are in mxHeaders
