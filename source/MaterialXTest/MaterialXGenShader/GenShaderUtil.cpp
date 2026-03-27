@@ -1006,11 +1006,7 @@ void TestSuiteOptions::print(std::ostream& output) const
     output << "\tEnable Reference Quality: " << enableReferenceQuality << std::endl;
     output << "\tOutput Directory: " << (outputDirectory.isEmpty() ? "(default)" : outputDirectory.asString()) << std::endl;
     output << "\tEnable Tracing: " << enableTracing << std::endl;
-    output << "\tFrames Per Material: " << framesPerMaterial << std::endl;
-    output << "\toptReplaceBsdfMixWithLinearCombination: " << optReplaceBsdfMixWithLinearCombination << std::endl;
-    output << "\toptPruneMixBsdf: " << optPruneMixBsdf << std::endl;
     output << "\toptEarlyPruning: " << optEarlyPruning << std::endl;
-    output << "\tenvSampleCount: " << envSampleCount << std::endl;
 }
 
 bool TestSuiteOptions::readOptions(const std::string& optionFile)
@@ -1038,11 +1034,7 @@ bool TestSuiteOptions::readOptions(const std::string& optionFile)
     const std::string ENABLE_REFERENCE_QUALITY("enableReferenceQuality");
     const std::string OUTPUT_DIRECTORY_STRING("outputDirectory");
     const std::string ENABLE_TRACING_STRING("enableTracing");
-    const std::string FRAMES_PER_MATERIAL_STRING("framesPerMaterial");
-    const std::string OPT_REPLACE_BSDF_MIX_STRING("optReplaceBsdfMixWithLinearCombination");
-    const std::string OPT_PRUNE_MIX_BSDF_STRING("optPruneMixBsdf");
     const std::string OPT_EARLY_PRUNING_STRING("optEarlyPruning");
-    const std::string ENV_SAMPLE_COUNT_STRING("envSampleCount");
 
     overrideFiles.clear();
     dumpGeneratedCode = false;
@@ -1158,27 +1150,9 @@ bool TestSuiteOptions::readOptions(const std::string& optionFile)
                     {
                         enableTracing = val->asA<bool>();
                     }
-                    else if (name == FRAMES_PER_MATERIAL_STRING)
-                    {
-                        int frames = val->asA<int>();
-                        framesPerMaterial = (frames >= 1) ? static_cast<unsigned int>(frames) : 1u;
-                    }
-                    else if (name == OPT_REPLACE_BSDF_MIX_STRING)
-                    {
-                        optReplaceBsdfMixWithLinearCombination = val->asA<bool>();
-                    }
-                    else if (name == OPT_PRUNE_MIX_BSDF_STRING)
-                    {
-                        optPruneMixBsdf = val->asA<bool>();
-                    }
                     else if (name == OPT_EARLY_PRUNING_STRING)
                     {
                         optEarlyPruning = val->asA<bool>();
-                    }
-                    else if (name == ENV_SAMPLE_COUNT_STRING)
-                    {
-                        int count = val->asA<int>();
-                        envSampleCount = (count >= 1) ? count : 1024;
                     }
                 }
             }

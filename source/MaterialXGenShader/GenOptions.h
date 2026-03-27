@@ -96,11 +96,7 @@ class MX_GENSHADER_API GenOptions
         hwWriteAlbedoTable(false),
         hwWriteEnvPrefilter(false),
         hwImplicitBitangents(true),
-        optReplaceBsdfMixWithLinearCombination(false),
-        optPruneMixBsdf(false),
         optEarlyPruning(false),
-        optDumpShaderGraphDot(false),
-        optMaxPassIterations(10),
         oslImplicitSurfaceShaderConversion(true),
         oslConnectCiWrapper(false)
     {
@@ -209,15 +205,6 @@ class MX_GENSHADER_API GenOptions
     /// inside the bitangent node.
     bool hwImplicitBitangents;
 
-    /// Analyse the graph of ShaderNodes and replace any ND_mix_bsdf nodes
-    /// with a linear combination of their weighted inputs
-    bool optReplaceBsdfMixWithLinearCombination;
-
-    /// Prune mix_bsdf nodes when the mix factor is a compile-time constant 0 or 1.
-    /// When mix=0, forwards the background input; when mix=1, forwards the foreground.
-    /// This eliminates dead branches in the shader graph.
-    bool optPruneMixBsdf;
-
     /// Enable early pruning during ShaderGraph construction.
     /// When enabled, performs topology analysis on NodeGraphs to identify
     /// "permutation-defining" inputs (e.g., mix weights). If these inputs
@@ -227,17 +214,6 @@ class MX_GENSHADER_API GenOptions
     /// but creates more ShaderNodeImpl permutations.
     /// Defaults to false.
     bool optEarlyPruning;
-
-    /// Enable dumping shader graph DOT files during optimization.
-    /// When enabled, generates .dot files before/after each optimization pass.
-    /// Defaults to false.
-    bool optDumpShaderGraphDot;
-
-    /// Maximum number of optimization pass iterations before stopping.
-    /// The pass manager runs all passes repeatedly until no changes occur
-    /// (fixed point) or this limit is reached. Similar to LLVM's
-    /// -pass-remarks-max-iterations. Defaults to 10.
-    size_t optMaxPassIterations;
 
     // Enables OSL conversion of surfaceshader struct to closure color.
     // Defaults to true.

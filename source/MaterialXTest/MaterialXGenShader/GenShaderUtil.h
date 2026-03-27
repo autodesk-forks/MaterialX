@@ -126,24 +126,8 @@ class TestSuiteOptions
     // Default is false to avoid overhead when not profiling.
     bool enableTracing = false;
 
-    // Number of frames to render per material for GPU timing.
-    // Default is 1. Set higher (e.g., 5-10) for statistical validity.
-    // First frame often includes driver shader compilation overhead.
-    unsigned int framesPerMaterial = 1;
-
-    // Enable mix_bsdf to linear combination optimization (Lee's optimization).
-    // Transforms mix(A, B, weight) into add(A * (1-weight), B * weight) for BSDFs.
-    bool optReplaceBsdfMixWithLinearCombination = false;
-
-    // Prune mix_bsdf nodes when mix factor is compile-time constant 0 or 1.
-    bool optPruneMixBsdf = false;
-
     // Enable early pruning during ShaderGraph construction.
     bool optEarlyPruning = false;
-
-    // Number of environment radiance samples for IBL lighting.
-    // Default is 1024. Lower values (1-16) are more representative of real-time rendering.
-    int envSampleCount = 1024;
 
     // Helper to resolve output path for an artifact.
     // If outputDirectory is set, returns outputDirectory/filename.
