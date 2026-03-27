@@ -129,6 +129,7 @@ endif()
 if(MATERIALX_BUILD_GEN_MSL)
     set(MATERIALX_BUILD_GEN_GLSL ON)
 endif()
+option(MATERIALX_CONTRIB "Build MaterialX Contrib." ON) 
 
 set(MATERIALX_PYTHON_VERSION "" CACHE STRING
     "Python version to be used in building the MaterialX Python package (e.g. '3.9').")
