@@ -144,14 +144,14 @@ TEST_CASE("GenShader: Slang Shader Generation", "[genslang]")
 
     mx::FilePathVec testRootPaths;
     testRootPaths.push_back(searchPath.find("resources/Materials/TestSuite"));
-    testRootPaths.push_back(searchPath.find("resources/Materials/Examples/StandardSurface"));
+    testRootPaths.push_back(searchPath.find("resources/Materials/Examples"));
 
     // Create the requested shader generator.
     mx::ShaderGeneratorPtr generator;
     generator = mx::SlangShaderGenerator::create();
 
     const mx::FilePath logPath("genslang_generate_test.txt");
-    SlangShaderGeneratorTester tester(generator, testRootPaths, searchPath, logPath, true);
+    SlangShaderGeneratorTester tester(generator, testRootPaths, searchPath, logPath, false);
 
     // Handle resource binding layouts if requested.
     const mx::GenOptions genOptions;

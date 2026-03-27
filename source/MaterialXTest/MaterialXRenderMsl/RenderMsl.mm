@@ -165,7 +165,7 @@ bool MslShaderRenderTester::runRenderer(const std::string& shaderName,
                                           std::ostream& log,
                                           const GenShaderUtil::TestSuiteOptions& testOptions,
                                           RenderUtil::RenderProfileTimes& profileTimes,
-                                          const mx::FileSearchPath& /*imageSearchPath*/,
+                                          const mx::FileSearchPath& imageSearchPath,
                                           const std::string& outputPath,
                                           mx::ImageVec* imageVec)
 {
@@ -188,16 +188,18 @@ bool MslShaderRenderTester::runRenderer(const std::string& shaderName,
             profileTimes.elementsTested++;
 
             mx::FilePath outputFilePath = outputPath;
-            // Use separate directory for reduced output
-            if (options.shaderInterfaceType == mx::SHADER_INTERFACE_REDUCED)
-            {
-                outputFilePath = outputFilePath / mx::FilePath("reduced");
-            }
-
+            
             // Note: mkdir will fail if the directory already exists which is ok.
             {
                 mx::ScopedTimer ioDir(&profileTimes.languageTimes.ioTime);
                 outputFilePath.createDirectory();
+                
+                // Use separate directory for reduced output
+                if (options.shaderInterfaceType == mx::SHADER_INTERFACE_REDUCED)
+                {
+                    outputFilePath = outputFilePath / mx::FilePath("reduced");
+                    outputFilePath.createDirectory();
+                }
             }
 
             std::string shaderPath = mx::FilePath(outputFilePath) / mx::FilePath(shaderName);
@@ -351,7 +353,7 @@ bool MslShaderRenderTester::runRenderer(const std::string& shaderName,
 
                 {
                     mx::ScopedTimer renderTimer(&profileTimes.languageTimes.renderTime);
-                    _renderer->getImageHandler()->setSearchPath(mx::getDefaultDataSearchPath());
+                    _renderer->getImageHandler()->setSearchPath(imageSearchPath);
                     unsigned int width = (unsigned int) testOptions.renderSize[0] * supersampleFactor;
                     unsigned int height = (unsigned int) testOptions.renderSize[1] * supersampleFactor;
                     _renderer->setSize(width, height);

@@ -318,6 +318,7 @@ ShaderNodeImplPtr ShaderGenerator::getImplementation(const NodeDef& nodedef, Gen
     }
     else if (implElement->isA<Implementation>())
     {
+        ImplementationPtr implementationElement = implElement->asA<Implementation>();
         if (getColorManagementSystem() && getColorManagementSystem()->hasImplementation(name))
         {
             impl = getColorManagementSystem()->createImplementation(name);

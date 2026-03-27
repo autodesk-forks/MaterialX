@@ -45,11 +45,13 @@ option(MATERIALX_BUILD_GEN_MSL "Build the MSL shader generator back-end." ON)
 option(MATERIALX_BUILD_GEN_SLANG "Build the Slang shader generator back-end." ON)
 option(MATERIALX_BUILD_RENDER "Build the MaterialX Render modules." ON)
 option(MATERIALX_BUILD_RENDER_PLATFORMS "Build platform-specific render modules for each shader generator." ON)
+option(MATERIALX_RENDER_MSL_ONLY "On macOS, use Metal Shading Language only for tests and viewer (skips GLSL render tests)." OFF)
 option(MATERIALX_BUILD_OIIO "Build OpenImageIO support for MaterialXRender." OFF)
 option(MATERIALX_BUILD_OCIO "Build OpenColorIO support for shader generators." OFF)
 option(MATERIALX_BUILD_TESTS "Build unit tests." OFF)
 option(MATERIALX_BUILD_BENCHMARK_TESTS "Build benchmark tests." OFF)
 option(MATERIALX_BUILD_OSOS "Build OSL .oso's of standard library shaders for the OSL Network generator" OFF)
+option(MATERIALX_BUILD_PERFETTO_TRACING "Build with Perfetto tracing support for performance analysis." OFF)
 
 option(MATERIALX_BUILD_SHARED_LIBS "Build MaterialX libraries as shared rather than static." OFF)
 option(MATERIALX_BUILD_DATA_LIBRARY "Build generated products from the MaterialX data library." OFF)
@@ -112,6 +114,17 @@ if (MATERIALX_BUILD_JS)
     set(MATERIALX_BUILD_TESTS OFF)
 endif()
 
+# Validate MSL-only rendering option
+if(MATERIALX_RENDER_MSL_ONLY)
+    if(NOT APPLE)
+        message(FATAL_ERROR "MATERIALX_RENDER_MSL_ONLY can only be enabled on Apple platforms")
+    endif()
+    if(NOT MATERIALX_BUILD_GEN_MSL)
+        message(FATAL_ERROR "MATERIALX_RENDER_MSL_ONLY requires MATERIALX_BUILD_GEN_MSL to be enabled")
+    endif()
+    message(STATUS "MSL-only testing mode enabled - MaterialXTest will not link MaterialXRenderGlsl")
+endif()
+
 # All hardware shading languages currently depend on the GLSL shader generator.
 if(MATERIALX_BUILD_GEN_MSL)
     set(MATERIALX_BUILD_GEN_GLSL ON)
@@ -124,6 +137,7 @@ set(MATERIALX_PYTHON_EXECUTABLE "" CACHE FILEPATH
     "Python executable to be used in building the MaterialX Python package (e.g. 'C:/Python39/python.exe').")
 set(MATERIALX_PYTHON_PYBIND11_DIR "" CACHE PATH
     "Path to a folder containing the PyBind11 source to be used in building MaterialX Python.")
+option(MATERIALX_PYTHON_FORCE_REPLACE_DOCS "Force replace existing docstrings when generating Python binding documentation from Doxygen." OFF)
 
 # Settings to define installation layout
 set(MATERIALX_INSTALL_INCLUDE_PATH "include" CACHE STRING "Install header include path (e.g. 'inc', 'include').")
@@ -179,6 +193,7 @@ mark_as_advanced(MATERIALX_BUILD_GEN_MSL)
 mark_as_advanced(MATERIALX_BUILD_OSOS)
 mark_as_advanced(MATERIALX_BUILD_RENDER)
 mark_as_advanced(MATERIALX_BUILD_RENDER_PLATFORMS)
+mark_as_advanced(MATERIALX_RENDER_MSL_ONLY)
 mark_as_advanced(MATERIALX_BUILD_OIIO)
 mark_as_advanced(MATERIALX_BUILD_OCIO)
 mark_as_advanced(MATERIALX_BUILD_BENCHMARK_TESTS)
@@ -198,6 +213,7 @@ mark_as_advanced(MATERIALX_DYNAMIC_ANALYSIS)
 mark_as_advanced(MATERIALX_PYTHON_VERSION)
 mark_as_advanced(MATERIALX_PYTHON_EXECUTABLE)
 mark_as_advanced(MATERIALX_PYTHON_PYBIND11_DIR)
+mark_as_advanced(MATERIALX_PYTHON_FORCE_REPLACE_DOCS)
 mark_as_advanced(MATERIALX_OSL_BINARY_OSLC)
 mark_as_advanced(MATERIALX_OSL_BINARY_TESTRENDER)
 mark_as_advanced(MATERIALX_OSL_INCLUDE_PATH)
@@ -210,9 +226,45 @@ mark_as_advanced(MATERIALX_EMSDK_PATH)
 mark_as_advanced(MATERIALX_BUILD_IOS)
 mark_as_advanced(MATERIALX_BUILD_APPLE_FRAMEWORK)
 mark_as_advanced(MATERIALX_MDL_BINARY_MDLC)
+mark_as_advanced(MATERIALX_MDL_BINARY_TESTRENDER)
 mark_as_advanced(MATERIALX_MDL_MODULE_PATHS)
 mark_as_advanced(MATERIALX_MDL_SDK_DIR)
 mark_as_advanced(MATERIALX_SLANG_RHI_SOURCE_DIR)
+mark_as_advanced(MATERIALX_BUILD_PERFETTO_TRACING)
+
+# Perfetto tracing support
+if(MATERIALX_BUILD_PERFETTO_TRACING)
+    include(FetchContent)
+    FetchContent_Declare(
+        perfetto
+        GIT_REPOSITORY https://android.googlesource.com/platform/external/perfetto
+        GIT_TAG v43.0
+        GIT_SHALLOW TRUE
+    )
+    # Only fetch the SDK, not the full Perfetto source
+    set(PERFETTO_SDK_INCLUDE_DIR "${CMAKE_BINARY_DIR}/_deps/perfetto-src/sdk")
+    FetchContent_MakeAvailable(perfetto)
+    add_definitions(-DMATERIALX_BUILD_PERFETTO_TRACING)
+    
+    # Define compile flags for perfetto.cc (Perfetto SDK triggers various warnings)
+    # These variables are used in source/CMakeLists.txt (monolithic) and MaterialXTrace (non-monolithic)
+    # Note: set_source_files_properties is directory-scoped, so we define variables here
+    # but apply them in the directories where targets are created.
+    if(MSVC)
+        set(MATERIALX_PERFETTO_COMPILE_DEFINITIONS "NOMINMAX;WIN32_LEAN_AND_MEAN" CACHE INTERNAL "")
+        # /bigobj: perfetto.cc has too many sections for default MSVC object format
+        # /W0: disable all warnings for third-party Perfetto SDK code
+        # /WX-: disable warnings-as-errors (overrides project-level /WX)
+        set(MATERIALX_PERFETTO_COMPILE_FLAGS "/bigobj /W0 /WX-" CACHE INTERNAL "")
+    else()
+        set(MATERIALX_PERFETTO_COMPILE_DEFINITIONS "" CACHE INTERNAL "")
+        # -Wno-error: Don't treat warnings as errors (Perfetto has shadowing issues)
+        # -Wno-shadow: Suppress shadow warnings (kDevNull shadows global)
+        set(MATERIALX_PERFETTO_COMPILE_FLAGS "-Wno-error -Wno-shadow" CACHE INTERNAL "")
+    endif()
+    
+    message(STATUS "Perfetto tracing support enabled")
+endif()
 
 if (MATERIALX_BUILD_USE_CCACHE)
     # Setup CCache for C/C++ compilation
@@ -250,11 +302,23 @@ if (MATERIALX_BUILD_BENCHMARK_TESTS)
     add_definitions(-DMATERIALX_BUILD_BENCHMARK_TESTS)
 endif()
 
-# GEN MDL does not have any additional dependencies. For loading and compiling MDL, e.g., in the test renderer, the MDL SDK is needed.
+# MaterialXGenMdl does not have any additional dependencies.
+# MaterialXTest/MaterialXGenMdl performs a syntax check if the mdlc binary is available.
+# MaterialXTest/MaterialXRenderMdl needs the df_vulkan example, SDK library, and image plugins.
 if(MATERIALX_MDL_SDK_DIR)
     find_package(mdl QUIET CONFIG REQUIRED PATHS ${MATERIALX_MDL_SDK_DIR})
     get_target_property(MATERIALX_MDL_BINARY_MDLC mdl::mdlc LOCATION)
     set(MATERIALX_MDL_BINARY_MDLC ${MATERIALX_MDL_BINARY_MDLC} CACHE FILEPATH "Full path to the mdlc binary." FORCE)
+    if((${mdl_VERSION} VERSION_GREATER_EQUAL "2025.0.3") OR (${mdl_VERSION} STREQUAL "trunk"))
+        find_program(MATERIALX_MDL_BINARY_TESTRENDER
+            NAMES df_vulkan
+            HINTS
+                ${MATERIALX_MDL_SDK_DIR}/examples/mdl_sdk/df_vulkan   # regular install layout
+                ${MATERIALX_MDL_SDK_DIR}/tools/mdl-sdk)               # vcpkg layout
+    else()
+        message(WARNING "The MDL df_vulkan test renderer requires an MDL SDK >= 2025.0.3 (found ${mdl_VERSION}).")
+        set(MATERIALX_MDL_BINARY_TESTRENDER "" CACHE FILEPATH "Full path to the MDL df_vulkan test renderer.")
+    endif()
 endif()
 
 # Adjust the default installation path
@@ -300,7 +364,7 @@ if(MSVC)
         add_compile_options(/WX)
     endif()
 else()
-    add_compile_options(-Wall -Wunused-parameter -Wno-missing-braces)
+    add_compile_options(-Wall -Wunused-parameter -Wshadow -Wno-missing-braces)
     if(MATERIALX_WARNINGS_AS_ERRORS)
         add_compile_options(-Werror)
     endif()
@@ -464,6 +528,9 @@ endif()
 # Add core subdirectories
 add_subdirectory(source/MaterialXCore)
 add_subdirectory(source/MaterialXFormat)
+if(MATERIALX_BUILD_PERFETTO_TRACING)
+    add_subdirectory(source/MaterialXTrace)
+endif()
 
 # Add shader generation subdirectories
 add_subdirectory(source/MaterialXGenShader)
@@ -536,14 +603,14 @@ if(MATERIALX_BUILD_TESTS)
     add_subdirectory(source/MaterialXTest)
 endif()
 
+if (MATERIALX_BUILD_DOCS)
+    add_subdirectory(documents)
+endif()
+
 # Add Python subdirectories
 if(MATERIALX_BUILD_PYTHON)
     add_subdirectory(source/PyMaterialX)
     add_subdirectory(python)
-endif()
-
-if(MATERIALX_BUILD_DOCS)
-    add_subdirectory(documents)
 endif()
 
 if(MATERIALX_BUILD_JS)
