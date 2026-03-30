@@ -79,11 +79,11 @@
     -->
     <input name="outputDirectory" type="string" value="" />
 
-    <!-- Enable Perfetto tracing during render tests (requires MATERIALX_BUILD_PERFETTO_TRACING).
+    <!-- Enable Perfetto tracing during render tests (requires MATERIALX_BUILD_TRACING).
          When enabled, generates .perfetto-trace files in outputDirectory.
          Default is false to avoid overhead when not profiling.
     -->
-    <input name="enableTracing" type="boolean" value="false" />
+    <input name="enableTracing" type="boolean" value="true" />
 
     <!-- Enable early pruning during ShaderGraph construction.
          When a NodeGraph has topological inputs (e.g. mix weights) that are
