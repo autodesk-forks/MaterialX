@@ -38,16 +38,12 @@ void ShaderRenderTester::getGenerationOptions(const GenShaderUtil::TestSuiteOpti
                                               const mx::GenOptions& originalOptions,
                                               std::vector<mx::GenOptions>& optionsList)
 {
-    auto applyOptimizationFlags = [&testOptions](mx::GenOptions& genOptions) {
-        genOptions.enableLobePruning = testOptions.enableLobePruning;
-    };
-
     optionsList.clear();
     if (testOptions.shaderInterfaces & 1)
     {
         mx::GenOptions reducedOption = originalOptions;
         reducedOption.shaderInterfaceType = mx::SHADER_INTERFACE_REDUCED;
-        applyOptimizationFlags(reducedOption);
+        reducedOption.enableLobePruning = testOptions.enableLobePruning;
         optionsList.push_back(reducedOption);
     }
     // Always fallback to complete if no options specified.
@@ -55,7 +51,7 @@ void ShaderRenderTester::getGenerationOptions(const GenShaderUtil::TestSuiteOpti
     {
         mx::GenOptions completeOption = originalOptions;
         completeOption.shaderInterfaceType = mx::SHADER_INTERFACE_COMPLETE;
-        applyOptimizationFlags(completeOption);
+        completeOption.enableLobePruning = testOptions.enableLobePruning;
         optionsList.push_back(completeOption);
     }
 }
