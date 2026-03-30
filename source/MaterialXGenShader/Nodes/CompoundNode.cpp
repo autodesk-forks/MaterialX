@@ -5,6 +5,7 @@
 
 #include <MaterialXGenShader/Nodes/CompoundNode.h>
 #include <MaterialXGenShader/Exception.h>
+#include <MaterialXGenShader/NodeGraphTopology.h>
 #include <MaterialXGenShader/ShaderGenerator.h>
 #include <MaterialXGenShader/Util.h>
 
@@ -23,6 +24,8 @@ CompoundNode::CompoundNode(std::unique_ptr<NodeGraphPermutation> permutation) :
     _permutation(std::move(permutation))
 {
 }
+
+CompoundNode::~CompoundNode() = default;
 
 void CompoundNode::addClassification(ShaderNode& node) const
 {

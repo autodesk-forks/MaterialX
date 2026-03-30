@@ -7,7 +7,6 @@
 #define MATERIALX_COMPOUNDNODE_H
 
 #include <MaterialXGenShader/GenContext.h>
-#include <MaterialXGenShader/NodeGraphTopology.h>
 #include <MaterialXGenShader/ShaderNodeImpl.h>
 #include <MaterialXGenShader/ShaderGraph.h>
 #include <MaterialXGenShader/Shader.h>
@@ -16,6 +15,8 @@
 
 MATERIALX_NAMESPACE_BEGIN
 
+class NodeGraphPermutation;
+
 /// Compound node implementation
 class MX_GENSHADER_API CompoundNode : public ShaderNodeImpl
 {
@@ -23,6 +24,8 @@ class MX_GENSHADER_API CompoundNode : public ShaderNodeImpl
     /// Create a CompoundNode with a permutation (may be nullptr).
     /// @param permutation The permutation for this instance (ownership transferred)
     static ShaderNodeImplPtr create(std::unique_ptr<NodeGraphPermutation> permutation);
+
+    ~CompoundNode() override;
 
     void initialize(const InterfaceElement& element, GenContext& context) override;
 
