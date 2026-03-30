@@ -127,7 +127,7 @@ class TestSuiteOptions
     bool enableTracing = false;
 
     // Enable early pruning during ShaderGraph construction.
-    bool optEarlyPruning = false;
+    bool enableLobePruning = false;
 
     // Helper to resolve output path for an artifact.
     // If outputDirectory is set, returns outputDirectory/filename.

@@ -39,7 +39,7 @@ void ShaderRenderTester::getGenerationOptions(const GenShaderUtil::TestSuiteOpti
                                               std::vector<mx::GenOptions>& optionsList)
 {
     auto applyOptimizationFlags = [&testOptions](mx::GenOptions& genOptions) {
-        genOptions.optEarlyPruning = testOptions.optEarlyPruning;
+        genOptions.enableLobePruning = testOptions.enableLobePruning;
     };
 
     optionsList.clear();

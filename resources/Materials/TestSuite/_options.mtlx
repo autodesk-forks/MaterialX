@@ -85,11 +85,11 @@
     -->
     <input name="enableTracing" type="boolean" value="true" />
 
-    <!-- Enable early pruning during ShaderGraph construction.
+    <!-- Enable lobe pruning during ShaderGraph construction.
          When a NodeGraph has topological inputs (e.g. mix weights) that are
          compile-time constant 0 or 1, skip creating the dead branch nodes.
          Default is false.
     -->
-    <input name="optEarlyPruning" type="boolean" value="false" />
+    <input name="enableLobePruning" type="boolean" value="false" />
   </nodedef>
 </materialx>

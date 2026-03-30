@@ -311,7 +311,7 @@ ShaderNodeImplPtr ShaderGenerator::getImplementation(const NodeDef& nodedef, Gen
     // For NodeGraphs, compute permutation and append it to the cache key
     std::unique_ptr<NodeGraphPermutation> permutation;
 
-    if (context.getOptions().optEarlyPruning && implElement->isA<NodeGraph>())
+    if (context.getOptions().enableLobePruning && implElement->isA<NodeGraph>())
     {
         const NodeGraph& graph = *implElement->asA<NodeGraph>();
 

@@ -1006,7 +1006,7 @@ void TestSuiteOptions::print(std::ostream& output) const
     output << "\tEnable Reference Quality: " << enableReferenceQuality << std::endl;
     output << "\tOutput Directory: " << (outputDirectory.isEmpty() ? "(default)" : outputDirectory.asString()) << std::endl;
     output << "\tEnable Tracing: " << enableTracing << std::endl;
-    output << "\toptEarlyPruning: " << optEarlyPruning << std::endl;
+    output << "\tenableLobePruning: " << enableLobePruning << std::endl;
 }
 
 bool TestSuiteOptions::readOptions(const std::string& optionFile)
@@ -1034,7 +1034,7 @@ bool TestSuiteOptions::readOptions(const std::string& optionFile)
     const std::string ENABLE_REFERENCE_QUALITY("enableReferenceQuality");
     const std::string OUTPUT_DIRECTORY_STRING("outputDirectory");
     const std::string ENABLE_TRACING_STRING("enableTracing");
-    const std::string OPT_EARLY_PRUNING_STRING("optEarlyPruning");
+    const std::string ENABLE_LOBE_PRUNING_STRING("enableLobePruning");
 
     overrideFiles.clear();
     dumpGeneratedCode = false;
@@ -1150,9 +1150,9 @@ bool TestSuiteOptions::readOptions(const std::string& optionFile)
                     {
                         enableTracing = val->asA<bool>();
                     }
-                    else if (name == OPT_EARLY_PRUNING_STRING)
+                    else if (name == ENABLE_LOBE_PRUNING_STRING)
                     {
-                        optEarlyPruning = val->asA<bool>();
+                        enableLobePruning = val->asA<bool>();
                     }
                 }
             }
