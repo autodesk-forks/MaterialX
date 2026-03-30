@@ -132,22 +132,6 @@ class MX_GENSHADER_API ShaderGraph : public ShaderNode
     /// Return the map of unique identifiers used in the scope of this graph.
     IdentifierMap& getIdentifierMap() { return _identifiers; }
 
-    /// Bypass a node for a particular input and output,
-    /// effectively connecting the input's upstream connection
-    /// with the output's downstream connections.
-    void bypass(ShaderNode* node, size_t inputIndex, size_t outputIndex = 0);
-
-    /// Create a new node in a graph from a node definition.
-    /// Note - this does not initialize the node instance with any concrete values, but
-    /// instead creates an empty instance of the provided node definition
-    ShaderNode* createNode(const string& name, ConstNodeDefPtr nodeDef, GenContext& context);
-
-    /// Remove a node from the graph
-    bool removeNode(ShaderNode* node);
-
-    /// Get the document associated with this graph
-    ConstDocumentPtr getDocument() const { return _document; }
-
   protected:
     /// Create node connections corresponding to the connection between a pair of elements.
     /// @param downstreamElement Element representing the node to connect to.
@@ -164,12 +148,10 @@ class MX_GENSHADER_API ShaderGraph : public ShaderNode
     /// Create a new node in a graph from a node definition.
     /// Note - this does not initialize the node instance with any concrete values, but
     /// instead creates an empty instance of the provided node definition
-    /// (Removed - now public)
+    ShaderNode* createNode(const string& name, ConstNodeDefPtr nodeDef, GenContext& context);
 
-    /// Add a node to the graph
+    /// Add a node to the graph, keyed by the node's name.
     void addNode(ShaderNodePtr node);
-
-    /// (Removed - now public)
 
     /// Add input sockets from an interface element (nodedef, nodegraph or node)
     void addInputSockets(const InterfaceElement& elem, GenContext& context);
@@ -204,9 +186,10 @@ class MX_GENSHADER_API ShaderGraph : public ShaderNode
     /// Optimize the graph, removing redundant paths.
     void optimize(GenContext& context);
 
-    /// (Removed - moved to PremultipliedAddPass)
-
-    /// (Removed - moved to bypass, now public)
+    /// Bypass a node for a particular input and output,
+    /// effectively connecting the input's upstream connection
+    /// with the output's downstream connections.
+    void bypass(ShaderNode* node, size_t inputIndex, size_t outputIndex = 0);
 
     /// For inputs and outputs in the graph set the variable names to be used
     /// in generated code. Making sure variable names are valid and unique

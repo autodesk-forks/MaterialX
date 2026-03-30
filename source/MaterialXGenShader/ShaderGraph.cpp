@@ -10,7 +10,6 @@
 #include <MaterialXGenShader/NodeGraphTopology.h>
 #include <MaterialXGenShader/Util.h>
 
-#include <cstdlib>
 #include <iostream>
 #include <queue>
 
@@ -141,11 +140,10 @@ void ShaderGraph::createConnectedNodes(const ElementPtr& downstreamElement,
                                       "' on upstream node '" + upstreamNode->getName() + "'");
     }
 
-    // Check if it was a node downstream
+    // Connect to downstream node or graph output socket.
     NodePtr downstreamNode = downstreamElement->asA<Node>();
     if (downstreamNode)
     {
-        // We have a node downstream
         ShaderNode* downstream = getNode(downstreamNode->getName());
         if (downstream)
         {
@@ -166,7 +164,7 @@ void ShaderGraph::createConnectedNodes(const ElementPtr& downstreamElement,
             }
             else
             {
-                throw ExceptionShaderGenError("Could not find downstream node ' " + downstreamNode->getName() + "'");
+                throw ExceptionShaderGenError("No connecting element for downstream node '" + downstreamNode->getName() + "'");
             }
         }
     }
@@ -559,8 +557,7 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
         graph->addOutputSockets(*nodeDef, context);
 
         // Create this shader node in the graph.
-        ShaderNodePtr newNode = ShaderNode::create(graph.get(), node->getName(), *nodeDef, context);
-        graph->addNode(newNode);
+        ShaderNode* newNode = graph->createNode(node->getName(), nodeDef, context);
 
         // Share metadata.
         graph->setMetadata(newNode->getMetadata());
@@ -641,7 +638,7 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
         }
 
         // Apply color and unit transforms to each input.
-        graph->applyInputTransforms(node, newNode.get(), context);
+        graph->applyInputTransforms(node, newNode, context);
 
         // Set root for upstream dependency traversal
         root = node;
@@ -879,26 +876,6 @@ ShaderNode* ShaderGraph::getNode(const string& name)
     return it != _nodeMap.end() ? it->second.get() : nullptr;
 }
 
-bool ShaderGraph::removeNode(ShaderNode* node)
-{
-    auto mapIt = _nodeMap.find(node->getName());
-    auto vecIt = std::find(_nodeOrder.begin(), _nodeOrder.end(), node);
-    if (mapIt == _nodeMap.end() || vecIt == _nodeOrder.end())
-        return false;
-
-    for (ShaderInput* input : node->getInputs())
-    {
-        input->breakConnection();
-    }
-    for (ShaderOutput* output : node->getOutputs())
-    {
-        output->breakConnections();
-    }
-    _nodeMap.erase(mapIt);
-    _nodeOrder.erase(vecIt);
-    return true;
-}
-
 const ShaderNode* ShaderGraph::getNode(const string& name) const
 {
     return const_cast<ShaderGraph*>(this)->getNode(name);
@@ -947,63 +924,46 @@ void ShaderGraph::finalize(GenContext& context)
     _inputUnitTransformMap.clear();
     _outputUnitTransformMap.clear();
 
-    // Optimize the graph, removing redundant paths and applying graph transformations
+    // Optimize the graph, removing redundant paths.
     optimize(context);
 
     // Sort the nodes in topological order.
     topologicalSort();
 
-    // Publish node inputs that should be exposed as graph input sockets.
-    // In COMPLETE mode, all unconnected editable inputs are published.
-    // In REDUCED mode, only filename inputs are published since file paths
-    // can't be inlined as literals in real-time shading languages.
-    const bool completeInterface = (context.getOptions().shaderInterfaceType == SHADER_INTERFACE_COMPLETE);
-    for (const ShaderNode* node : getNodes())
+    if (context.getOptions().shaderInterfaceType == SHADER_INTERFACE_COMPLETE)
     {
-        for (ShaderInput* input : node->getInputs())
+        // Publish all node inputs that has not been connected already.
+        for (const ShaderNode* node : getNodes())
         {
-            if (!input->getConnection())
+            for (ShaderInput* input : node->getInputs())
             {
-                bool shouldPublish = false;
-                bool forceUniform = false;
-
-                if (completeInterface)
+                if (!input->getConnection())
                 {
                     // Check if the type is editable otherwise we can't
                     // publish the input as an editable uniform.
                     if (!input->getType().isClosure() && node->isEditable(*input))
                     {
-                        shouldPublish = true;
-                    }
-                }
-                else if (input->getType() == Type::FILENAME)
-                {
-                    shouldPublish = true;
-                    forceUniform = true;
-                }
+                        // Use a consistent naming convention: <nodename>_<inputname>
+                        // so application side can figure out what uniforms to set
+                        // when node inputs change on application side.
+                        const string interfaceName = node->getName() + "_" + input->getName();
 
-                if (shouldPublish)
-                {
-                    // Use a consistent naming convention: <nodename>_<inputname>
-                    // so application side can figure out what uniforms to set
-                    // when node inputs change on application side.
-                    const string interfaceName = node->getName() + "_" + input->getName();
-
-                    ShaderGraphInputSocket* inputSocket = getInputSocket(interfaceName);
-                    if (!inputSocket)
-                    {
-                        inputSocket = addInputSocket(interfaceName, input->getType());
-                        inputSocket->setPath(input->getPath());
-                        inputSocket->setValue(input->getValue());
-                        inputSocket->setUnit(input->getUnit());
-                        inputSocket->setColorSpace(input->getColorSpace());
-                        if (input->isUniform() || forceUniform)
+                        ShaderGraphInputSocket* inputSocket = getInputSocket(interfaceName);
+                        if (!inputSocket)
                         {
-                            inputSocket->setUniform();
+                            inputSocket = addInputSocket(interfaceName, input->getType());
+                            inputSocket->setPath(input->getPath());
+                            inputSocket->setValue(input->getValue());
+                            inputSocket->setUnit(input->getUnit());
+                            inputSocket->setColorSpace(input->getColorSpace());
+                            if (input->isUniform())
+                            {
+                                inputSocket->setUniform();
+                            }
                         }
+                        inputSocket->makeConnection(input);
+                        inputSocket->setMetadata(input->getMetadata());
                     }
-                    inputSocket->makeConnection(input);
-                    inputSocket->setMetadata(input->getMetadata());
                 }
             }
         }
@@ -1118,8 +1078,18 @@ void ShaderGraph::optimize(GenContext& context)
         _nodeOrder = usedNodesVec;
     }
 }
+
 void ShaderGraph::bypass(ShaderNode* node, size_t inputIndex, size_t outputIndex)
 {
+    if (inputIndex >= node->numInputs())
+    {
+        throw ExceptionShaderGenError("Input index '" + std::to_string(inputIndex) + "' out of bounds for node '" + node->getName() + "'");
+    }
+    if (outputIndex >= node->numOutputs())
+    {
+        throw ExceptionShaderGenError("Output index '" + std::to_string(outputIndex) + "' out of bounds for node '" + node->getName() + "'");
+    }
+
     ShaderInput* input = node->getInput(inputIndex);
     ShaderOutput* output = node->getOutput(outputIndex);
 
