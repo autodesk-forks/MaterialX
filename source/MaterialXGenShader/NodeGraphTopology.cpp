@@ -10,8 +10,6 @@
 #include <MaterialXCore/Document.h>
 #include <MaterialXCore/Library.h>
 
-#include <MaterialXTrace/Tracing.h>
-
 #include <unordered_set>
 
 MATERIALX_NAMESPACE_BEGIN
@@ -40,9 +38,6 @@ const std::unordered_set<string> kWeightedPbrNodes = {
 
 NodeGraphTopology::NodeGraphTopology(const NodeGraph& nodeGraph)
 {
-    MX_TRACE_FUNCTION(Tracing::Category::ShaderGen);
-    MX_TRACE_SCOPE(Tracing::Category::ShaderGen, nodeGraph.getName().c_str());
-
     NodeDefPtr nodeDef = nodeGraph.getNodeDef();
     if (!nodeDef)
     {
@@ -224,8 +219,6 @@ void NodeGraphTopology::buildNodeInfos(const NodeGraph& nodeGraph)
 
 std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const Node& node) const
 {
-    MX_TRACE_FUNCTION(Tracing::Category::ShaderGen);
-
     if (_topologicalInputs.empty())
     {
         return nullptr;
@@ -404,7 +397,6 @@ std::unique_ptr<NodeGraphPermutation> NodeGraphTopologyCache::createPermutation(
 
 const NodeGraphTopology& NodeGraphTopologyCache::getTopology(const NodeGraph& nodeGraph)
 {
-    MX_TRACE_FUNCTION(Tracing::Category::ShaderGen);
     const string& ngName = nodeGraph.getName();
 
     // Check cache first (with lock)

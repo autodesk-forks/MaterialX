@@ -1,18 +1,14 @@
 file(GLOB_RECURSE materialx_source "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 file(GLOB_RECURSE materialx_headers "${CMAKE_CURRENT_SOURCE_DIR}/*.h*")
 
-set(GENSHADER_MTLX_MODULES MaterialXFormat MaterialXCore)
-if(MATERIALX_BUILD_PERFETTO_TRACING)
-    list(APPEND GENSHADER_MTLX_MODULES MaterialXTrace)
-endif()
-
 mx_add_library(MaterialXGenShader
     SOURCE_FILES
         ${materialx_source}
     HEADER_FILES
         ${materialx_headers}
     MTLX_MODULES
-        ${GENSHADER_MTLX_MODULES}
+        MaterialXFormat
+        MaterialXCore
     EXPORT_DEFINE
         MATERIALX_GENSHADER_EXPORTS)
 

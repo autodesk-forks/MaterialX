@@ -10,8 +10,6 @@
 #include <MaterialXGenShader/NodeGraphTopology.h>
 #include <MaterialXGenShader/Util.h>
 
-#include <MaterialXTrace/Tracing.h>
-
 #include <cstdlib>
 #include <iostream>
 #include <queue>
@@ -83,8 +81,6 @@ void ShaderGraph::createConnectedNodes(const ElementPtr& downstreamElement,
                                        GenContext& context,
                                        const NodeGraphPermutation* permutation)
 {
-    MX_TRACE_FUNCTION(Tracing::Category::ShaderGen);
-
     // Create the node if it doesn't exist.
     NodePtr upstreamNode = upstreamElement->asA<Node>();
     if (!upstreamNode)
@@ -99,7 +95,6 @@ void ShaderGraph::createConnectedNodes(const ElementPtr& downstreamElement,
     {
         // Prune this node entirely. The downstream input will remain
         // unconnected and use its default value (e.g., transparent BSDF).
-        MX_TRACE_SCOPE(Tracing::Category::ShaderGen, ("PRUNED:" + newNodeName).c_str());
         return;
     }
 
@@ -189,9 +184,6 @@ void ShaderGraph::createConnectedNodes(const ElementPtr& downstreamElement,
 void ShaderGraph::addUpstreamDependencies(const Element& root, GenContext& context,
                                           const NodeGraphPermutation* permutation)
 {
-    MX_TRACE_FUNCTION(Tracing::Category::ShaderGen);
-    MX_TRACE_SCOPE(Tracing::Category::ShaderGen, root.getName().c_str());
-
     std::set<ElementPtr> processedOutputs;
 
     for (Edge edge : root.traverseGraph())
@@ -455,9 +447,6 @@ void ShaderGraph::addUnitTransformNode(ShaderOutput* output, const UnitTransform
 ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const NodeGraph& nodeGraph,
                                    GenContext& context, const NodeGraphPermutation* permutation)
 {
-    MX_TRACE_FUNCTION(Tracing::Category::ShaderGen);
-    MX_TRACE_SCOPE(Tracing::Category::ShaderGen, nodeGraph.getName().c_str());
-
     NodeDefPtr nodeDef = nodeGraph.getNodeDef();
     if (!nodeDef)
     {
@@ -491,9 +480,6 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const NodeGraph& n
 
 ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name, ElementPtr element, GenContext& context)
 {
-    MX_TRACE_FUNCTION(Tracing::Category::ShaderGen);
-    MX_TRACE_SCOPE(Tracing::Category::ShaderGen, name.c_str());
-
     ShaderGraphPtr graph;
     ElementPtr root;
 
@@ -729,9 +715,6 @@ void ShaderGraph::applyInputTransforms(ConstNodePtr node, ShaderNode* shaderNode
 
 ShaderNode* ShaderGraph::createNode(const string& name, ConstNodeDefPtr nodeDef, GenContext& context)
 {
-    MX_TRACE_FUNCTION(Tracing::Category::ShaderGen);
-    MX_TRACE_SCOPE(Tracing::Category::ShaderGen, name.c_str());
-
     if (!nodeDef)
     {
         throw ExceptionShaderGenError("Could not find a nodedef for node '" + name + "'");
@@ -923,9 +906,6 @@ const ShaderNode* ShaderGraph::getNode(const string& name) const
 
 void ShaderGraph::finalize(GenContext& context)
 {
-    MX_TRACE_FUNCTION(Tracing::Category::ShaderGen);
-    MX_TRACE_SCOPE(Tracing::Category::ShaderGen, _name.c_str());
-
     // Allow node implementations to update the classification
     // on its node instances
     for (ShaderNode* node : getNodes())

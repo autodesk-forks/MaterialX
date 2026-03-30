@@ -9,8 +9,6 @@
 #include <MaterialXGenShader/GenContext.h>
 #include <MaterialXGenShader/Util.h>
 
-#include <MaterialXTrace/Tracing.h>
-
 MATERIALX_NAMESPACE_BEGIN
 
 const string ShaderMetadataRegistry::USER_DATA_NAME = "ShaderMetadataRegistry";
@@ -174,9 +172,6 @@ ShaderNode::ShaderNode(const ShaderGraph* parent, const string& name) :
 
 ShaderNodePtr ShaderNode::create(const ShaderGraph* parent, const string& name, const NodeDef& nodeDef, GenContext& context)
 {
-    MX_TRACE_FUNCTION(Tracing::Category::ShaderGen);
-    MX_TRACE_SCOPE(Tracing::Category::ShaderGen, name.c_str());
-
     ShaderNodePtr newNode = std::make_shared<ShaderNode>(parent, name);
 
     const ShaderGenerator& shadergen = context.getShaderGenerator();
