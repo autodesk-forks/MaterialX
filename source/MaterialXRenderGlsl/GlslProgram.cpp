@@ -12,7 +12,6 @@
 #include <MaterialXRender/ShaderRenderer.h>
 
 #include <MaterialXGenHw/HwConstants.h>
-#include <MaterialXTrace/Tracing.h>
 
 #include <iostream>
 
@@ -83,8 +82,6 @@ const string& GlslProgram::getStageSourceCode(const string& stage) const
 
 void GlslProgram::build()
 {
-    MX_TRACE_FUNCTION(Tracing::Category::Render);
-
     clearBuiltData();
 
     GLint glStatus = GL_FALSE;
