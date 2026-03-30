@@ -39,9 +39,9 @@ class MX_GENSHADER_API CompoundNode : public ShaderNodeImpl
     /// Return the permutation (if any) for this compound node.
     const NodeGraphPermutation* getPermutation() const { return _permutation.get(); }
 
-  protected:
     explicit CompoundNode(std::unique_ptr<NodeGraphPermutation> permutation);
 
+  protected:
     ShaderGraphPtr _rootGraph;
     string _functionName;
     std::unique_ptr<NodeGraphPermutation> _permutation;

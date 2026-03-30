@@ -16,7 +16,7 @@ MATERIALX_NAMESPACE_BEGIN
 
 ShaderNodeImplPtr CompoundNode::create(std::unique_ptr<NodeGraphPermutation> permutation)
 {
-    return std::shared_ptr<CompoundNode>(new CompoundNode(std::move(permutation)));
+    return std::make_shared<CompoundNode>(std::move(permutation));
 }
 
 CompoundNode::CompoundNode(std::unique_ptr<NodeGraphPermutation> permutation) :

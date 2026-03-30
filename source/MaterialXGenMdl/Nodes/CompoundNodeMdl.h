@@ -40,9 +40,9 @@ class MX_GENMDL_API CompoundNodeMdl : public CompoundNode
     bool isReturnStruct() const { return !_returnStruct.empty(); }
     bool unrollReturnStructMembers() const { return _unrollReturnStructMembers; }
 
-  protected:
     explicit CompoundNodeMdl(std::unique_ptr<NodeGraphPermutation> permutation);
 
+  protected:
     void emitFunctionSignature(const ShaderNode& node, GenContext& context, ShaderStage& stage) const;
 
     string _returnStruct;

@@ -22,7 +22,6 @@ class MX_GENMDL_API ClosureCompoundNodeMdl : public CompoundNodeMdl
     void emitFunctionDefinition(const ShaderNode& node, GenContext& context, ShaderStage& stage) const override;
     void emitFunctionCall(const ShaderNode& node, GenContext& context, ShaderStage& stage) const override;
 
-  protected:
     explicit ClosureCompoundNodeMdl(std::unique_ptr<NodeGraphPermutation> permutation);
 };
 

@@ -18,7 +18,7 @@ const string CompoundNodeMdl::GEN_USER_DATA_RETURN_STRUCT_FIELD_NAME = "returnSt
 
 ShaderNodeImplPtr CompoundNodeMdl::create(std::unique_ptr<NodeGraphPermutation> permutation)
 {
-    return std::shared_ptr<CompoundNodeMdl>(new CompoundNodeMdl(std::move(permutation)));
+    return std::make_shared<CompoundNodeMdl>(std::move(permutation));
 }
 
 CompoundNodeMdl::CompoundNodeMdl(std::unique_ptr<NodeGraphPermutation> permutation) :
