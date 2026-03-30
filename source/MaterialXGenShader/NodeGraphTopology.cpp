@@ -283,8 +283,10 @@ std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const
         };
 
         // Apply the effects of a topological input being constant (0 or 1).
+        // Takes topoInput by parameter (not capture) because capturing
+        // structured bindings requires C++20.
         auto applyConstantInput = [&applyConstantValue, &flag](
-            const TopologicalInput& topoInput, Input& input )
+            const TopologicalInput& topo, Input& input)
         {
             if (!input.hasValue())
             {
@@ -295,12 +297,12 @@ std::unique_ptr<NodeGraphPermutation> NodeGraphTopology::createPermutation(const
             if (value == 0.0f)
             {
                 flag = '0';
-                applyConstantValue(topoInput.prunableAtValue[0], topoInput.potentiallyPrunableAtValue[0]);
+                applyConstantValue(topo.prunableAtValue[0], topo.potentiallyPrunableAtValue[0]);
             }
             else if (value == 1.0f)
             {
                 flag = '1';
-                applyConstantValue(topoInput.prunableAtValue[1], topoInput.potentiallyPrunableAtValue[1]);
+                applyConstantValue(topo.prunableAtValue[1], topo.potentiallyPrunableAtValue[1]);
             }
         };
 
