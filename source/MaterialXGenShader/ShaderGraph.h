@@ -68,10 +68,12 @@ class MX_GENSHADER_API ShaderGraph : public ShaderNode
     /// Return true if this node is a graph.
     bool isAGraph() const override { return true; }
 
-    /// Get an internal node by name
+    /// Get an internal node by name.
+    /// Also accepts a full namePath (e.g., "graphName/nodeName") for
+    /// backward compatibility; the graph prefix is validated and stripped.
     ShaderNode* getNode(const string& name);
 
-    /// Get an internal node by name
+    /// @copydoc getNode(const string&)
     const ShaderNode* getNode(const string& name) const;
 
     /// Get a vector of all nodes in order
@@ -209,6 +211,7 @@ class MX_GENSHADER_API ShaderGraph : public ShaderNode
     void disconnect(ShaderNode* node) const;
 
     ConstDocumentPtr _document;
+    string _namePath;
     std::unordered_map<string, ShaderNodePtr> _nodeMap;
     std::vector<ShaderNode*> _nodeOrder;
     IdentifierMap _identifiers;

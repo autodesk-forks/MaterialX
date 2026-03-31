@@ -25,6 +25,7 @@ ShaderGraph::ShaderGraph(const ShaderGraph* parent, const string& name, ConstDoc
     _document(document)
 {
     context.getShaderGenerator().getSyntax().makeIdentifier(_name, getIdentifierMap());
+    _namePath = parent ? parent->_namePath + "/" + _name : _name;
 }
 
 void ShaderGraph::addInputSockets(const InterfaceElement& elem, GenContext& context)
@@ -97,7 +98,8 @@ void ShaderGraph::createConnectedNodes(const ElementPtr& downstreamElement,
         return;
     }
 
-    ShaderNode* newNode = getNode(newNodeName);
+    auto it = _nodeMap.find(newNodeName);
+    ShaderNode* newNode = it != _nodeMap.end() ? it->second.get() : nullptr;
     if (!newNode)
     {
         newNode = createNode(upstreamNode, context);
@@ -144,8 +146,8 @@ void ShaderGraph::createConnectedNodes(const ElementPtr& downstreamElement,
     NodePtr downstreamNode = downstreamElement->asA<Node>();
     if (downstreamNode)
     {
-        ShaderNode* downstream = getNode(downstreamNode->getName());
-        if (downstream)
+        auto itDownstream = _nodeMap.find(downstreamNode->getName());
+        if (ShaderNode* downstream = itDownstream != _nodeMap.end() ? itDownstream->second.get() : nullptr)
         {
             if (downstream == newNode)
             {
@@ -227,7 +229,8 @@ void ShaderGraph::addUpstreamDependencies(const Element& root, GenContext& conte
 void ShaderGraph::addDefaultGeomNode(ShaderInput* input, const GeomPropDef& geomprop, GenContext& context)
 {
     const string geomNodeName = "geomprop_" + geomprop.getName();
-    ShaderNode* node = getNode(geomNodeName);
+    auto itNode = _nodeMap.find(geomNodeName);
+    ShaderNode* node = itNode != _nodeMap.end() ? itNode->second.get() : nullptr;
 
     if (!node)
     {
@@ -873,7 +876,23 @@ void ShaderGraph::addNode(ShaderNodePtr node)
 ShaderNode* ShaderGraph::getNode(const string& name)
 {
     auto it = _nodeMap.find(name);
-    return it != _nodeMap.end() ? it->second.get() : nullptr;
+    if (it != _nodeMap.end())
+    {
+        return it->second.get();
+    }
+
+    // Support legacy callers passing a full namePath (e.g., "graphName/nodeName").
+    // Validate the prefix against this graph's namePath and look up the leaf.
+    const size_t pos = name.rfind('/');
+    if (pos != string::npos
+        && pos == _namePath.size()
+        && name.compare(0, pos, _namePath) == 0)
+    {
+        auto itLeaf = _nodeMap.find(name.substr(pos + 1));
+        return itLeaf != _nodeMap.end() ? itLeaf->second.get() : nullptr;
+    }
+
+    return nullptr;
 }
 
 const ShaderNode* ShaderGraph::getNode(const string& name) const
