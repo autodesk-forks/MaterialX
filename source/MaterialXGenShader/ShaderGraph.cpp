@@ -25,7 +25,6 @@ ShaderGraph::ShaderGraph(const ShaderGraph* parent, const string& name, ConstDoc
     _document(document)
 {
     context.getShaderGenerator().getSyntax().makeIdentifier(_name, getIdentifierMap());
-    _namePath = parent ? parent->_namePath + "/" + _name : _name;
 }
 
 void ShaderGraph::addInputSockets(const InterfaceElement& elem, GenContext& context)
@@ -88,18 +87,15 @@ void ShaderGraph::createConnectedNodes(const ElementPtr& downstreamElement,
         throw ExceptionShaderGenError("Upstream element to connect is not a node '" +
                                       upstreamElement->getName() + "'");
     }
-    const string& newNodeName = upstreamNode->getName();
-
     // Check if this node should be pruned
-    if (permutation && permutation->shouldPrune(newNodeName))
+    if (permutation && permutation->shouldPrune(upstreamNode->getName()))
     {
         // Prune this node entirely. The downstream input will remain
         // unconnected and use its default value (e.g., transparent BSDF).
         return;
     }
 
-    auto it = _nodeMap.find(newNodeName);
-    ShaderNode* newNode = it != _nodeMap.end() ? it->second.get() : nullptr;
+    ShaderNode* newNode = getNode(upstreamNode->getNamePath());
     if (!newNode)
     {
         newNode = createNode(upstreamNode, context);
@@ -146,8 +142,8 @@ void ShaderGraph::createConnectedNodes(const ElementPtr& downstreamElement,
     NodePtr downstreamNode = downstreamElement->asA<Node>();
     if (downstreamNode)
     {
-        auto itDownstream = _nodeMap.find(downstreamNode->getName());
-        if (ShaderNode* downstream = itDownstream != _nodeMap.end() ? itDownstream->second.get() : nullptr)
+        ShaderNode* downstream = getNode(downstreamNode->getNamePath());
+        if (downstream)
         {
             if (downstream == newNode)
             {
@@ -229,8 +225,7 @@ void ShaderGraph::addUpstreamDependencies(const Element& root, GenContext& conte
 void ShaderGraph::addDefaultGeomNode(ShaderInput* input, const GeomPropDef& geomprop, GenContext& context)
 {
     const string geomNodeName = "geomprop_" + geomprop.getName();
-    auto itNode = _nodeMap.find(geomNodeName);
-    ShaderNode* node = itNode != _nodeMap.end() ? itNode->second.get() : nullptr;
+    ShaderNode* node = getNode(geomNodeName);
 
     if (!node)
     {
@@ -560,7 +555,7 @@ ShaderGraphPtr ShaderGraph::create(const ShaderGraph* parent, const string& name
         graph->addOutputSockets(*nodeDef, context);
 
         // Create this shader node in the graph.
-        ShaderNode* newNode = graph->createNode(node->getName(), nodeDef, context);
+        ShaderNode* newNode = graph->createNode(node->getName(), node->getNamePath(), nodeDef, context);
 
         // Share metadata.
         graph->setMetadata(newNode->getMetadata());
@@ -713,7 +708,7 @@ void ShaderGraph::applyInputTransforms(ConstNodePtr node, ShaderNode* shaderNode
     }
 }
 
-ShaderNode* ShaderGraph::createNode(const string& name, ConstNodeDefPtr nodeDef, GenContext& context)
+ShaderNode* ShaderGraph::createNode(const string& name, const string& uniqueId, ConstNodeDefPtr nodeDef, GenContext& context)
 {
     if (!nodeDef)
     {
@@ -722,7 +717,8 @@ ShaderNode* ShaderGraph::createNode(const string& name, ConstNodeDefPtr nodeDef,
 
     // Create this node in the graph.
     ShaderNodePtr newNode = ShaderNode::create(this, name, *nodeDef, context);
-    _nodeMap[name] = newNode;
+    newNode->_uniqueId = uniqueId;
+    _nodeMap[uniqueId] = newNode;
     _nodeOrder.push_back(newNode.get());
 
     return newNode.get();
@@ -734,7 +730,7 @@ ShaderNode* ShaderGraph::createNode(ConstNodePtr node, GenContext& context)
 
     // Create this node in the graph.
     context.pushParentNode(node);
-    ShaderNode* newNode = createNode(node->getName(), nodeDef, context);
+    ShaderNode* newNode = createNode(node->getName(), node->getNamePath(), nodeDef, context);
     newNode->initialize(*node, *nodeDef, context);
     context.popParentNode();
 
@@ -824,7 +820,7 @@ ShaderNode* ShaderGraph::inlineNodeBeforeOutput(ShaderGraphOutputSocket* output,
     }
 
     // create the new node, and connect its output to the provided graph output
-    auto newNode = createNode(newNodeName, nodeDef, context);
+    auto newNode = createNode(newNodeName, newNodeName, nodeDef, context);
     if (!newNode)
     {
         throw ExceptionShaderGenError("Error while creating node '"+newNodeName+"' of type '"+nodeDefName+"'");
@@ -869,35 +865,19 @@ ShaderGraphEdgeIterator ShaderGraph::traverseUpstream(ShaderOutput* output)
 
 void ShaderGraph::addNode(ShaderNodePtr node)
 {
-    _nodeMap[node->getName()] = node;
+    _nodeMap[node->getUniqueId()] = node;
     _nodeOrder.push_back(node.get());
 }
 
-ShaderNode* ShaderGraph::getNode(const string& name)
+ShaderNode* ShaderGraph::getNode(const string& uniqueId)
 {
-    auto it = _nodeMap.find(name);
-    if (it != _nodeMap.end())
-    {
-        return it->second.get();
-    }
-
-    // Support legacy callers passing a full namePath (e.g., "graphName/nodeName").
-    // Validate the prefix against this graph's namePath and look up the leaf.
-    const size_t pos = name.rfind('/');
-    if (pos != string::npos
-        && pos == _namePath.size()
-        && name.compare(0, pos, _namePath) == 0)
-    {
-        auto itLeaf = _nodeMap.find(name.substr(pos + 1));
-        return itLeaf != _nodeMap.end() ? itLeaf->second.get() : nullptr;
-    }
-
-    return nullptr;
+    auto it = _nodeMap.find(uniqueId);
+    return it != _nodeMap.end() ? it->second.get() : nullptr;
 }
 
-const ShaderNode* ShaderGraph::getNode(const string& name) const
+const ShaderNode* ShaderGraph::getNode(const string& uniqueId) const
 {
-    return const_cast<ShaderGraph*>(this)->getNode(name);
+    return const_cast<ShaderGraph*>(this)->getNode(uniqueId);
 }
 
 void ShaderGraph::finalize(GenContext& context)

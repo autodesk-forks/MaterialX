@@ -68,13 +68,11 @@ class MX_GENSHADER_API ShaderGraph : public ShaderNode
     /// Return true if this node is a graph.
     bool isAGraph() const override { return true; }
 
-    /// Get an internal node by name.
-    /// Also accepts a full namePath (e.g., "graphName/nodeName") for
-    /// backward compatibility; the graph prefix is validated and stripped.
-    ShaderNode* getNode(const string& name);
+    /// Get an internal node by its unique identifier.
+    ShaderNode* getNode(const string& uniqueId);
 
-    /// @copydoc getNode(const string&)
-    const ShaderNode* getNode(const string& name) const;
+    /// Get an internal node by its unique identifier.
+    const ShaderNode* getNode(const string& uniqueId) const;
 
     /// Get a vector of all nodes in order
     const vector<ShaderNode*>& getNodes() const { return _nodeOrder; }
@@ -148,11 +146,12 @@ class MX_GENSHADER_API ShaderGraph : public ShaderNode
                               const NodeGraphPermutation* permutation);
 
     /// Create a new node in a graph from a node definition.
+    /// The uniqueId argument is used as the node's key in the graph's node map.
     /// Note - this does not initialize the node instance with any concrete values, but
     /// instead creates an empty instance of the provided node definition
-    ShaderNode* createNode(const string& name, ConstNodeDefPtr nodeDef, GenContext& context);
+    ShaderNode* createNode(const string& name, const string& uniqueId, ConstNodeDefPtr nodeDef, GenContext& context);
 
-    /// Add a node to the graph, keyed by the node's name.
+    /// Add a node to the graph, keyed by the node's unique identifier.
     void addNode(ShaderNodePtr node);
 
     /// Add input sockets from an interface element (nodedef, nodegraph or node)
@@ -211,7 +210,6 @@ class MX_GENSHADER_API ShaderGraph : public ShaderNode
     void disconnect(ShaderNode* node) const;
 
     ConstDocumentPtr _document;
-    string _namePath;
     std::unordered_map<string, ShaderNodePtr> _nodeMap;
     std::vector<ShaderNode*> _nodeOrder;
     IdentifierMap _identifiers;
