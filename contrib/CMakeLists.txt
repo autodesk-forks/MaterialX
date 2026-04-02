@@ -1,0 +1,3 @@
+
+add_subdirectory(adsk/libraries)
+add_subdirectory(adsk/resources)
