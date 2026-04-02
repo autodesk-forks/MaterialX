@@ -8,6 +8,7 @@
 #include <MaterialXGenHw/HwConstants.h>
 #include <MaterialXGenHw/HwLightShaders.h>
 #include <MaterialXGenHw/Nodes/HwLightCompoundNode.h>
+#include <MaterialXGenHw/Nodes/HwMaterialCompoundNode.h>
 #include <MaterialXGenShader/Exception.h>
 #include <MaterialXGenShader/Nodes/CompoundNode.h>
 #include <MaterialXGenShader/GenContext.h>
@@ -400,11 +401,17 @@ ShaderNodeImplPtr HwShaderGenerator::createShaderNodeImplForNodeGraph(const Node
 
     const TypeDesc outputType = _typeSystem->getType(outputs[0]->getType());
 
-    // Use a compound implementation.
+    // Use specialized implementations for nodes that output light shaders and materials.
     if (outputType == Type::LIGHTSHADER)
     {
         return HwLightCompoundNode::create();
     }
+    if (outputType == Type::MATERIAL)
+    {
+        return HwMaterialCompoundNode::create();
+    }
+
+    // Use the base implementation for nodes that output other types.
     return CompoundNode::create();
 }
 
@@ -421,6 +428,33 @@ void HwShaderGenerator::emitClosureDataParameter(const ShaderNode& node, GenCont
     if (nodeNeedsClosureData(node))
     {
         emitString(HW::CLOSURE_DATA_TYPE + " " + HW::CLOSURE_DATA_ARG + ", ", stage);
+    }
+}
+
+void HwShaderGenerator::toVec4(TypeDesc type, string& variable) const
+{
+    const string& vec4 = _syntax->getTypeName(Type::VECTOR4);
+
+    if (type.isFloat3())
+    {
+        variable = vec4+"(" + variable + ", 1.0)";
+    }
+    else if (type.isFloat2())
+    {
+        variable = vec4+"(" + variable + ", 0.0, 1.0)";
+    }
+    else if (type == Type::FLOAT || type == Type::INTEGER || type == Type::BOOLEAN)
+    {
+        variable = vec4+"(" + variable + ", " + variable + ", " + variable + ", 1.0)";
+    }
+    else if (type == Type::BSDF || type == Type::EDF)
+    {
+        variable = vec4+"(" + variable + ", 1.0)";
+    }
+    else
+    {
+        // Can't understand other types. Just return black.
+        variable = vec4+"(0.0, 0.0, 0.0, 1.0)";
     }
 }
 

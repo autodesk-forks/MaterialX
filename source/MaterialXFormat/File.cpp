@@ -185,7 +185,7 @@ FilePathVec FilePath::getFilesInDirectory(const string& extension) const
 
 #if defined(_WIN32)
     WIN32_FIND_DATAA fd;
-    FilePath query = extension.empty() ? *this : (*this / ("*." + extension));
+    FilePath query = extension.empty() ? (*this / "*") : (*this / ("*." + extension));
     HANDLE hFind = FindFirstFileA(query.asString().c_str(), &fd);
     if (hFind != INVALID_HANDLE_VALUE)
     {
@@ -278,8 +278,22 @@ FilePathVec FilePath::getSubDirectories() const
     return dirs;
 }
 
-void FilePath::createDirectory() const
+void FilePath::createDirectory(bool recursive) const
 {
+    if (recursive)
+    {
+        if (isEmpty() || exists())
+        {
+            return;
+        }
+
+        FilePath parent = getParentPath();
+        if (!parent.isEmpty() && !parent.exists())
+        {
+            parent.createDirectory(true);
+        }
+    }
+
 #if defined(_WIN32)
     _mkdir(asString().c_str());
 #else

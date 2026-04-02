@@ -148,6 +148,7 @@ const string ShaderNode::CONSTANT = "constant";
 const string ShaderNode::DOT = "dot";
 const string ShaderNode::IMAGE = "image";
 const string ShaderNode::SURFACESHADER = "surfaceshader";
+const string ShaderNode::BACKSURFACESHADER = "backsurfaceshader";
 const string ShaderNode::BSDF_R = "R";
 const string ShaderNode::BSDF_T = "T";
 const string ShaderNode::TEXTURE2D_GROUPNAME = "texture2d";
@@ -163,6 +164,7 @@ const string ShaderNode::GEOMETRIC_GROUPNAME = "geometric";
 ShaderNode::ShaderNode(const ShaderGraph* parent, const string& name) :
     _parent(parent),
     _name(name),
+    _uniqueId(name),
     _classification(0),
     _impl(nullptr)
 {
