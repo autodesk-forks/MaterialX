@@ -19,6 +19,26 @@
 
 namespace mx = MaterialX;
 
+namespace
+{
+
+// RAII helper that invokes a callable on scope exit (normal or exception).
+template <typename F>
+class ScopeGuard
+{
+  public:
+    explicit ScopeGuard(F fn) : _fn(std::move(fn)) {}
+    ~ScopeGuard() { _fn(); }
+
+    ScopeGuard(const ScopeGuard&) = delete;
+    ScopeGuard& operator=(const ScopeGuard&) = delete;
+
+  private:
+    F _fn;
+};
+
+} // anonymous namespace
+
 namespace RenderUtil
 {
 
@@ -44,6 +64,15 @@ bool ShaderRenderTester::validate(const mx::FilePath optionsFilePath)
 #endif
     _logger.start(target, _testRun.options);
     _profiler.start();
+
+    // Ensure cleanup on any exit path (normal return or exception).
+    ScopeGuard cleanup([this]() {
+        _profiler.end(_testRun.options, _logger.profilingLog(), _testRun.dependLib);
+        _logger.end();
+#ifdef MATERIALX_BUILD_PERFETTO_TRACING
+        _tracer.end();
+#endif
+    });
 
     // Data search path
     _testRun.searchPath = mx::getDefaultDataSearchPath();
@@ -81,12 +110,6 @@ bool ShaderRenderTester::validate(const mx::FilePath optionsFilePath)
         }
     }
 
-    _profiler.end(_testRun.options, _logger.profilingLog(), _testRun.dependLib);
-    _logger.end();
-#ifdef MATERIALX_BUILD_PERFETTO_TRACING
-    _tracer.end();
-#endif
-
     return true;
 }
 
@@ -105,7 +128,7 @@ void ShaderRenderTester::loadDependentLibraries()
         }
     }
 
-    // Load any addition per renderer libraries
+    // Load any additional per-renderer libraries
     loadAdditionalLibraries(_testRun.dependLib, _testRun.options);
 }
 
@@ -129,17 +152,6 @@ void ShaderRenderTester::getGenerationOptions(const GenShaderUtil::TestSuiteOpti
         completeOption.shaderInterfaceType = mx::SHADER_INTERFACE_COMPLETE;
         optionsList.push_back(completeOption);
     }
-}
-
-void ShaderRenderTester::printRunLog(const RenderProfileTimes &profileTimes,
-                                     const GenShaderUtil::TestSuiteOptions& options,
-                                     std::ostream& stream,
-                                     mx::DocumentPtr)
-{
-    profileTimes.print(stream);
-
-    stream << "---------------------------------------" << std::endl;
-    options.print(stream);
 }
 
 void ShaderRenderTester::addAdditionalTestStreams(mx::MeshPtr mesh)

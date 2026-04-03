@@ -14,6 +14,7 @@
 #include <MaterialXRender/Util.h>
 
 #include <fstream>
+#include <iostream>
 #include <memory>
 
 #define LOG_TO_FILE
@@ -224,12 +225,6 @@ class ShaderRenderTester
     void getGenerationOptions(const GenShaderUtil::TestSuiteOptions& testOptions,
                               const mx::GenOptions& originalOptions,
                               std::vector<mx::GenOptions>& optionsList);
-
-    // Print execution summary
-    void printRunLog(const RenderProfileTimes &profileTimes,
-                     const GenShaderUtil::TestSuiteOptions& options,
-                     std::ostream& stream,
-                     mx::DocumentPtr dependLib);
 
     // If these streams don't exist add them for testing purposes
     void addAdditionalTestStreams(mx::MeshPtr mesh);
