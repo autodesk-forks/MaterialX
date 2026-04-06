@@ -15,12 +15,12 @@
     <input name="surfaceshader" type="surfaceshader" nodename="SR_legacy_plastic" />
   </surfacematerial>
   <adsk:height_map name="height_map1_plastic" type="vector3" version="1.0.1" xpos="7.739130" ypos="-0.129310">
-    <input name="file" type="filename" uniform="true" value="textures/tiles_travertine_versailles_bump.jpg" fileprefix="" />
+    <input name="file" type="filename" uniform="true" value="textures/tiles_travertine_versailles_bump.jpg" />
     <input name="realworld_scale" type="vector2" value="1, 1" />
     <input name="depth" type="float" value="1" />
   </adsk:height_map>
   <adsk:height_map name="height_map2_plastic" type="vector3" version="1.0.1" xpos="7.739130" ypos="1.422414">
-    <input name="file" type="filename" uniform="true" value="textures/tiles_mix01_bump.jpg" fileprefix="" />
+    <input name="file" type="filename" uniform="true" value="textures/tiles_mix01_bump.jpg" />
     <input name="realworld_scale" type="vector2" value="1, 1" />
     <input name="depth" type="float" value="1" />
   </adsk:height_map>

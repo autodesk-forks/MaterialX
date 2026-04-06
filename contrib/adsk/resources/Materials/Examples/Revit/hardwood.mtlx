@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<materialx version="1.39" colorspace="lin_rec709" >
+<materialx version="1.39" colorspace="lin_rec709" fileprefix="../../../Images/">
   <legacy_hardwood name="SR_legacy_hardwood" type="surfaceshader" xpos="10.326087" ypos="-1.250000">
     <input name="color" type="color3" nodename="image_hardwood" />
     <input name="stain_enable" type="boolean" value="true" />
@@ -19,7 +19,7 @@
     <input name="file" type="filename" uniform="true" value="textures/Woods - Plastics.Finish Carpentry.Wood.Red Birch.jpg" uivisible="true" />
   </image>
   <adsk:height_map name="height_map1_hardwood" type="vector3" version="1.0.1" xpos="7.739130" ypos="0.810345">
-    <input name="file" type="filename" uniform="true" value="textures/tiles_travertine_versailles_bump.jpg" fileprefix="" />
+    <input name="file" type="filename" uniform="true" value="textures/tiles_travertine_versailles_bump.jpg" />
     <input name="realworld_scale" type="vector2" value="1, 1" />
     <input name="depth" type="float" value="1" />
   </adsk:height_map>

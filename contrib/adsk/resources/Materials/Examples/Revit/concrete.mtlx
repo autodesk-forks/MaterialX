@@ -47,7 +47,7 @@
     <input name="depth" type="float" value="0.1" />
   </adsk:height_map>
   <image name="image_color3" type="color3" xpos="6.978261" ypos="4.853448">
-    <input name="file" type="filename" value="textures/Plane001HeightMap.png" />
+    <input name="file" type="filename" value="Plane001HeightMap.png" />
   </image>
   <image name="image_color4" type="color3" xpos="7.021739" ypos="6.232759">
     <input name="file" type="filename" value="textures/brick_soldier_bump.jpg" />
