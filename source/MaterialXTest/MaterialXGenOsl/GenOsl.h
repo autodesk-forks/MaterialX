@@ -45,7 +45,6 @@ class OslShaderGeneratorTester : public GenShaderUtil::ShaderGeneratorTester
 
     void addSkipFiles() override
     {
-        // No additional files are skipped
         ShaderGeneratorTester::addSkipFiles();
     }
 

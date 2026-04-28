@@ -31,9 +31,7 @@
 #include <MaterialXGenShader/Shader.h>
 #include <MaterialXGenShader/Nodes/MaterialNode.h>
 
-#ifdef MATERIALX_BUILD_METASHADE
-#include <MetashadeNode.h>
-#endif
+#include <MaterialXTrace/Tracing.h>
 
 MATERIALX_NAMESPACE_BEGIN
 
@@ -126,18 +124,15 @@ GlslShaderGenerator::GlslShaderGenerator(TypeSystemPtr typeSystem) :
     // <!-- <surfacematerial> -->
     registerImplementation("IM_surfacematerial_" + GlslShaderGenerator::TARGET, MaterialNode::create);
 
-
-#ifdef MATERIALX_BUILD_METASHADE
-    // Register custom Metashade nodes for embedded Python shader generation
-    MetashadeNode::registerImplementations(*this);
-#endif
-
     _lightSamplingNodes.push_back(ShaderNode::create(nullptr, "numActiveLightSources", HwNumLightsNode::create()));
     _lightSamplingNodes.push_back(ShaderNode::create(nullptr, "sampleLightSource", HwLightSamplerNode::create()));
 }
 
 ShaderPtr GlslShaderGenerator::generate(const string& name, ElementPtr element, GenContext& context) const
 {
+    MX_TRACE_FUNCTION(Tracing::Category::ShaderGen);
+    MX_TRACE_SCOPE(Tracing::Category::ShaderGen, name.c_str());
+
     ShaderPtr shader = createShader(name, element, context);
 
     // Request fixed floating-point notation for consistency across targets.
