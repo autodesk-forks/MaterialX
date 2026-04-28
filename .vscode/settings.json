@@ -14,5 +14,13 @@
         "${workspaceFolder}/build/python",
         "${workspaceFolder}/python",
         "${workspaceFolder}/python/External/metashade"
-    ]
+    ],
+    "testMate.cpp.test.executables": "${workspaceFolder}/build/bin/Debug/MaterialXTest.exe",
+    "testMate.cpp.test.workingDirectory": "${workspaceFolder}",
+    "testMate.cpp.log.logfile": "${workspaceFolder}/build/testmate.log",
+    "testMate.cpp.log.logSeverity": "debug",
+    "testMate.cpp.debug.configTemplate": {
+        "type": "cppvsdbg",
+        "request": "launch"
+    }
 }
