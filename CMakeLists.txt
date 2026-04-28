@@ -43,7 +43,6 @@ option(MATERIALX_BUILD_GEN_OSL "Build the OSL shader generator back-ends." ON)
 option(MATERIALX_BUILD_GEN_MDL "Build the MDL shader generator back-end." ON)
 option(MATERIALX_BUILD_GEN_MSL "Build the MSL shader generator back-end." ON)
 option(MATERIALX_BUILD_GEN_SLANG "Build the Slang shader generator back-end." ON)
-option(MATERIALX_BUILD_METASHADE "Build the MaterialX Metashade integration." OFF)
 option(MATERIALX_BUILD_RENDER "Build the MaterialX Render modules." ON)
 option(MATERIALX_BUILD_RENDER_PLATFORMS "Build platform-specific render modules for each shader generator." ON)
 option(MATERIALX_RENDER_MSL_ONLY "On macOS, use Metal Shading Language only for tests and viewer (skips GLSL render tests)." OFF)
@@ -534,11 +533,6 @@ endif()
 
 # Add shader generation subdirectories
 add_subdirectory(source/MaterialXGenShader)
-if (MATERIALX_BUILD_METASHADE)
-    add_definitions(-DMATERIALX_BUILD_METASHADE)
-    # Note: MaterialXMetashade is built as part of PyMaterialXMetashade
-    # but we can still link against it from C++
-endif()
 if(MATERIALX_BUILD_GEN_GLSL OR MATERIALX_BUILD_GEN_OSL OR MATERIALX_BUILD_GEN_MDL OR MATERIALX_BUILD_GEN_MSL OR MATERIALX_BUILD_GEN_SLANG)
     if(MATERIALX_BUILD_GEN_GLSL OR MATERIALX_BUILD_GEN_MSL OR MATERIALX_BUILD_GEN_SLANG)
         add_subdirectory(source/MaterialXGenHw)
@@ -703,4 +697,9 @@ if(NOT SKBUILD)
     install(FILES "${PROJECT_BINARY_DIR}/cmake/${CMAKE_PROJECT_NAME}ConfigVersion.cmake"
             "${PROJECT_BINARY_DIR}/cmake/${CMAKE_PROJECT_NAME}Config.cmake"
             DESTINATION "${MATERIALX_GEN_CONFIG_PATH}")
+endif()
+
+# Run pip install after all install steps
+if(MATERIALX_BUILD_PYTHON AND MATERIALX_INSTALL_PYTHON AND PYTHON_EXECUTABLE AND NOT SKBUILD)
+    install(CODE "execute_process(COMMAND ${PYTHON_EXECUTABLE} -m pip install . WORKING_DIRECTORY ${CMAKE_INSTALL_PREFIX}/python)")
 endif()

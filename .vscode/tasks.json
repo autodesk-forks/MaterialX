@@ -17,21 +17,6 @@
             }
         },
         {
-            "label": "Configure MaterialX (Metashade)",
-            "type": "shell",
-            "command": "cmake",
-            "args": [
-                "--preset",
-                "metashade"
-            ],
-            "group": "build",
-            "problemMatcher": [],
-            "isBackground": false,
-            "options": {
-                "cwd": "${workspaceFolder}"
-            }
-        },
-        {
             "label": "Build MaterialX Debug",
             "type": "shell",
             "command": "cmake",
@@ -55,13 +40,13 @@
             }
         },
         {
-            "label": "Build MaterialX Debug (Metashade)",
+            "label": "Build MaterialX Release",
             "type": "shell",
             "command": "cmake",
             "args": [
                 "--build",
                 "--preset",
-                "debug-metashade"
+                "release"
             ],
             "group": "build",
             "problemMatcher": [
@@ -69,7 +54,7 @@
                 "$gcc"
             ],
             "isBackground": false,
-            "dependsOn": "Configure MaterialX (Metashade)",
+            "dependsOn": "Configure MaterialX",
             "options": {
                 "cwd": "${workspaceFolder}"
             }
@@ -93,26 +78,6 @@
             }
         },
         {
-            "label": "Build MaterialX Release (Metashade)",
-            "type": "shell",
-            "command": "cmake",
-            "args": [
-                "--build",
-                "--preset",
-                "release-metashade"
-            ],
-            "group": "build",
-            "problemMatcher": [
-                "$msCompile",
-                "$gcc"
-            ],
-            "isBackground": false,
-            "dependsOn": "Configure MaterialX (Metashade)",
-            "options": {
-                "cwd": "${workspaceFolder}"
-            }
-        },
-        {
             "label": "Clean MaterialX",
             "type": "shell",
             "command": "cmake",
@@ -130,7 +95,7 @@
             }
         },
         {
-            "label": "Run MaterialXTest [genglsl]",
+            "label": "Run MaterialXTest [renderglsl]",
             "type": "shell",
             "command": "\"${workspaceFolder}/build/bin/Debug/MaterialXTest.exe\"",
             "args": [
