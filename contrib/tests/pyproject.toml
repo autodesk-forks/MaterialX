@@ -1,0 +1,26 @@
+[project]
+name = "materialx-contrib-tests"
+version = "0.1.0"
+description = "pytest-based render tests for MaterialX contrib materials"
+requires-python = ">=3.9"
+
+[project.optional-dependencies]
+test = [
+    "pytest>=7.0",
+    "pytest-xdist>=3.0",  # Parallel test execution
+]
+
+[tool.pytest.ini_options]
+testpaths = ["."]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = [
+    "-v",
+    "--tb=short",
+]
+# Markers for categorizing tests
+markers = [
+    "slow: marks tests as slow (deselect with '-m \"not slow\"')",
+    "render: marks tests that perform GPU rendering",
+]
