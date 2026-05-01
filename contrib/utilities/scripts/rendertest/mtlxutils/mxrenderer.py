@@ -598,7 +598,7 @@ def performRender(glslRenderer, doc, inputFilename, outputPath, searchPath) -> (
     # Find a renderable and generate the shader for it
     nodes = glslRenderer.findRenderableElements(doc)
     if not nodes:
-        return
+        return False, "No renderable elements found"
     printSource = False
 
     # Set up overrides for color space and units. Color space may come from the document,
