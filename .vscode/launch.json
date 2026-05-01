@@ -1,0 +1,56 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "renderDocuments.py - pbrlib/surfaceshader",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/contrib/utilities/scripts/rendertest/renderDocuments.py",
+            "args": [
+                "--radiancePath", "${workspaceFolder}/resources/Lights/san_giuseppe_bridge.hdr",
+                "--irradiancePath", "${workspaceFolder}/resources/Lights/irradiance/san_giuseppe_bridge.hdr",
+                "--geometryPath", "${workspaceFolder}/resources/Geometry/sphere.obj",
+                "--outputPath", "${workspaceFolder}/build/renders",
+                "--size", "512",
+                "${workspaceFolder}/resources/Materials/TestSuite/pbrlib/surfaceshader"
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "env": {"PYTHONDONTWRITEBYTECODE": "1"}
+        },
+        {
+            "name": "renderDocuments.py - stdlib/noise",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/contrib/utilities/scripts/rendertest/renderDocuments.py",
+            "args": [
+                "--radiancePath", "${workspaceFolder}/resources/Lights/san_giuseppe_bridge.hdr",
+                "--irradiancePath", "${workspaceFolder}/resources/Lights/irradiance/san_giuseppe_bridge.hdr",
+                "--geometryPath", "${workspaceFolder}/resources/Geometry/sphere.obj",
+                "--outputPath", "${workspaceFolder}/build/renders",
+                "--size", "512",
+                "${workspaceFolder}/resources/Materials/TestSuite/stdlib/noise"
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "env": {"PYTHONDONTWRITEBYTECODE": "1"}
+        },
+        {
+            "name": "pytest - contrib/tests",
+            "type": "debugpy",
+            "request": "launch",
+            "module": "pytest",
+            "args": [
+                "contrib/tests",
+                "-v",
+                "-k", "Anodized_Blue"
+            ],
+            "cwd": "${workspaceFolder}",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "env": {"PYTHONDONTWRITEBYTECODE": "1"}
+        }
+    ]
+}
