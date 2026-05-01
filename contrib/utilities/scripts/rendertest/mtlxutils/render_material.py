@@ -54,7 +54,8 @@ def render_material(
     material_name = render_node.getNamePath()
     
     # Handle material nodes that wrap surface shaders
-    if render_node.getType() == 'material':
+    # getShaderNodes only works on Node objects, not Outputs
+    if isinstance(render_node, mx.Node) and render_node.getType() == 'material':
         shader_nodes = mx.getShaderNodes(render_node)
         if not shader_nodes:
             return RenderResult(
