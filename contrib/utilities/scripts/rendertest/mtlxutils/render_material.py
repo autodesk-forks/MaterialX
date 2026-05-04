@@ -34,6 +34,7 @@ def render_material(
     doc,
     render_node,
     output_path: Optional[Path] = None,
+    search_path=None,
     target_colorspace: str = 'lin_rec709',
     target_distance_unit: str = 'centimeter'
 ) -> RenderResult:
@@ -45,6 +46,8 @@ def render_material(
         doc: MaterialX document containing the material
         render_node: The renderable node to render
         output_path: Directory to save output image (optional)
+        search_path: MaterialX search path for source code 
+            and images (optional)
         target_colorspace: Target colorspace override
         target_distance_unit: Target distance unit
         
@@ -52,6 +55,14 @@ def render_material(
         RenderResult with success status and any errors
     """
     material_name = render_node.getNamePath()
+    
+    # Register search path for source code includes and images
+    # (mirrors performRender in mxrenderer.py)
+    if search_path is not None:
+        generator = renderer.getCodeGenerator()
+        generator.registerSourceCodeSearchPath(search_path)
+        image_handler = renderer.getImageHandler()
+        image_handler.setSearchPath(search_path)
     
     # Handle material nodes that wrap surface shaders
     # getShaderNodes only works on Node objects, not Outputs

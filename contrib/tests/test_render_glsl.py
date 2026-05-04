@@ -48,12 +48,9 @@ class TestRenderAdskMaterials:
         valid, msg = doc.validate()
         assert valid, f"Document validation failed: {msg}"
         
-        # Update search path for textures (copy and extend)
+        # Update search path for textures and source code
         file_search_path = mx.FileSearchPath(search_path.asString())
         file_search_path.append(str(mtlx_file.parent.resolve()))
-        
-        image_handler = glsl_renderer.getImageHandler()
-        image_handler.setSearchPath(file_search_path)
         
         # Find the specific material node
         render_node = None
@@ -69,7 +66,8 @@ class TestRenderAdskMaterials:
             glsl_renderer,
             doc,
             render_node,
-            output_path=None  # Don't save images during test
+            output_path=None,  # Don't save images during test
+            search_path=file_search_path
         )
         
         # Assert success
