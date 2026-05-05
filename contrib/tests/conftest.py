@@ -141,14 +141,16 @@ def discover_stdlib_materials():
                 
                 if material_nodes:
                     for elem in material_nodes:
-                        rel_path = mtlx_file.relative_to(materials_root)
-                        test_id = f"{rel_path.parent}/{rel_path.stem}/{elem.getName()}"
-                        
-                        yield pytest.param(
-                            mtlx_file,
-                            elem.getName(),
-                            id=test_id
-                        )
+                        # Skip materials without shader nodes (matches findRenderableElements)
+                        if mx.getShaderNodes(elem):
+                            rel_path = mtlx_file.relative_to(materials_root)
+                            test_id = f"{rel_path.parent}/{rel_path.stem}/{elem.getName()}"
+                            
+                            yield pytest.param(
+                                mtlx_file,
+                                elem.getName(),
+                                id=test_id
+                            )
                 else:
                     # Some TestSuite files have renderable outputs but no materials
                     # Use findRenderableElements to catch these
@@ -191,8 +193,11 @@ def discover_adsk_materials():
             doc.importLibrary(stdlib)
             mx.readFromXmlFile(doc, str(mtlx_file))
             
-            # Find renderable elements
+            # Find renderable elements (only materials with shader nodes)
             for elem in doc.getMaterialNodes():
+                if not mx.getShaderNodes(elem):
+                    continue
+                    
                 rel_path = mtlx_file.relative_to(materials_dir)
                 test_id = f"{rel_path.parent}/{rel_path.stem}/{elem.getName()}"
                 
