@@ -17,6 +17,7 @@ sys.path.insert(0, str(_rendertest_path))
 sys.path.insert(0, str(_mtlxutils_path))
 
 import MaterialX as mx
+import MaterialX.PyMaterialXGenShader as mx_gen_shader
 from rendertest.mtlxutils import mxrenderer
 
 
@@ -96,6 +97,75 @@ def glsl_renderer(stdlib, search_path, repo_root):
     )
     
     return renderer
+
+
+def discover_stdlib_materials():
+    """
+    Discover all renderable materials in resources/Materials at collection time.
+    
+    This covers TestSuite (stdlib, pbrlib, nprlib) and Examples directories,
+    matching the same test cases run by MaterialXTest/Catch2.
+    
+    Yields (mtlx_file, material_name) pairs for parametrization.
+    """
+    repo_root = get_repo_root()
+    materials_root = repo_root / "resources" / "Materials"
+    
+    # Match MaterialXTest: TestSuite + Examples
+    test_dirs = [
+        materials_root / "TestSuite",
+        materials_root / "Examples",
+    ]
+    
+    # Load stdlib for material discovery
+    stdlib = mx.createDocument()
+    search_path = mx.getDefaultDataSearchPath()
+    mx.loadLibraries(mx.getDefaultDataLibraryFolders(), search_path, stdlib)
+    
+    for test_dir in test_dirs:
+        if not test_dir.exists():
+            continue
+            
+        for mtlx_file in sorted(test_dir.rglob("*.mtlx")):
+            # Skip options files
+            if mtlx_file.name.startswith("_"):
+                continue
+                
+            try:
+                doc = mx.createDocument()
+                doc.importLibrary(stdlib)
+                mx.readFromXmlFile(doc, str(mtlx_file))
+                
+                # Find renderable material nodes
+                material_nodes = list(doc.getMaterialNodes())
+                
+                if material_nodes:
+                    for elem in material_nodes:
+                        rel_path = mtlx_file.relative_to(materials_root)
+                        test_id = f"{rel_path.parent}/{rel_path.stem}/{elem.getName()}"
+                        
+                        yield pytest.param(
+                            mtlx_file,
+                            elem.getName(),
+                            id=test_id
+                        )
+                else:
+                    # Some TestSuite files have renderable outputs but no materials
+                    # Use findRenderableElements to catch these
+                    renderables = mx_gen_shader.findRenderableElements(doc, False)
+                    for elem in renderables:
+                        rel_path = mtlx_file.relative_to(materials_root)
+                        test_id = f"{rel_path.parent}/{rel_path.stem}/{elem.getNamePath()}"
+                        
+                        yield pytest.param(
+                            mtlx_file,
+                            elem.getNamePath(),
+                            id=test_id
+                        )
+                        
+            except mx.Exception:
+                # Skip files that fail to load during discovery
+                continue
 
 
 def discover_adsk_materials():
