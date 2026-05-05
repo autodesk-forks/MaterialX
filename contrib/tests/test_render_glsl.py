@@ -10,71 +10,82 @@ import pytest
 import MaterialX as mx
 import MaterialX.PyMaterialXGenShader as mx_gen_shader
 from pathlib import Path
+from typing import List
 
 from conftest import discover_stdlib_materials, discover_adsk_materials
 
 # Import shared render logic
-from rendertest.mtlxutils.render_material import render_material, find_renderable_materials
+from rendertest.mtlxutils.render_material import render_material
 
 
-class TestRenderAdskMaterials:
-    """Test rendering of Autodesk contributed materials."""
+def find_render_element(doc, element_name: str):
+    """
+    Find a renderable element by name in a document.
     
-    @pytest.mark.parametrize("mtlx_file,material_name", discover_adsk_materials())
-    def test_render_material(
-        self,
-        mtlx_file: Path,
-        material_name: str,
+    Searches material nodes first, then falls back to findRenderableElements
+    for output nodes used in TestSuite.
+    """
+    # First try material nodes (most common case)
+    for elem in doc.getMaterialNodes():
+        if elem.getName() == element_name:
+            return elem
+    
+    # Fall back to findRenderableElements for outputs
+    for elem in mx_gen_shader.findRenderableElements(doc, False):
+        if elem.getNamePath() == element_name:
+            return elem
+    
+    return None
+
+
+def render_and_validate(
+    glsl_renderer,
+    mtlx_file: Path,
+    element_name: str,
+    libs: List,
+    search_path
+):
+    """
+    Common test logic: load document, find element, render, validate.
+    
+    Args:
+        glsl_renderer: Initialized GLSL renderer
+        mtlx_file: Path to .mtlx file
+        element_name: Name of material/output to render
+        libs: List of library documents to import
+        search_path: Base search path for resources
+    """
+    # Create document with libraries
+    doc = mx.createDocument()
+    for lib in libs:
+        doc.importLibrary(lib)
+    
+    # Load the material file
+    mx.readFromXmlFile(doc, str(mtlx_file))
+    valid, msg = doc.validate()
+    assert valid, f"Document validation failed: {msg}"
+    
+    # Set up search path for textures and includes
+    file_search_path = mx.FileSearchPath(search_path.asString())
+    file_search_path.append(str(mtlx_file.parent.resolve()))
+    
+    # Find the renderable element
+    render_node = find_render_element(doc, element_name)
+    assert render_node is not None, f"Element '{element_name}' not found in {mtlx_file}"
+    
+    # Render using shared logic
+    result = render_material(
         glsl_renderer,
-        libraries,
-        search_path
-    ):
-        """
-        Test that a single material renders successfully.
-        
-        This test verifies:
-        1. Shader generation succeeds
-        2. GPU program creation succeeds
-        3. Render completes without errors
-        
-        Future: Add baseline image comparison.
-        """
-        # Create document with libraries
-        doc = mx.createDocument()
-        for lib in libraries:
-            doc.importLibrary(lib)
-        
-        # Load the material file
-        mx.readFromXmlFile(doc, str(mtlx_file))
-        valid, msg = doc.validate()
-        assert valid, f"Document validation failed: {msg}"
-        
-        # Update search path for textures and source code
-        file_search_path = mx.FileSearchPath(search_path.asString())
-        file_search_path.append(str(mtlx_file.parent.resolve()))
-        
-        # Find the specific material node
-        render_node = None
-        for elem in doc.getMaterialNodes():
-            if elem.getName() == material_name:
-                render_node = elem
-                break
-        
-        assert render_node is not None, f"Material '{material_name}' not found in {mtlx_file}"
-        
-        # Render using shared logic
-        result = render_material(
-            glsl_renderer,
-            doc,
-            render_node,
-            output_path=None,  # Don't save images during test
-            search_path=file_search_path
-        )
-        
-        # Assert success
-        if not result.success:
-            error_msg = result.error or result.shader_errors or "Unknown error"
-            pytest.fail(f"Render failed for {material_name}: {error_msg}")
+        doc,
+        render_node,
+        output_path=None,  # Don't save images during test
+        search_path=file_search_path
+    )
+    
+    # Assert success
+    if not result.success:
+        error_msg = result.error or result.shader_errors or "Unknown error"
+        pytest.fail(f"Render failed for {element_name}: {error_msg}")
 
 
 class TestRenderStdlibMaterials:
@@ -94,55 +105,25 @@ class TestRenderStdlibMaterials:
         stdlib,
         search_path
     ):
-        """
-        Test that a single material/output renders successfully.
-        
-        This test verifies:
-        1. Shader generation succeeds
-        2. GPU program creation succeeds
-        3. Render completes without errors
-        """
-        # Create document with stdlib only (no adsk libs for stdlib tests)
-        doc = mx.createDocument()
-        doc.importLibrary(stdlib)
-        
-        # Load the material file
-        mx.readFromXmlFile(doc, str(mtlx_file))
-        valid, msg = doc.validate()
-        assert valid, f"Document validation failed: {msg}"
-        
-        # Set up search path for textures and includes
-        file_search_path = mx.FileSearchPath(search_path.asString())
-        file_search_path.append(str(mtlx_file.parent.resolve()))
-        
-        # Find the renderable element (could be material node or output)
-        render_node = None
-        
-        # First try material nodes
-        for elem in doc.getMaterialNodes():
-            if elem.getName() == element_name:
-                render_node = elem
-                break
-        
-        # If not found, try findRenderableElements (for outputs)
-        if render_node is None:
-            for elem in mx_gen_shader.findRenderableElements(doc, False):
-                if elem.getNamePath() == element_name:
-                    render_node = elem
-                    break
-        
-        assert render_node is not None, f"Element '{element_name}' not found in {mtlx_file}"
-        
-        # Render using shared logic
-        result = render_material(
-            glsl_renderer,
-            doc,
-            render_node,
-            output_path=None,  # Don't save images during test
-            search_path=file_search_path
+        """Test that a stdlib material/output renders successfully."""
+        render_and_validate(
+            glsl_renderer, mtlx_file, element_name, [stdlib], search_path
         )
-        
-        # Assert success
-        if not result.success:
-            error_msg = result.error or result.shader_errors or "Unknown error"
-            pytest.fail(f"Render failed for {element_name}: {error_msg}")
+
+
+class TestRenderAdskMaterials:
+    """Test rendering of Autodesk contributed materials."""
+    
+    @pytest.mark.parametrize("mtlx_file,material_name", discover_adsk_materials())
+    def test_render_material(
+        self,
+        mtlx_file: Path,
+        material_name: str,
+        glsl_renderer,
+        libraries,
+        search_path
+    ):
+        """Test that an Autodesk material renders successfully."""
+        render_and_validate(
+            glsl_renderer, mtlx_file, material_name, libraries, search_path
+        )
