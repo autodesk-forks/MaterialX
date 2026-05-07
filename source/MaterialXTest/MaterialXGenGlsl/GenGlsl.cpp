@@ -332,3 +332,136 @@ TEST_CASE("GenShader: GLSL Structural Hash", "[genglsl]")
     INFO(hashLog.str());
     SUCCEED();
 }
+
+TEST_CASE("GenShader: GLSL Generic Input Naming", "[genglsl]")
+{
+    mx::DocumentPtr nodeLibrary = mx::createDocument();
+    const mx::FileSearchPath searchPath = mx::getDefaultDataSearchPath();
+
+    loadLibraries({ "libraries" }, searchPath, nodeLibrary);
+
+    mx::GenContext context(mx::GlslShaderGenerator::create());
+    context.registerSourceCodeSearchPath(searchPath);
+
+    mx::DefaultColorManagementSystemPtr colorManagementSystem =
+        mx::DefaultColorManagementSystem::create(context.getShaderGenerator().getTarget());
+    REQUIRE(colorManagementSystem);
+    context.getShaderGenerator().setColorManagementSystem(colorManagementSystem);
+    colorManagementSystem->loadLibrary(nodeLibrary);
+
+    mx::UnitSystemPtr unitSystem = mx::UnitSystem::create(context.getShaderGenerator().getTarget());
+    REQUIRE(unitSystem);
+    context.getShaderGenerator().setUnitSystem(unitSystem);
+    unitSystem->loadLibrary(nodeLibrary);
+    unitSystem->setUnitConverterRegistry(mx::UnitConverterRegistry::create());
+    mx::UnitTypeDefPtr distanceTypeDef = nodeLibrary->getUnitTypeDef("distance");
+    unitSystem->getUnitConverterRegistry()->addUnitConverter(distanceTypeDef, mx::LinearUnitConverter::create(distanceTypeDef));
+    mx::UnitTypeDefPtr angleTypeDef = nodeLibrary->getUnitTypeDef("angle");
+    unitSystem->getUnitConverterRegistry()->addUnitConverter(angleTypeDef, mx::LinearUnitConverter::create(angleTypeDef));
+    context.getOptions().targetDistanceUnit = "meter";
+
+    // Generate shaders for three structurally identical standard_surface materials
+    // and verify they produce the same pixel shader source (generic uniform names).
+    const std::vector<std::string> materialFiles = {
+        "resources/Materials/Examples/StandardSurface/standard_surface_carpaint.mtlx",
+        "resources/Materials/Examples/StandardSurface/standard_surface_chrome.mtlx",
+        "resources/Materials/Examples/StandardSurface/standard_surface_glass.mtlx"
+    };
+
+    std::vector<std::string> pixelSources;
+    for (const auto& file : materialFiles)
+    {
+        mx::FilePath filePath = searchPath.find(file);
+        REQUIRE(!filePath.isEmpty());
+
+        mx::DocumentPtr doc = mx::createDocument();
+        mx::readFromXmlFile(doc, filePath, searchPath);
+        doc->setDataLibrary(nodeLibrary);
+
+        std::string message;
+        REQUIRE(doc->validate(&message));
+
+        context.getShaderGenerator().registerTypeDefs(doc);
+
+        std::vector<mx::TypedElementPtr> elements = mx::findRenderableElements(doc);
+        REQUIRE(!elements.empty());
+
+        mx::ShaderPtr shader = context.getShaderGenerator().generate(
+            elements[0]->getName(), elements[0], context);
+        REQUIRE(shader != nullptr);
+
+        const mx::ShaderStage& pixelStage = shader->getStage(mx::Stage::PIXEL);
+        pixelSources.push_back(pixelStage.getSourceCode());
+    }
+
+    // All three should produce identical shader source (only default values differ
+    // in the uniform declarations, but the variable names must be the same).
+    // Extract just the uniform lines for comparison.
+    auto extractUniformNames = [](const std::string& source) -> std::vector<std::string>
+    {
+        std::vector<std::string> names;
+        std::istringstream stream(source);
+        std::string line;
+        while (std::getline(stream, line))
+        {
+            if (line.find("uniform ") != std::string::npos)
+            {
+                // Trim trailing whitespace from the region before '=' or ';'
+                auto eqPos = line.find('=');
+                auto semiPos = line.find(';');
+                auto endPos = (eqPos != std::string::npos) ? eqPos : semiPos;
+                if (endPos == std::string::npos) continue;
+
+                // Walk backwards past spaces to find the end of the name
+                size_t nameEnd = endPos;
+                while (nameEnd > 0 && line[nameEnd - 1] == ' ') --nameEnd;
+                // Walk backwards past the name to find the start
+                size_t nameStart = nameEnd;
+                while (nameStart > 0 && line[nameStart - 1] != ' ') --nameStart;
+
+                if (nameStart < nameEnd)
+                {
+                    names.push_back(line.substr(nameStart, nameEnd - nameStart));
+                }
+            }
+        }
+        return names;
+    };
+
+    auto carpaintUniforms = extractUniformNames(pixelSources[0]);
+    auto chromeUniforms = extractUniformNames(pixelSources[1]);
+    auto glassUniforms = extractUniformNames(pixelSources[2]);
+
+    REQUIRE(carpaintUniforms.size() == chromeUniforms.size());
+    REQUIRE(carpaintUniforms.size() == glassUniforms.size());
+
+    for (size_t i = 0; i < carpaintUniforms.size(); ++i)
+    {
+        CHECK(carpaintUniforms[i] == chromeUniforms[i]);
+        CHECK(carpaintUniforms[i] == glassUniforms[i]);
+    }
+
+    // Verify that the surfaceshader node inputs use generic names
+    bool foundSurfaceshaderBase = false;
+    for (const auto& name : carpaintUniforms)
+    {
+        CHECK(name.find("SR_carpaint") == std::string::npos);
+        CHECK(name.find("SR_chrome") == std::string::npos);
+        CHECK(name.find("SR_glass") == std::string::npos);
+        if (name == "surfaceshader_base")
+        {
+            foundSurfaceshaderBase = true;
+        }
+    }
+    CHECK(foundSurfaceshaderBase);
+
+    // Log the uniform names for inspection
+    std::ostringstream log;
+    log << "\n=== Generic Uniform Names (Car_Paint) ===\n";
+    for (const auto& name : carpaintUniforms)
+    {
+        log << "  " << name << "\n";
+    }
+    INFO(log.str());
+    SUCCEED();
+}

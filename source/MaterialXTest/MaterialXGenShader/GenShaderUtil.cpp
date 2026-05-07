@@ -317,7 +317,7 @@ void testUniqueNames(mx::GenContext& context, const std::string& stage)
     const mx::ShaderGraphOutputSocket* sgOutputSocket = shader->getGraph().getOutputSocket();
     REQUIRE(sgOutputSocket->getVariable() != outputQualifier);
     const mx::ShaderNode* sgNode1 = shader->getGraph().getNode(node1->getNamePath());
-    REQUIRE(sgNode1->getOutput()->getVariable() == "unique_names_out");
+    REQUIRE(sgNode1->getOutput()->getVariable() == "noise2d_out");
 }
 
 // Test ShaderGen performance 

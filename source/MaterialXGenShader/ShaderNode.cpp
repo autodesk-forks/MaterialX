@@ -178,6 +178,7 @@ ShaderNodePtr ShaderNode::create(const ShaderGraph* parent, const string& name, 
     MX_TRACE_SCOPE(Tracing::Category::ShaderGen, name.c_str());
 
     ShaderNodePtr newNode = std::make_shared<ShaderNode>(parent, name);
+    newNode->_category = nodeDef.getNodeString();
 
     const ShaderGenerator& shadergen = context.getShaderGenerator();
 

@@ -940,23 +940,40 @@ void ShaderGraph::finalize(GenContext& context)
 
     if (context.getOptions().shaderInterfaceType == SHADER_INTERFACE_COMPLETE)
     {
-        // Publish all node inputs that has not been connected already.
+        const auto nodePrefix = buildCategoryPrefixMap();
+
+        // Track which node owns each socket name for collision detection.
+        std::unordered_map<string, const ShaderNode*> socketOwner;
+
+        // Publish all node inputs that have not been connected already,
+        // using generic category-based prefixes so that structurally
+        // equivalent graphs produce identical uniform names.
         for (const ShaderNode* node : getNodes())
         {
             for (ShaderInput* input : node->getInputs())
             {
                 if (!input->getConnection())
                 {
-                    // Check if the type is editable otherwise we can't
-                    // publish the input as an editable uniform.
                     if (!input->getType().isClosure() && node->isEditable(*input))
                     {
-                        // Use a consistent naming convention: <nodename>_<inputname>
-                        // so application side can figure out what uniforms to set
-                        // when node inputs change on application side.
-                        const string interfaceName = node->getName() + "_" + input->getName();
+                        auto it = nodePrefix.find(node);
+                        const string& prefix = (it != nodePrefix.end()) ? it->second : node->getName();
+                        string interfaceName = prefix + "_" + input->getName();
 
+                        // Collision detection: if a socket with this name already
+                        // exists and belongs to a different node, disambiguate by
+                        // falling back to the full path-based name.
                         ShaderGraphInputSocket* inputSocket = getInputSocket(interfaceName);
+                        if (inputSocket)
+                        {
+                            auto ownerIt = socketOwner.find(interfaceName);
+                            if (ownerIt != socketOwner.end() && ownerIt->second != node)
+                            {
+                                interfaceName = input->getFullName();
+                                inputSocket = getInputSocket(interfaceName);
+                            }
+                        }
+
                         if (!inputSocket)
                         {
                             inputSocket = addInputSocket(interfaceName, input->getType());
@@ -968,6 +985,7 @@ void ShaderGraph::finalize(GenContext& context)
                             {
                                 inputSocket->setUniform();
                             }
+                            socketOwner[interfaceName] = node;
                         }
                         inputSocket->makeConnection(input);
                         inputSocket->setMetadata(input->getMetadata());
@@ -1158,12 +1176,49 @@ void ShaderGraph::topologicalSort()
     }
 }
 
+std::unordered_map<const ShaderNode*, string> ShaderGraph::buildCategoryPrefixMap() const
+{
+    auto getCategoryForNode = [](const ShaderNode* node) -> string
+    {
+        const TypeDesc& outputType = node->getOutput(0)->getType();
+        if (outputType.isClosure())
+        {
+            return outputType.getName();
+        }
+        const string& cat = node->getCategory();
+        return cat.empty() ? node->getName() : cat;
+    };
+
+    std::unordered_map<string, int> categoryCount;
+    for (const ShaderNode* node : getNodes())
+    {
+        categoryCount[getCategoryForNode(node)]++;
+    }
+
+    std::unordered_map<const ShaderNode*, string> nodePrefix;
+    std::unordered_map<string, int> categoryIndex;
+    for (const ShaderNode* node : getNodes())
+    {
+        const string category = getCategoryForNode(node);
+        if (categoryCount[category] > 1)
+        {
+            int idx = categoryIndex[category]++;
+            nodePrefix[node] = category + std::to_string(idx);
+        }
+        else
+        {
+            nodePrefix[node] = category;
+        }
+    }
+
+    return nodePrefix;
+}
+
 void ShaderGraph::setVariableNames(GenContext& context)
 {
-    // Make sure inputs and outputs have variable names valid for the
-    // target shading language, and are unique to avoid name conflicts.
-
     const Syntax& syntax = context.getShaderGenerator().getSyntax();
+
+    const auto nodePrefix = buildCategoryPrefixMap();
 
     for (ShaderGraphInputSocket* inputSocket : getInputSockets())
     {
@@ -1172,21 +1227,25 @@ void ShaderGraph::setVariableNames(GenContext& context)
     }
     for (ShaderGraphOutputSocket* outputSocket : getOutputSockets())
     {
-        const string variable = syntax.getVariableName(outputSocket->getName(), outputSocket->getType(), _identifiers);
+        const string baseName = outputSocket->getType().getName() + "_out";
+        const string variable = syntax.getVariableName(baseName, outputSocket->getType(), _identifiers);
         outputSocket->setVariable(variable);
     }
     for (ShaderNode* node : getNodes())
     {
+        auto it = nodePrefix.find(node);
+        const string& prefix = (it != nodePrefix.end()) ? it->second : node->getName();
+
         for (ShaderInput* input : node->getInputs())
         {
-            string variable = input->getFullName();
-            variable = syntax.getVariableName(variable, input->getType(), _identifiers);
+            const string baseName = prefix + "_" + input->getName();
+            const string variable = syntax.getVariableName(baseName, input->getType(), _identifiers);
             input->setVariable(variable);
         }
         for (ShaderOutput* output : node->getOutputs())
         {
-            string variable = output->getFullName();
-            variable = syntax.getVariableName(variable, output->getType(), _identifiers);
+            const string baseName = prefix + "_" + output->getName();
+            const string variable = syntax.getVariableName(baseName, output->getType(), _identifiers);
             output->setVariable(variable);
         }
     }

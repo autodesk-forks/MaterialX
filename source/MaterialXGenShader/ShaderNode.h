@@ -438,6 +438,12 @@ class MX_GENSHADER_API ShaderNode
         return _uniqueId;
     }
 
+    /// Return the nodedef category for this node (e.g. "standard_surface", "tiledimage").
+    const string& getCategory() const
+    {
+        return _category;
+    }
+
     /// Return the implementation used for this node.
     const ShaderNodeImpl& getImplementation() const
     {
@@ -504,6 +510,7 @@ class MX_GENSHADER_API ShaderNode
     const ShaderGraph* _parent;
     string _name;
     string _uniqueId;
+    string _category;
     uint32_t _classification;
 
     std::unordered_map<string, ShaderInputPtr> _inputMap;

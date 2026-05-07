@@ -189,6 +189,10 @@ class MX_GENSHADER_API ShaderGraph : public ShaderNode
     /// to avoid name conflicts during shader generation.
     void setVariableNames(GenContext& context);
 
+    /// Build a map from each node to a generic category-based prefix string.
+    /// An index suffix is appended to the category name to ensure uniqueness
+    std::unordered_map<const ShaderNode*, string> buildCategoryPrefixMap() const;
+
     /// Populate the color transform map for the given shader port, if the provided combination of
     /// source and target color spaces are supported for its data type.
     void populateColorTransformMap(ColorManagementSystemPtr colorManagementSystem, ShaderPort* shaderPort,
