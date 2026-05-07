@@ -302,8 +302,15 @@ TEST_CASE("GenShader: GLSL Structural Hash", "[genglsl]")
 
             REQUIRE(shader != nullptr);
 
-            size_t hash1 = mx::computeStructuralHash(shader->getGraph());
+            const mx::GenOptions& options = context.getOptions();
+            size_t hash1 = mx::computeStructuralHash(shader->getGraph(), options);
             REQUIRE(hash1 != 0);
+
+            // The options-free overload must produce a different hash
+            // (unless all topology-affecting options happen to hash to zero,
+            // which is astronomically unlikely).
+            size_t hashNoOpts = mx::computeStructuralHash(shader->getGraph());
+            REQUIRE(hashNoOpts != 0);
 
             // Determinism check: generate the same shader again and verify the hash matches.
             mx::ShaderPtr shader2;
@@ -317,7 +324,7 @@ TEST_CASE("GenShader: GLSL Structural Hash", "[genglsl]")
             }
 
             REQUIRE(shader2 != nullptr);
-            size_t hash2 = mx::computeStructuralHash(shader2->getGraph());
+            size_t hash2 = mx::computeStructuralHash(shader2->getGraph(), options);
             REQUIRE(hash1 == hash2);
 
             hashLog << "  " << documentsPaths[docIdx] << " | "
@@ -331,6 +338,143 @@ TEST_CASE("GenShader: GLSL Structural Hash", "[genglsl]")
     // Output to Catch2 INFO so it appears with -s flag
     INFO(hashLog.str());
     SUCCEED();
+}
+
+TEST_CASE("GenShader: GLSL Structural Hash GenOptions Sensitivity", "[genglsl]")
+{
+    mx::DocumentPtr nodeLibrary = mx::createDocument();
+    const mx::FileSearchPath searchPath = mx::getDefaultDataSearchPath();
+
+    loadLibraries({ "libraries" }, searchPath, nodeLibrary);
+
+    mx::GenContext context(mx::GlslShaderGenerator::create());
+    context.registerSourceCodeSearchPath(searchPath);
+
+    mx::DefaultColorManagementSystemPtr colorManagementSystem =
+        mx::DefaultColorManagementSystem::create(context.getShaderGenerator().getTarget());
+    REQUIRE(colorManagementSystem);
+    context.getShaderGenerator().setColorManagementSystem(colorManagementSystem);
+    colorManagementSystem->loadLibrary(nodeLibrary);
+
+    mx::UnitSystemPtr unitSystem = mx::UnitSystem::create(context.getShaderGenerator().getTarget());
+    REQUIRE(unitSystem);
+    context.getShaderGenerator().setUnitSystem(unitSystem);
+    unitSystem->loadLibrary(nodeLibrary);
+    unitSystem->setUnitConverterRegistry(mx::UnitConverterRegistry::create());
+    mx::UnitTypeDefPtr distanceTypeDef = nodeLibrary->getUnitTypeDef("distance");
+    unitSystem->getUnitConverterRegistry()->addUnitConverter(distanceTypeDef, mx::LinearUnitConverter::create(distanceTypeDef));
+    mx::UnitTypeDefPtr angleTypeDef = nodeLibrary->getUnitTypeDef("angle");
+    unitSystem->getUnitConverterRegistry()->addUnitConverter(angleTypeDef, mx::LinearUnitConverter::create(angleTypeDef));
+    context.getOptions().targetDistanceUnit = "meter";
+
+    mx::FilePath materialPath = searchPath.find(
+        "resources/Materials/Examples/StandardSurface/standard_surface_default.mtlx");
+    REQUIRE(!materialPath.isEmpty());
+
+    mx::DocumentPtr doc = mx::createDocument();
+    mx::readFromXmlFile(doc, materialPath, searchPath);
+    doc->setDataLibrary(nodeLibrary);
+
+    std::string message;
+    REQUIRE(doc->validate(&message));
+    context.getShaderGenerator().registerTypeDefs(doc);
+
+    std::vector<mx::TypedElementPtr> elements = mx::findRenderableElements(doc);
+    REQUIRE(!elements.empty());
+    mx::TypedElementPtr element = elements[0];
+
+    // Generate baseline shader with default options.
+    mx::GenOptions baselineOptions = context.getOptions();
+    mx::ShaderPtr baselineShader = context.getShaderGenerator().generate(
+        element->getName(), element, context);
+    REQUIRE(baselineShader != nullptr);
+
+    size_t baselineHash = mx::computeStructuralHash(
+        baselineShader->getGraph(), baselineOptions);
+    REQUIRE(baselineHash != 0);
+
+    // Helper: generate with modified options and verify the options-aware
+    // hash differs from the baseline.
+    auto verifyOptionChangesHash = [&](const std::string& label,
+                                       std::function<void(mx::GenOptions&)> mutate)
+    {
+        INFO("Option: " << label);
+
+        mx::GenOptions modifiedOptions = baselineOptions;
+        mutate(modifiedOptions);
+        context.getOptions() = modifiedOptions;
+
+        mx::ShaderPtr shader;
+        try
+        {
+            shader = context.getShaderGenerator().generate(
+                element->getName(), element, context);
+        }
+        catch (const std::exception&)
+        {
+            context.getOptions() = baselineOptions;
+            return;
+        }
+        REQUIRE(shader != nullptr);
+
+        size_t modifiedHash = mx::computeStructuralHash(
+            shader->getGraph(), modifiedOptions);
+        REQUIRE(modifiedHash != 0);
+        REQUIRE(modifiedHash != baselineHash);
+
+        context.getOptions() = baselineOptions;
+    };
+
+    SECTION("shaderInterfaceType changes hash")
+    {
+        verifyOptionChangesHash("shaderInterfaceType", [](mx::GenOptions& opts) {
+            opts.shaderInterfaceType = mx::SHADER_INTERFACE_REDUCED;
+        });
+    }
+
+    SECTION("emitColorTransforms changes hash")
+    {
+        verifyOptionChangesHash("emitColorTransforms", [](mx::GenOptions& opts) {
+            opts.emitColorTransforms = !opts.emitColorTransforms;
+        });
+    }
+
+    SECTION("elideConstantNodes changes hash")
+    {
+        verifyOptionChangesHash("elideConstantNodes", [](mx::GenOptions& opts) {
+            opts.elideConstantNodes = !opts.elideConstantNodes;
+        });
+    }
+
+    SECTION("targetColorSpaceOverride changes hash")
+    {
+        verifyOptionChangesHash("targetColorSpaceOverride", [](mx::GenOptions& opts) {
+            opts.targetColorSpaceOverride = "acescg";
+        });
+    }
+
+    SECTION("targetDistanceUnit changes hash")
+    {
+        verifyOptionChangesHash("targetDistanceUnit", [](mx::GenOptions& opts) {
+            opts.targetDistanceUnit = "centimeter";
+        });
+    }
+
+    SECTION("non-topology options do NOT change hash")
+    {
+        mx::GenOptions modifiedOptions = baselineOptions;
+        modifiedOptions.hwTransparency = !modifiedOptions.hwTransparency;
+        modifiedOptions.hwShadowMap = !modifiedOptions.hwShadowMap;
+        modifiedOptions.hwAmbientOcclusion = !modifiedOptions.hwAmbientOcclusion;
+        modifiedOptions.hwSrgbEncodeOutput = !modifiedOptions.hwSrgbEncodeOutput;
+        modifiedOptions.hwMaxActiveLightSources = 99;
+        modifiedOptions.fileTextureVerticalFlip = !modifiedOptions.fileTextureVerticalFlip;
+        modifiedOptions.hwImplicitBitangents = !modifiedOptions.hwImplicitBitangents;
+
+        size_t sameGraphHash = mx::computeStructuralHash(
+            baselineShader->getGraph(), modifiedOptions);
+        REQUIRE(sameGraphHash == baselineHash);
+    }
 }
 
 TEST_CASE("GenShader: GLSL Generic Input Naming", "[genglsl]")
@@ -454,6 +598,21 @@ TEST_CASE("GenShader: GLSL Generic Input Naming", "[genglsl]")
         }
     }
     CHECK(foundSurfaceshaderBase);
+
+    // Verify that local variable names in the shader body are also generic.
+    // The pixel source should contain "surfaceshader_out" and "material_out"
+    // instead of instance-specific names like "SR_carpaint_out" or "Car_Paint_out".
+    for (size_t i = 0; i < pixelSources.size(); ++i)
+    {
+        CHECK(pixelSources[i].find("surfaceshader_out") != std::string::npos);
+        CHECK(pixelSources[i].find("material_out") != std::string::npos);
+    }
+    CHECK(pixelSources[0].find("SR_carpaint_out") == std::string::npos);
+    CHECK(pixelSources[0].find("Car_Paint_out") == std::string::npos);
+    CHECK(pixelSources[1].find("SR_chrome_out") == std::string::npos);
+    CHECK(pixelSources[1].find("Chrome_out") == std::string::npos);
+    CHECK(pixelSources[2].find("SR_glass_out") == std::string::npos);
+    CHECK(pixelSources[2].find("Glass_out") == std::string::npos);
 
     // Log the uniform names for inspection
     std::ostringstream log;

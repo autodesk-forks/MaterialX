@@ -18,6 +18,11 @@ size_t computeStructuralHashFromShader(const mx::Shader& shader)
     return mx::computeStructuralHash(shader.getGraph());
 }
 
+size_t computeStructuralHashFromShaderWithOptions(const mx::Shader& shader, const mx::GenOptions& options)
+{
+    return mx::computeStructuralHash(shader.getGraph(), options);
+}
+
 std::vector<mx::TypedElementPtr> findRenderableMaterialNodes(mx::ConstDocumentPtr doc)
 {
     return mx::findRenderableMaterialNodes(doc);
@@ -44,4 +49,5 @@ void bindPyUtil(py::module& mod)
     mod.def("connectsToWorldSpaceNode", &mx::connectsToWorldSpaceNode);
     mod.def("hasElementAttributes", &mx::hasElementAttributes);
     mod.def("computeStructuralHash", &computeStructuralHashFromShader);
+    mod.def("computeStructuralHash", &computeStructuralHashFromShaderWithOptions);
 }
