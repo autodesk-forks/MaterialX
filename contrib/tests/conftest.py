@@ -69,6 +69,17 @@ def libraries(stdlib, adsklib):
     return [stdlib, adsklib]
 
 
+def _add_stream_if_missing(mesh, name, attr_type, index, stride, fill_func):
+    """Helper to create and add a mesh stream if it doesn't exist."""
+    if mesh.getStream(name):
+        return
+    stream = mx_render.MeshStream.create(name, attr_type, index)
+    stream.setStride(stride)
+    stream.resize(mesh.getVertexCount() * stride)
+    fill_func(stream.getData())
+    mesh.addStream(stream)
+
+
 def add_additional_test_streams(mesh):
     """
     Add additional test streams required by MaterialX test suite.
@@ -77,178 +88,71 @@ def add_additional_test_streams(mesh):
     adding geometry attributes needed by geompropvalue, streams, and
     struct_texcoord tests.
     """
-    vertex_count = mesh.getVertexCount()
-    if vertex_count < 1:
+    import struct as struct_module
+    
+    n = mesh.getVertexCount()
+    if n < 1:
         return
     
     # Get existing UV data for generating test data
-    texcoord0_name = f"i_{mx_render.MeshStream.TEXCOORD_ATTRIBUTE}_0"
-    texcoord0_stream = mesh.getStream(texcoord0_name)
-    if not texcoord0_stream:
+    uv_stream = mesh.getStream(f"i_{mx_render.MeshStream.TEXCOORD_ATTRIBUTE}_0")
+    if not uv_stream:
         return
-    uv_data = texcoord0_stream.getData()
+    uv = uv_stream.getData()
     
-    # Second UV set (texcoord1) - copy from texcoord0
-    texcoord1_name = f"i_{mx_render.MeshStream.TEXCOORD_ATTRIBUTE}_1"
-    if not mesh.getStream(texcoord1_name):
-        stream = mx_render.MeshStream.create(
-            texcoord1_name, mx_render.MeshStream.TEXCOORD_ATTRIBUTE, 1
-        )
-        stream.setStride(2)
-        stream.resize(vertex_count * 2)
-        data = stream.getData()
-        for i in range(len(uv_data)):
-            data[i] = uv_data[i]
-        mesh.addStream(stream)
+    TEXCOORD = mx_render.MeshStream.TEXCOORD_ATTRIBUTE
+    COLOR = mx_render.MeshStream.COLOR_ATTRIBUTE
+    GEOMPROP = mx_render.MeshStream.GEOMETRY_PROPERTY_ATTRIBUTE
     
-    # Vertex colors (color0) - gradient based on UV
-    color0_name = f"i_{mx_render.MeshStream.COLOR_ATTRIBUTE}_0"
-    if not mesh.getStream(color0_name):
-        stream = mx_render.MeshStream.create(
-            color0_name, mx_render.MeshStream.COLOR_ATTRIBUTE, 0
-        )
-        stream.setStride(4)
-        stream.resize(vertex_count * 4)
-        data = stream.getData()
-        for i in range(vertex_count):
-            data[i * 4 + 0] = uv_data[i * 2 + 0]      # R = U
-            data[i * 4 + 1] = uv_data[i * 2 + 1]      # G = V
-            data[i * 4 + 2] = 1.0                      # B = 1
-            data[i * 4 + 3] = 1.0                      # A = 1
-        mesh.addStream(stream)
+    # Second UV set - copy from texcoord0
+    _add_stream_if_missing(mesh, f"i_{TEXCOORD}_1", TEXCOORD, 1, 2,
+        lambda d: [d.__setitem__(i, uv[i]) for i in range(len(uv))])
     
-    # Second vertex colors (color1)
-    color1_name = f"i_{mx_render.MeshStream.COLOR_ATTRIBUTE}_1"
-    if not mesh.getStream(color1_name):
-        stream = mx_render.MeshStream.create(
-            color1_name, mx_render.MeshStream.COLOR_ATTRIBUTE, 1
-        )
-        stream.setStride(4)
-        stream.resize(vertex_count * 4)
-        data = stream.getData()
-        for i in range(vertex_count):
-            data[i * 4 + 0] = 1.0 - uv_data[i * 2 + 0]  # R = 1-U
-            data[i * 4 + 1] = 1.0 - uv_data[i * 2 + 1]  # G = 1-V
-            data[i * 4 + 2] = 0.0                        # B = 0
-            data[i * 4 + 3] = 1.0                        # A = 1
-        mesh.addStream(stream)
+    # Vertex colors - RGBA from UV
+    def fill_color0(d):
+        for i in range(n):
+            d[i*4], d[i*4+1], d[i*4+2], d[i*4+3] = uv[i*2], uv[i*2+1], 1.0, 1.0
+    _add_stream_if_missing(mesh, f"i_{COLOR}_0", COLOR, 0, 4, fill_color0)
     
-    # Geometry property: integer
-    geom_int_name = f"i_{mx_render.MeshStream.GEOMETRY_PROPERTY_ATTRIBUTE}_geompropvalue_integer"
-    if not mesh.getStream(geom_int_name):
-        stream = mx_render.MeshStream.create(
-            geom_int_name, mx_render.MeshStream.GEOMETRY_PROPERTY_ATTRIBUTE, 0
-        )
-        stream.setStride(1)
-        stream.resize(vertex_count)
-        data = stream.getData()
-        for i in range(vertex_count):
-            # Store int as float bits (matches C++ reinterpret_cast)
-            import struct
-            int_val = i % 10  # 0-9 pattern
-            data[i] = struct.unpack('f', struct.pack('i', int_val))[0]
-        mesh.addStream(stream)
+    def fill_color1(d):
+        for i in range(n):
+            d[i*4], d[i*4+1], d[i*4+2], d[i*4+3] = 1.0-uv[i*2], 1.0-uv[i*2+1], 0.0, 1.0
+    _add_stream_if_missing(mesh, f"i_{COLOR}_1", COLOR, 1, 4, fill_color1)
     
-    # Geometry property: float
-    geom_float_name = f"i_{mx_render.MeshStream.GEOMETRY_PROPERTY_ATTRIBUTE}_geompropvalue_float"
-    if not mesh.getStream(geom_float_name):
-        stream = mx_render.MeshStream.create(
-            geom_float_name, mx_render.MeshStream.GEOMETRY_PROPERTY_ATTRIBUTE, 1
-        )
-        stream.setStride(1)
-        stream.resize(vertex_count)
-        data = stream.getData()
-        for i in range(vertex_count):
-            data[i] = uv_data[i * 2 + 0]  # U coordinate
-        mesh.addStream(stream)
+    # Geometry properties for geompropvalue tests
+    def fill_int(d):
+        for i in range(n):
+            d[i] = struct_module.unpack('f', struct_module.pack('i', i % 10))[0]
+    _add_stream_if_missing(mesh, f"i_{GEOMPROP}_geompropvalue_integer", GEOMPROP, 0, 1, fill_int)
     
-    # Geometry property: vector2
-    geom_vec2_name = f"i_{mx_render.MeshStream.GEOMETRY_PROPERTY_ATTRIBUTE}_geompropvalue_vector2"
-    if not mesh.getStream(geom_vec2_name):
-        stream = mx_render.MeshStream.create(
-            geom_vec2_name, mx_render.MeshStream.GEOMETRY_PROPERTY_ATTRIBUTE, 1
-        )
-        stream.setStride(2)
-        stream.resize(vertex_count * 2)
-        data = stream.getData()
-        for i in range(len(uv_data)):
-            data[i] = uv_data[i]
-        mesh.addStream(stream)
+    _add_stream_if_missing(mesh, f"i_{GEOMPROP}_geompropvalue_float", GEOMPROP, 1, 1,
+        lambda d: [d.__setitem__(i, uv[i*2]) for i in range(n)])
     
-    # Geometry property: vector3
-    geom_vec3_name = f"i_{mx_render.MeshStream.GEOMETRY_PROPERTY_ATTRIBUTE}_geompropvalue_vector3"
-    if not mesh.getStream(geom_vec3_name):
-        stream = mx_render.MeshStream.create(
-            geom_vec3_name, mx_render.MeshStream.GEOMETRY_PROPERTY_ATTRIBUTE, 1
-        )
-        stream.setStride(3)
-        stream.resize(vertex_count * 3)
-        data = stream.getData()
-        for i in range(vertex_count):
-            data[i * 3 + 0] = uv_data[i * 2 + 0]  # U
-            data[i * 3 + 1] = uv_data[i * 2 + 1]  # V
-            data[i * 3 + 2] = 0.0
-        mesh.addStream(stream)
+    _add_stream_if_missing(mesh, f"i_{GEOMPROP}_geompropvalue_vector2", GEOMPROP, 1, 2,
+        lambda d: [d.__setitem__(i, uv[i]) for i in range(len(uv))])
     
-    # Geometry property: vector4
-    geom_vec4_name = f"i_{mx_render.MeshStream.GEOMETRY_PROPERTY_ATTRIBUTE}_geompropvalue_vector4"
-    if not mesh.getStream(geom_vec4_name):
-        stream = mx_render.MeshStream.create(
-            geom_vec4_name, mx_render.MeshStream.GEOMETRY_PROPERTY_ATTRIBUTE, 1
-        )
-        stream.setStride(4)
-        stream.resize(vertex_count * 4)
-        data = stream.getData()
-        for i in range(vertex_count):
-            data[i * 4 + 0] = uv_data[i * 2 + 0]  # U
-            data[i * 4 + 1] = uv_data[i * 2 + 1]  # V
-            data[i * 4 + 2] = 0.0
-            data[i * 4 + 3] = 1.0
-        mesh.addStream(stream)
+    def fill_vec3(d):
+        for i in range(n):
+            d[i*3], d[i*3+1], d[i*3+2] = uv[i*2], uv[i*2+1], 0.0
+    _add_stream_if_missing(mesh, f"i_{GEOMPROP}_geompropvalue_vector3", GEOMPROP, 1, 3, fill_vec3)
     
-    # Geometry property: color2 (not standard but in tests)
-    geom_color2_name = f"i_{mx_render.MeshStream.GEOMETRY_PROPERTY_ATTRIBUTE}_geompropvalue_color2"
-    if not mesh.getStream(geom_color2_name):
-        stream = mx_render.MeshStream.create(
-            geom_color2_name, mx_render.MeshStream.GEOMETRY_PROPERTY_ATTRIBUTE, 1
-        )
-        stream.setStride(2)
-        stream.resize(vertex_count * 2)
-        data = stream.getData()
-        for i in range(len(uv_data)):
-            data[i] = uv_data[i]
-        mesh.addStream(stream)
+    def fill_vec4(d):
+        for i in range(n):
+            d[i*4], d[i*4+1], d[i*4+2], d[i*4+3] = uv[i*2], uv[i*2+1], 0.0, 1.0
+    _add_stream_if_missing(mesh, f"i_{GEOMPROP}_geompropvalue_vector4", GEOMPROP, 1, 4, fill_vec4)
     
-    # Geometry property: color3
-    geom_color3_name = f"i_{mx_render.MeshStream.GEOMETRY_PROPERTY_ATTRIBUTE}_geompropvalue_color3"
-    if not mesh.getStream(geom_color3_name):
-        stream = mx_render.MeshStream.create(
-            geom_color3_name, mx_render.MeshStream.GEOMETRY_PROPERTY_ATTRIBUTE, 1
-        )
-        stream.setStride(3)
-        stream.resize(vertex_count * 3)
-        data = stream.getData()
-        for i in range(vertex_count):
-            data[i * 3 + 0] = uv_data[i * 2 + 0]  # U
-            data[i * 3 + 1] = uv_data[i * 2 + 1]  # V
-            data[i * 3 + 2] = 1.0
-        mesh.addStream(stream)
+    _add_stream_if_missing(mesh, f"i_{GEOMPROP}_geompropvalue_color2", GEOMPROP, 1, 2,
+        lambda d: [d.__setitem__(i, uv[i]) for i in range(len(uv))])
     
-    # Geometry property: color4
-    geom_color4_name = f"i_{mx_render.MeshStream.GEOMETRY_PROPERTY_ATTRIBUTE}_geompropvalue_color4"
-    if not mesh.getStream(geom_color4_name):
-        stream = mx_render.MeshStream.create(
-            geom_color4_name, mx_render.MeshStream.GEOMETRY_PROPERTY_ATTRIBUTE, 1
-        )
-        stream.setStride(4)
-        stream.resize(vertex_count * 4)
-        data = stream.getData()
-        for i in range(vertex_count):
-            data[i * 4 + 0] = uv_data[i * 2 + 0]  # U
-            data[i * 4 + 1] = uv_data[i * 2 + 1]  # V
-            data[i * 4 + 2] = 1.0
-            data[i * 4 + 3] = 1.0
-        mesh.addStream(stream)
+    def fill_color3(d):
+        for i in range(n):
+            d[i*3], d[i*3+1], d[i*3+2] = uv[i*2], uv[i*2+1], 1.0
+    _add_stream_if_missing(mesh, f"i_{GEOMPROP}_geompropvalue_color3", GEOMPROP, 1, 3, fill_color3)
+    
+    def fill_color4(d):
+        for i in range(n):
+            d[i*4], d[i*4+1], d[i*4+2], d[i*4+3] = uv[i*2], uv[i*2+1], 1.0, 1.0
+    _add_stream_if_missing(mesh, f"i_{GEOMPROP}_geompropvalue_color4", GEOMPROP, 1, 4, fill_color4)
 
 
 @pytest.fixture(scope="session")
