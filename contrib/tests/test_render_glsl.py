@@ -1,9 +1,9 @@
 """
 GLSL render tests for MaterialX materials.
 
-Each material becomes a separate test case, enabling:
-- Individual pass/fail reporting
-- Parallel execution with pytest-xdist
+Uses pytest-subtests for hierarchical test reporting:
+- Fast collection: just glob for .mtlx files
+- Granular reporting: each element is a subtest
 - Clear identification of which materials have issues
 """
 import pytest
@@ -12,80 +12,53 @@ import MaterialX.PyMaterialXGenShader as mx_gen_shader
 from pathlib import Path
 from typing import List
 
-from conftest import discover_stdlib_materials, discover_adsk_materials
+from conftest import (
+    get_repo_root,
+    get_stdlib_files,
+    get_adsk_files,
+    should_skip_element,
+    get_element_skip_reason,
+)
 
-# Import shared render logic
 from rendertest.mtlxutils.render_material import render_material
 
 
-def find_render_element(doc, element_name: str):
+def find_renderable_elements(doc):
     """
-    Find a renderable element by name in a document.
+    Find all renderable elements in a document.
     
-    Searches material nodes first, then falls back to findRenderableElements
-    for output nodes used in TestSuite.
+    Returns list of (element, name) tuples.
+    Materials with shader nodes come first, then other renderables.
     """
-    # First try material nodes (most common case)
+    elements = []
+    
+    # Material nodes with shaders
     for elem in doc.getMaterialNodes():
-        if elem.getName() == element_name:
-            return elem
+        if mx.getShaderNodes(elem):
+            elements.append((elem, elem.getName()))
     
-    # Fall back to findRenderableElements for outputs
-    for elem in mx_gen_shader.findRenderableElements(doc, False):
-        if elem.getNamePath() == element_name:
-            return elem
+    # If no materials, check for renderable outputs
+    if not elements:
+        for elem in mx_gen_shader.findRenderableElements(doc, False):
+            elements.append((elem, elem.getNamePath()))
     
-    return None
+    return elements
 
 
-def render_and_validate(
-    glsl_renderer,
-    mtlx_file: Path,
-    element_name: str,
-    libs: List,
-    search_path
-):
-    """
-    Common test logic: load document, find element, render, validate.
-    
-    Args:
-        glsl_renderer: Initialized GLSL renderer
-        mtlx_file: Path to .mtlx file
-        element_name: Name of material/output to render
-        libs: List of library documents to import
-        search_path: Base search path for resources
-    """
-    # Create document with libraries
-    doc = mx.createDocument()
-    for lib in libs:
-        doc.importLibrary(lib)
-    
-    # Load the material file
-    mx.readFromXmlFile(doc, str(mtlx_file))
-    valid, msg = doc.validate()
-    assert valid, f"Document validation failed: {msg}"
-    
-    # Set up search path for textures and includes
-    file_search_path = mx.FileSearchPath(search_path.asString())
-    file_search_path.append(str(mtlx_file.parent.resolve()))
-    
-    # Find the renderable element
-    render_node = find_render_element(doc, element_name)
-    assert render_node is not None, f"Element '{element_name}' not found in {mtlx_file}"
-    
-    # Render using shared logic
+def render_element(glsl_renderer, doc, elem, search_path):
+    """Render a single element and return (success, error_msg)."""
     result = render_material(
         glsl_renderer,
         doc,
-        render_node,
-        output_path=None,  # Don't save images during test
-        search_path=file_search_path
+        elem,
+        output_path=None,
+        search_path=search_path
     )
     
-    # Assert success
-    if not result.success:
-        error_msg = result.error or result.shader_errors or "Unknown error"
-        pytest.fail(f"Render failed for {element_name}: {error_msg}")
+    if result.success:
+        return True, None
+    else:
+        return False, result.error or result.shader_errors or "Unknown error"
 
 
 class TestRenderStdlibMaterials:
@@ -96,34 +69,88 @@ class TestRenderStdlibMaterials:
     matching the same test cases run by MaterialXTest/Catch2/CTest.
     """
     
-    @pytest.mark.parametrize("mtlx_file,element_name", discover_stdlib_materials())
-    def test_render_material(
+    @pytest.mark.parametrize("mtlx_file", get_stdlib_files())
+    def test_render_file(
         self,
         mtlx_file: Path,
-        element_name: str,
+        subtests,
         glsl_renderer,
         stdlib,
         search_path
     ):
-        """Test that a stdlib material/output renders successfully."""
-        render_and_validate(
-            glsl_renderer, mtlx_file, element_name, [stdlib], search_path
-        )
+        """Test all renderable elements in a stdlib material file."""
+        # Load document
+        doc = mx.createDocument()
+        doc.importLibrary(stdlib)
+        mx.readFromXmlFile(doc, str(mtlx_file))
+        
+        valid, msg = doc.validate()
+        assert valid, f"Document validation failed: {msg}"
+        
+        # Set up search path
+        file_search_path = mx.FileSearchPath(search_path.asString())
+        file_search_path.append(str(mtlx_file.parent.resolve()))
+        
+        # Test each renderable element as a subtest
+        elements = find_renderable_elements(doc)
+        assert elements, f"No renderable elements found in {mtlx_file}"
+        
+        repo_root = get_repo_root()
+        materials_root = repo_root / "resources" / "Materials"
+        rel_path = mtlx_file.relative_to(materials_root)
+        
+        for elem, elem_name in elements:
+            with subtests.test(msg=elem_name):
+                if should_skip_element(rel_path, elem_name):
+                    pytest.skip(get_element_skip_reason(rel_path, elem_name))
+                
+                success, error = render_element(
+                    glsl_renderer, doc, elem, file_search_path
+                )
+                assert success, f"Render failed: {error}"
 
 
 class TestRenderAdskMaterials:
     """Test rendering of Autodesk contributed materials."""
     
-    @pytest.mark.parametrize("mtlx_file,material_name", discover_adsk_materials())
-    def test_render_material(
+    @pytest.mark.parametrize("mtlx_file", get_adsk_files())
+    def test_render_file(
         self,
         mtlx_file: Path,
-        material_name: str,
+        subtests,
         glsl_renderer,
         libraries,
         search_path
     ):
-        """Test that an Autodesk material renders successfully."""
-        render_and_validate(
-            glsl_renderer, mtlx_file, material_name, libraries, search_path
-        )
+        """Test all renderable elements in an Autodesk material file."""
+        # Load document
+        doc = mx.createDocument()
+        for lib in libraries:
+            doc.importLibrary(lib)
+        mx.readFromXmlFile(doc, str(mtlx_file))
+        
+        valid, msg = doc.validate()
+        assert valid, f"Document validation failed: {msg}"
+        
+        # Set up search path
+        file_search_path = mx.FileSearchPath(search_path.asString())
+        file_search_path.append(str(mtlx_file.parent.resolve()))
+        
+        # Test each renderable element as a subtest
+        elements = find_renderable_elements(doc)
+        assert elements, f"No renderable elements found in {mtlx_file}"
+        
+        repo_root = get_repo_root()
+        materials_dir = repo_root / "contrib" / "adsk" / "resources" / "Materials"
+        rel_path = mtlx_file.relative_to(materials_dir)
+        
+        for elem, elem_name in elements:
+            with subtests.test(msg=elem_name):
+                # Skip Proceduralwood due to relative include issues
+                if "Proceduralwood" in str(rel_path):
+                    pytest.skip("adsklib relative includes require source build layout")
+                
+                success, error = render_element(
+                    glsl_renderer, doc, elem, file_search_path
+                )
+                assert success, f"Render failed: {error}"

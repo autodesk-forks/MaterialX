@@ -191,41 +191,76 @@ def glsl_renderer(stdlib, search_path, repo_root):
     return renderer
 
 
-# Tests requiring struct texcoord handling not yet supported
-_STRUCT_TEXCOORD_TESTS = {
-    "struct_texcoord",     # Struct texcoord tests need special handling
-}
-
-# Tests with known upgrade/compatibility issues
-_UPGRADE_TESTS = {
-    "upgrade",  # All upgrade tests (syntax_1_22, syntax_1_25, etc.)
+# Element skip patterns
+_SKIP_PATTERNS = {
+    "struct_texcoord": "Struct texcoord tests need special handling",
+    "upgrade": "Syntax upgrade test - may have compatibility issues",
 }
 
 
-def _get_stdlib_marks(rel_path: Path, elem_name: str):
-    """Get pytest marks for stdlib tests that need special handling."""
-    marks = []
+def should_skip_element(rel_path: Path, elem_name: str) -> bool:
+    """Check if an element should be skipped based on path patterns."""
     path_str = str(rel_path)
-    
-    # Tests requiring struct texcoord handling
-    for pattern in _STRUCT_TEXCOORD_TESTS:
+    for pattern in _SKIP_PATTERNS:
         if pattern in path_str:
-            marks.append(pytest.mark.xfail(
-                reason=f"Struct texcoord tests need special handling",
-                strict=False
-            ))
-            return marks
-    
-    # Syntax upgrade tests
-    for pattern in _UPGRADE_TESTS:
+            return True
+    return False
+
+
+def get_element_skip_reason(rel_path: Path, elem_name: str) -> str:
+    """Get the skip reason for an element."""
+    path_str = str(rel_path)
+    for pattern, reason in _SKIP_PATTERNS.items():
         if pattern in path_str:
-            marks.append(pytest.mark.xfail(
-                reason="Syntax upgrade test - may have compatibility issues",
-                strict=False
-            ))
-            return marks
+            return reason
+    return "Unknown"
+
+
+def get_stdlib_files():
+    """
+    Get list of stdlib .mtlx files for parametrization.
     
-    return marks
+    Fast collection - just globs for files, no parsing.
+    """
+    repo_root = get_repo_root()
+    materials_root = repo_root / "resources" / "Materials"
+    
+    test_dirs = [
+        materials_root / "TestSuite",
+        materials_root / "Examples",
+    ]
+    
+    files = []
+    for test_dir in test_dirs:
+        if test_dir.exists():
+            for mtlx_file in sorted(test_dir.rglob("*.mtlx")):
+                if not mtlx_file.name.startswith("_"):
+                    rel_path = mtlx_file.relative_to(materials_root)
+                    file_id = str(rel_path).replace("\\", "/")
+                    files.append(pytest.param(mtlx_file, id=file_id))
+    
+    return files
+
+
+def get_adsk_files():
+    """
+    Get list of adsk .mtlx files for parametrization.
+    
+    Fast collection - just globs for files, no parsing.
+    """
+    repo_root = get_repo_root()
+    materials_dir = repo_root / "contrib" / "adsk" / "resources" / "Materials"
+    
+    if not materials_dir.exists():
+        return []
+    
+    files = []
+    for mtlx_file in sorted(materials_dir.rglob("*.mtlx")):
+        rel_path = mtlx_file.relative_to(materials_dir)
+        file_id = str(rel_path).replace("\\", "/")
+        files.append(pytest.param(mtlx_file, id=file_id))
+    
+    return files
 
 
 def discover_stdlib_materials():
