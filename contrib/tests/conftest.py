@@ -273,7 +273,9 @@ def discover_stdlib_materials():
                         # Skip materials without shader nodes (matches findRenderableElements)
                         if mx.getShaderNodes(elem):
                             rel_path = mtlx_file.relative_to(materials_root)
-                            test_id = f"{rel_path.parent}/{rel_path.stem}/{elem.getName()}"
+                            # Normalize path separators and use : to separate file from element
+                            file_part = str(rel_path).replace("\\", "/")
+                            test_id = f"{file_part}:{elem.getName()}"
                             
                             marks = _get_stdlib_marks(rel_path, elem.getName())
                             yield pytest.param(
@@ -289,7 +291,9 @@ def discover_stdlib_materials():
                     for elem in renderables:
                         rel_path = mtlx_file.relative_to(materials_root)
                         elem_name = elem.getNamePath()
-                        test_id = f"{rel_path.parent}/{rel_path.stem}/{elem_name}"
+                        # Normalize path separators and use : to separate file from element
+                        file_part = str(rel_path).replace("\\", "/")
+                        test_id = f"{file_part}:{elem_name}"
                         
                         marks = _get_stdlib_marks(rel_path, elem_name)
                         yield pytest.param(
@@ -333,7 +337,9 @@ def discover_adsk_materials():
                     continue
                     
                 rel_path = mtlx_file.relative_to(materials_dir)
-                test_id = f"{rel_path.parent}/{rel_path.stem}/{elem.getName()}"
+                # Normalize path separators and use : to separate file from element
+                file_part = str(rel_path).replace("\\", "/")
+                test_id = f"{file_part}:{elem.getName()}"
                 
                 # Proceduralwood uses relative includes
                 # (../../stdlib/...) that require a source
