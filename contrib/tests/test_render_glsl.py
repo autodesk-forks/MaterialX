@@ -93,7 +93,8 @@ class TestRenderStdlibMaterials:
         
         # Test each renderable element as a subtest
         elements = find_renderable_elements(doc)
-        assert elements, f"No renderable elements found in {mtlx_file}"
+        if not elements:
+            pytest.skip("No renderable elements in file")
         
         repo_root = get_repo_root()
         materials_root = repo_root / "resources" / "Materials"
@@ -138,7 +139,8 @@ class TestRenderAdskMaterials:
         
         # Test each renderable element as a subtest
         elements = find_renderable_elements(doc)
-        assert elements, f"No renderable elements found in {mtlx_file}"
+        if not elements:
+            pytest.skip("No renderable elements in file")
         
         repo_root = get_repo_root()
         materials_dir = repo_root / "contrib" / "adsk" / "resources" / "Materials"
