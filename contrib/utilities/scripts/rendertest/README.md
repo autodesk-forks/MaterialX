@@ -18,7 +18,8 @@ by [Bernard Kwok](https://www.linkedin.com/in/bernard-cb-kwok/), an active contr
 
 ```
 rendertest/
-├── renderDocuments.py      # Main script
+├── renderDocuments.py           # Main script
+├── extract_render_coverage.py   # Coverage manifest from render logs
 ├── mtlxutils/
 │   ├── mxbase.py           # Version utilities
 │   ├── mxrenderer.py       # GLSL renderer wrapper
@@ -75,3 +76,24 @@ python contrib/utilities/scripts/rendertest/renderDocuments.py --radiancePath re
 
 - One PNG per renderable element, named `<element_name>_genglsl.png`
 - A `render_log.txt` written to the working directory
+
+## Coverage analysis
+
+After a render run, extract a sorted manifest of `file.mtlx:element` keys and outcomes:
+
+```bash
+python contrib/utilities/scripts/rendertest/extract_render_coverage.py render_log.txt \
+  -o legacy_coverage.txt
+```
+
+Each line is `relative/path/file.mtlx:element_name<TAB>STATUS` where `STATUS` is `PASS`, `FAIL`, or `SKIP`.
+
+Compare two manifests (for example legacy vs pytest):
+
+```bash
+python contrib/utilities/scripts/rendertest/extract_render_coverage.py legacy_coverage.txt \
+  --manifest legacy_coverage.txt --compare pytest_coverage.txt
+```
+
+The script also accepts MaterialXTest C++ logs (`genglsl_render_log.txt`) with `--format materialxtest`
+(elements are marked `RENDER` because those logs do not record pass/fail).

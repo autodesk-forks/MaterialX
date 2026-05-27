@@ -1,0 +1,9 @@
+# Python bytecode (contrib scripts and tests)
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Local render script outputs
+render_log.txt
+renders/
