@@ -67,10 +67,10 @@ def main():
     if opts.outputPath:    
         opts.outputPath = os.path.abspath(opts.outputPath)
     outputPath = mx.FilePath(opts.outputPath)
-    # Check that output path exists
+    # Create output path if it doesn't exist
     if outputPath.size() > 0 and not os.path.isdir(outputPath.asString()):
-        logger.error('Output path "%s" does not exist.', outputPath.asString())
-        exit(-1)
+        os.makedirs(outputPath.asString(), exist_ok=True)
+        logger.info('Created output directory: %s', outputPath.asString())
 
     fileList = []
     if os.path.isdir(opts.inputFileName): 

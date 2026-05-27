@@ -4,8 +4,8 @@ __pycache__/
 *$py.class
 .pytest_cache/
 
-# Local render script outputs
-render_log.txt
+# Local render script and test outputs
 renders/
+render_log.txt
 *.png
 *_coverage.txt
