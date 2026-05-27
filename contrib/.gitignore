@@ -7,3 +7,5 @@ __pycache__/
 # Local render script outputs
 render_log.txt
 renders/
+*.png
+*_coverage.txt

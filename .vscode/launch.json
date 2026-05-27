@@ -2,61 +2,38 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "renderDocuments: adsk Fusion",
+            "name": "Legacy Benchmark",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/contrib/utilities/scripts/rendertest/renderDocuments.py",
+            "program": "${workspaceFolder}/contrib/utilities/scripts/rendertest/run_legacy_benchmark.py",
             "cwd": "${workspaceFolder}",
             "console": "integratedTerminal",
             "env": {
                 "PYTHONDONTWRITEBYTECODE": "1"
             },
-            "args": [
-                "--outputPath",
-                "${workspaceFolder}/contrib/renders",
-                "--geometryPath",
-                "${workspaceFolder}/resources/Geometry/sphere.obj",
-                "--radiancePath",
-                "${workspaceFolder}/resources/Lights/san_giuseppe_bridge.hdr",
-                "--irradiancePath",
-                "${workspaceFolder}/resources/Lights/irradiance/san_giuseppe_bridge.hdr",
-                "--size",
-                "512",
-                "${workspaceFolder}/contrib/adsk/resources/Materials/Examples/Fusion"
-            ]
+            "args": []
         },
         {
-            "name": "extract_render_coverage: render_log.txt",
+            "name": "Legacy Benchmark (Single Path)",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/contrib/utilities/scripts/rendertest/extract_render_coverage.py",
+            "program": "${workspaceFolder}/contrib/utilities/scripts/rendertest/run_legacy_benchmark.py",
             "cwd": "${workspaceFolder}",
             "console": "integratedTerminal",
             "env": {
                 "PYTHONDONTWRITEBYTECODE": "1"
             },
             "args": [
-                "${workspaceFolder}/render_log.txt",
-                "-o",
-                "${workspaceFolder}/contrib/renders/legacy_coverage.txt"
+                "${input:customPath}"
             ]
-        },
+        }
+    ],
+    "inputs": [
         {
-            "name": "extract_render_coverage: compare manifests",
-            "type": "debugpy",
-            "request": "launch",
-            "program": "${workspaceFolder}/contrib/utilities/scripts/rendertest/extract_render_coverage.py",
-            "cwd": "${workspaceFolder}",
-            "console": "integratedTerminal",
-            "env": {
-                "PYTHONDONTWRITEBYTECODE": "1"
-            },
-            "args": [
-                "--manifest",
-                "${workspaceFolder}/contrib/renders/legacy_coverage.txt",
-                "--compare",
-                "${workspaceFolder}/contrib/renders/pytest_coverage.txt"
-            ]
+            "id": "customPath",
+            "type": "promptString",
+            "description": "Path to mtlx file or directory (e.g. contrib/adsk/resources/Materials)",
+            "default": "contrib/adsk/resources/Materials"
         }
     ]
 }

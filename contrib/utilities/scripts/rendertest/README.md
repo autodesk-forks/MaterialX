@@ -19,7 +19,7 @@ by [Bernard Kwok](https://www.linkedin.com/in/bernard-cb-kwok/), an active contr
 ```
 rendertest/
 ├── renderDocuments.py           # Main script
-├── extract_render_coverage.py   # Coverage manifest from render logs
+├── run_legacy_benchmark.py      # Benchmark runner and coverage analyzer
 ├── mtlxutils/
 │   ├── mxbase.py           # Version utilities
 │   ├── mxrenderer.py       # GLSL renderer wrapper
@@ -40,7 +40,8 @@ python renderDocuments.py [options] <inputFileName>
 | Argument | Description |
 |---|---|
 | `inputFileName` | Input `.mtlx` file or folder |
-| `--outputPath` | Directory to write rendered PNG images (default: same directory as input file) |
+| `--outputPath` | Directory to write rendered PNG images (created if missing) |
+| `--logPath` | Render log file (default: `<outputPath>/render_log.txt`, else `./render_log.txt`) |
 | `--radiancePath` | Path to radiance IBL `.hdr` file |
 | `--irradiancePath` | Path to irradiance IBL `.hdr` file |
 | `--geometryPath` | Path to geometry `.obj` file (default: `sphere.obj`) |
@@ -53,7 +54,7 @@ python renderDocuments.py [options] <inputFileName>
 From the **root** of the `MaterialX-adsk-fork` repository:
 
 ```base
-mkdir ./renders
+mkdir -p ./renders
 ```
 
 ```bash
@@ -75,25 +76,27 @@ python contrib/utilities/scripts/rendertest/renderDocuments.py --radiancePath re
 ## Output
 
 - One PNG per renderable element, named `<element_name>_genglsl.png`
-- A `render_log.txt` written to the working directory
+- A render log (default: `render_log.txt` under `--outputPath` if set)
 
-## Coverage analysis
+## Legacy Benchmark & Coverage Analysis
 
-After a render run, extract a sorted manifest of `file.mtlx:element` keys and outcomes:
+We provide a convenient wrapper script `run_legacy_benchmark.py` that handles directory creation, executes the rendering test suite, times it with high precision, parses the logs, and extracts/analyzes the element-level coverage.
 
+### Run Legacy ADSK Benchmark
+
+To run, time, and generate a sorted coverage manifest:
 ```bash
-python contrib/utilities/scripts/rendertest/extract_render_coverage.py render_log.txt \
-  -o legacy_coverage.txt
+python contrib/utilities/scripts/rendertest/run_legacy_benchmark.py
 ```
 
-Each line is `relative/path/file.mtlx:element_name<TAB>STATUS` where `STATUS` is `PASS`, `FAIL`, or `SKIP`.
+This will:
+- Auto-create `contrib/renders`
+- Run the full suite under `contrib/adsk/resources/Materials`
+- Save the overall wall-clock timing report to the terminal
+- Generate a sorted element-level coverage manifest at `contrib/renders/legacy_coverage.txt`
 
-Compare two manifests (for example legacy vs pytest):
+### Compare manifests (e.g. legacy vs pytest)
 
 ```bash
-python contrib/utilities/scripts/rendertest/extract_render_coverage.py legacy_coverage.txt \
-  --manifest legacy_coverage.txt --compare pytest_coverage.txt
+python contrib/utilities/scripts/rendertest/run_legacy_benchmark.py --compare contrib/renders/pytest_coverage.txt
 ```
-
-The script also accepts MaterialXTest C++ logs (`genglsl_render_log.txt`) with `--format materialxtest`
-(elements are marked `RENDER` because those logs do not record pass/fail).
