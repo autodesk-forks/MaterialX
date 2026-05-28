@@ -1,0 +1,12 @@
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Render outputs
+renders/
+
+# Test outputs
+*.png
+render_log.txt

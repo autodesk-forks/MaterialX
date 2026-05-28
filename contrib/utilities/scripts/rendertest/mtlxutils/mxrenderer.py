@@ -598,7 +598,7 @@ def performRender(glslRenderer, doc, inputFilename, outputPath, searchPath) -> (
     # Find a renderable and generate the shader for it
     nodes = glslRenderer.findRenderableElements(doc)
     if not nodes:
-        return
+        return False, "No renderable elements found"
     printSource = False
 
     # Set up overrides for color space and units. Color space may come from the document,
@@ -607,7 +607,8 @@ def performRender(glslRenderer, doc, inputFilename, outputPath, searchPath) -> (
     targetDistanceUnit = 'centimeter'
     for renderNode in nodes:
         shader = None
-        if renderNode.getType() == 'material':
+        # getShaderNodes only works on Node objects, not Outputs
+        if isinstance(renderNode, mx.Node) and renderNode.getType() == 'material':
             renderNodes = mx.getShaderNodes(renderNode)
             if not renderNodes:
                 glslRenderer.setActiveShaderErrors('- Warning: No surface shader found in material: "%s"' % renderNode.getNamePath())                    
