@@ -1,9 +1,8 @@
 """
-Shared render logic for both script and pytest usage.
+Shared render logic for pytest test suite.
 
-This module encapsulates the per-material render logic so it can be called from:
-1. renderDocuments.py (batch script)
-2. pytest test cases (parametrized tests)
+This module encapsulates the per-material render logic so it can be called from
+pytest test cases (parametrized tests).
 """
 import MaterialX as mx
 from pathlib import Path

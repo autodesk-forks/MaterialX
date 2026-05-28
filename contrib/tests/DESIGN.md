@@ -13,8 +13,7 @@ built on top of the existing `rendertest` utilities from Bernard Kwok's
 2. **Parallel execution**: Tests run in parallel using pytest-xdist for faster CI
 3. **Shared setup**: Expensive renderer initialization is session-scoped, amortized 
    across tests within each worker process
-4. **Reusable logic**: Render logic is shared between the original script 
-   (`renderDocuments.py`) and pytest tests
+4. **Reusable logic**: Render logic is encapsulated as clean, modular helpers in `render_material.py`
 
 ## Directory Structure
 
@@ -26,9 +25,8 @@ contrib/
 │           ├── mtlxutils/
 │           │   ├── mxrenderer.py    # GLSL renderer wrapper
 │           │   ├── mxshadergen.py   # Shader generation
-│           │   └── render_material.py  # NEW: shared render logic
-│           └── renderDocuments.py   # Original batch script
-└── tests/                           # NEW: pytest tests
+│           │   └── render_material.py  # Shared render logic
+└── tests/                           # pytest tests
     ├── conftest.py                  # Fixtures
     ├── pyproject.toml               # pytest config
     ├── test_render_glsl.py          # Parametrized render tests
@@ -75,21 +73,17 @@ pytest -v
 
 ### Test Parametrization
 
-Materials are discovered at collection time via `discover_adsk_materials()`:
-- Walks `contrib/adsk/resources/Materials/`
-- Parses each `.mtlx` file to find material nodes
-- Yields `(file_path, material_name)` pairs for parametrization
+Test files are discovered at collection time via `get_stdlib_files()` and `get_adsk_files()`:
+- Fast collection: simply globs `.mtlx` file paths without loading or parsing documents.
+- Granular subtests: each file-level test dynamically discovers and runs its renderable elements in parallel-safe `pytest-subtests` loops.
 
 ### Shared Render Logic
 
 `rendertest/mtlxutils/render_material.py` provides:
-- `render_material()`: Render a single material node
-- `render_file()`: Render all materials in a file
-- `RenderResult`: Dataclass for render outcomes
+- `render_material()`: Render a single material node or renderable output.
+- `RenderResult`: Dataclass for render outcomes.
 
-This is used by both:
-1. `renderDocuments.py` (batch rendering)
-2. `test_render_glsl.py` (pytest tests)
+This is used by `test_render_glsl.py` (pytest tests) to perform unified rendering validation.
 
 ## Future Work
 
