@@ -18,6 +18,7 @@ from conftest import (
     get_adsk_files,
     should_skip_element,
     get_element_skip_reason,
+    record_pytest_result,
 )
 
 from rendertest.mtlxutils.render_material import render_material
@@ -101,14 +102,28 @@ class TestRenderStdlibMaterials:
         rel_path = mtlx_file.relative_to(materials_root)
         
         for elem, elem_name in elements:
-            with subtests.test(msg=elem_name):
-                if should_skip_element(rel_path, elem_name):
-                    pytest.skip(get_element_skip_reason(rel_path, elem_name))
-                
-                success, error = render_element(
-                    glsl_renderer, doc, elem, file_search_path
-                )
-                assert success, f"Render failed: {error}"
+            key = f"resources/Materials/{str(rel_path).replace('\\', '/')}:{elem_name}"
+            status = "FAIL"
+            try:
+                with subtests.test(msg=elem_name):
+                    if should_skip_element(rel_path, elem_name):
+                        status = "SKIP"
+                        pytest.skip(get_element_skip_reason(rel_path, elem_name))
+                    
+                    success, error = render_element(
+                        glsl_renderer, doc, elem, file_search_path
+                    )
+                    if success:
+                        status = "PASS"
+                    else:
+                        status = "FAIL"
+                    assert success, f"Render failed: {error}"
+            except BaseException as e:
+                if "Skipped" in type(e).__name__:
+                    status = "SKIP"
+                raise
+            finally:
+                record_pytest_result(repo_root, key, status)
 
 
 class TestRenderAdskMaterials:
@@ -147,12 +162,26 @@ class TestRenderAdskMaterials:
         rel_path = mtlx_file.relative_to(materials_dir)
         
         for elem, elem_name in elements:
-            with subtests.test(msg=elem_name):
-                # Skip Proceduralwood due to relative include issues
-                if "Proceduralwood" in str(rel_path):
-                    pytest.skip("adsklib relative includes require source build layout")
-                
-                success, error = render_element(
-                    glsl_renderer, doc, elem, file_search_path
-                )
-                assert success, f"Render failed: {error}"
+            key = f"contrib/adsk/resources/Materials/{str(rel_path).replace('\\', '/')}:{elem_name}"
+            status = "FAIL"
+            try:
+                with subtests.test(msg=elem_name):
+                    # Skip Proceduralwood due to relative include issues
+                    if "Proceduralwood" in str(rel_path):
+                        status = "SKIP"
+                        pytest.skip("adsklib relative includes require source build layout")
+                    
+                    success, error = render_element(
+                        glsl_renderer, doc, elem, file_search_path
+                    )
+                    if success:
+                        status = "PASS"
+                    else:
+                        status = "FAIL"
+                    assert success, f"Render failed: {error}"
+            except BaseException as e:
+                if "Skipped" in type(e).__name__:
+                    status = "SKIP"
+                raise
+            finally:
+                record_pytest_result(repo_root, key, status)

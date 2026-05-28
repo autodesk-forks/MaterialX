@@ -397,3 +397,46 @@ def discover_adsk_materials():
             # Skip files that fail to load during discovery
             continue
 
+
+def record_pytest_result(repo_root: Path, key: str, status: str):
+    """Record a pytest test/subtest result to a worker-specific file."""
+    import os
+    worker_file = repo_root / "contrib" / f"pytest_coverage_worker_{os.getpid()}.txt"
+    with open(worker_file, "a", encoding="utf-8") as f:
+        f.write(f"{key}\t{status}\n")
+
+
+def pytest_sessionfinish(session, exitstatus):
+    """
+    On session finish, if we are on the master process (or sequential run),
+    consolidate all worker-specific coverage files into pytest_coverage.txt.
+    """
+    # Only run on master process (or if sequential)
+    if not hasattr(session.config, "workerinput"):
+        repo_root = get_repo_root()
+        contrib_dir = repo_root / "contrib"
+        
+        # Gather all worker files
+        worker_files = list(contrib_dir.glob("pytest_coverage_worker_*.txt"))
+        if not worker_files:
+            return
+            
+        entries = {}
+        for wf in worker_files:
+            try:
+                for line in wf.read_text(encoding="utf-8").splitlines():
+                    if line.strip():
+                        parts = line.strip().split("\t")
+                        if len(parts) == 2:
+                            entries[parts[0]] = parts[1]
+                wf.unlink() # Delete worker file
+            except Exception as e:
+                print(f"Warning: Failed to process worker file {wf}: {e}", file=sys.stderr)
+                
+        # Write consolidated manifest
+        manifest_file = contrib_dir / "pytest_coverage.txt"
+        lines = [f"{key}\t{status}" for key, status in sorted(entries.items())]
+        manifest_file.write_text("\n".join(lines) + ("\n" if lines else ""), encoding="utf-8")
+        print(f"\nConsolidated pytest coverage manifest written to: {manifest_file}")
+
+

@@ -1,6 +1,8 @@
 {
     "python.testing.pytestArgs": [
-        "contrib"
+        "contrib/tests",
+        "-n",
+        "auto"
     ],
     "python.testing.unittestEnabled": false,
     "python.testing.pytestEnabled": true
