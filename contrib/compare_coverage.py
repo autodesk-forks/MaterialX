@@ -7,8 +7,8 @@ from pathlib import Path
 from typing import Dict, Set
 
 def align_key(key: str) -> str:
-    """Normalize keys so they can be matched regardless of the contrib/adsk prefix."""
-    return key.replace("contrib/adsk/", "").replace("\\", "/").strip()
+    """Normalize keys so they can be matched regardless of backslashes or spacing."""
+    return key.replace("\\", "/").strip()
 
 def load_manifest(path: Path) -> Dict[str, str]:
     if not path.exists():

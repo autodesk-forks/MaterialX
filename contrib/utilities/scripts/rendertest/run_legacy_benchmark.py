@@ -45,8 +45,8 @@ _RE_FAIL_RENDER = re.compile(r"^- Failed to render, Errors:", re.IGNORECASE)
 _RE_WARN_NO_SHADER = re.compile(r"No surface shader found in material:\s*\"(.+?)\"", re.IGNORECASE)
 
 _PATH_ANCHORS = (
-    "resources/Materials/",
     "contrib/adsk/resources/Materials/",
+    "resources/Materials/",
 )
 
 
