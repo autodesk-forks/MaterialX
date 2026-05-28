@@ -91,10 +91,9 @@ This is used by `test_render_glsl.py` (pytest tests) to perform unified renderin
 2. **Image comparison**: Compare renders against baselines using FLIP or similar
 3. **Shader comparison**: Compare generated GLSL against baselines
 4. **CI integration**: GitHub Actions workflow with software GL rendering
-5. **Metashade integration**: Extend for Metashade-generated material testing
 
 ## Related
 
 - Original rendertest: `contrib/utilities/scripts/rendertest/README.md`
 - MaterialX_Learn: https://github.com/kwokcb/MaterialX_Learn
-- Metashade: https://github.com/metashade/metashade
+
