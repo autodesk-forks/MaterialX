@@ -29,7 +29,7 @@ contrib/
 └── tests/                           # pytest tests
     ├── conftest.py                  # Fixtures
     ├── pyproject.toml               # pytest config
-    ├── test_render_glsl.py          # Parametrized render tests
+    ├── test_render.py               # Parametrized render tests
     └── DESIGN.md                    # This file
 ```
 
@@ -69,6 +69,7 @@ pytest -v
 | `adsklib` | session | Loaded Autodesk library |
 | `libraries` | session | Combined libraries |
 | `glsl_renderer` | session | Initialized GLSL renderer |
+| `renderer` | session | Generic renderer interface (currently maps to `glsl_renderer`) |
 | `search_path` | session | MaterialX file search path |
 
 ### Test Parametrization
@@ -83,7 +84,7 @@ Test files are discovered at collection time via `get_stdlib_files()` and `get_a
 - `render_material()`: Render a single material node or renderable output.
 - `RenderResult`: Dataclass for render outcomes.
 
-This is used by `test_render_glsl.py` (pytest tests) to perform unified rendering validation.
+This is used by `test_render.py` (pytest tests) to perform unified rendering validation.
 
 ## Future Work
 

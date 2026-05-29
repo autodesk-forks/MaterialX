@@ -191,6 +191,18 @@ def glsl_renderer(stdlib, search_path, repo_root):
     return renderer
 
 
+@pytest.fixture(scope="session")
+def renderer(glsl_renderer):
+    """
+    Session-scoped renderer fixture.
+    
+    Provides a generic renderer interface for tests. Currently maps to the
+    GLSL renderer, but can be parameterized or extended in the future to support
+    other rendering backends (e.g. MSL, OSL, Slang).
+    """
+    return glsl_renderer
+
+
 # Element skip patterns
 _SKIP_PATTERNS = {
     "struct_texcoord": "Struct texcoord tests need special handling",
