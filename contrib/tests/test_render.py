@@ -1,5 +1,5 @@
 """
-GLSL render tests for MaterialX materials.
+Render tests for MaterialX materials.
 
 Uses pytest-subtests for hierarchical test reporting:
 - Fast collection: just glob for .mtlx files
@@ -45,10 +45,10 @@ def find_renderable_elements(doc):
     return elements
 
 
-def render_element(glsl_renderer, doc, elem, search_path):
+def render_element(renderer, doc, elem, search_path):
     """Render a single element and return (success, error_msg)."""
     result = render_material(
-        glsl_renderer,
+        renderer,
         doc,
         elem,
         output_path=None,
@@ -74,7 +74,7 @@ class TestRenderStdlibMaterials:
         self,
         mtlx_file: Path,
         subtests,
-        glsl_renderer,
+        renderer,
         stdlib,
         search_path
     ):
@@ -106,7 +106,7 @@ class TestRenderStdlibMaterials:
                     pytest.skip(get_element_skip_reason(rel_path, elem_name))
                 
                 success, error = render_element(
-                    glsl_renderer, doc, elem, file_search_path
+                    renderer, doc, elem, file_search_path
                 )
                 assert success, f"Render failed: {error}"
 
@@ -119,7 +119,7 @@ class TestRenderAdskMaterials:
         self,
         mtlx_file: Path,
         subtests,
-        glsl_renderer,
+        renderer,
         libraries,
         search_path
     ):
@@ -153,6 +153,6 @@ class TestRenderAdskMaterials:
                     pytest.skip("adsklib relative includes require source build layout")
                 
                 success, error = render_element(
-                    glsl_renderer, doc, elem, file_search_path
+                    renderer, doc, elem, file_search_path
                 )
                 assert success, f"Render failed: {error}"
