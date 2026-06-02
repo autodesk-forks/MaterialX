@@ -29,6 +29,10 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       run: |
+        # Configure a git identity so merge commits can be created on the runner.
+        git config user.name "github-actions[bot]"
+        git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
         # Ensure we have the latest information (including tags) from the remote before proceeding
         if git fetch origin --tags; then
             echo "git fetch origin succeeded"
