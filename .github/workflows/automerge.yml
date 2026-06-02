@@ -2,6 +2,11 @@ name: Create Branch and PR
 
 on:
   workflow_dispatch:  # This allows for manual triggering.
+    inputs:
+      sync_ref:
+        description: 'Branch or tag to sync into adsk_contrib/dev (e.g. main or v1.39.5)'
+        required: false
+        default: 'main'
   schedule:
     - cron: '0 0 * * 6'  # This sets the workflow to run every Saturday at midnight.
 
@@ -10,6 +15,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       MERGE_BRANCH: adsk-merge-branch
+      # On scheduled runs github.event.inputs is empty, so default to 'main'.
+      SYNC_REF: ${{ github.event.inputs.sync_ref || 'main' }}
 
     steps:
     - name: Checkout main branch
@@ -21,34 +28,45 @@ jobs:
     - name: Create merge branch and PR
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      run: | 
-        # Ensure we have the latest information from the remote repository before proceeding
-        if git fetch origin; then
+      run: |
+        # Ensure we have the latest information (including tags) from the remote before proceeding
+        if git fetch origin --tags; then
             echo "git fetch origin succeeded"
         else
             echo "git fetch origin failed"
             exit 1
         fi
 
-        # Check if adsk_contrib/dev is already up to date with main; if so, automerge is not needed
-        if git diff --quiet origin/main adsk_contrib/dev; then
-            echo "adsk_contrib/dev is updated with main, automerge not required"
+        # Resolve SYNC_REF to a concrete commit. It may be a branch (origin/<ref>) or a tag.
+        if git rev-parse --verify --quiet "refs/tags/$SYNC_REF" >/dev/null; then
+            SYNC_COMMIT="refs/tags/$SYNC_REF"
+        elif git rev-parse --verify --quiet "origin/$SYNC_REF" >/dev/null; then
+            SYNC_COMMIT="origin/$SYNC_REF"
+        else
+            echo "Could not resolve '$SYNC_REF' as a tag or remote branch. Exiting."
+            exit 1
+        fi
+        echo "Syncing from $SYNC_REF ($SYNC_COMMIT)"
+
+        # Check if adsk_contrib/dev already contains SYNC_REF; if so, automerge is not needed
+        if git merge-base --is-ancestor "$SYNC_COMMIT" origin/adsk_contrib/dev; then
+            echo "adsk_contrib/dev already contains $SYNC_REF, automerge not required"
             exit 0
         fi
 
-        # Try to checkout the merge branch; if it doesn't exist, create it. If it exists, merge main into it and handle merge errors
+        # Try to checkout the merge branch; if it doesn't exist, create it. If it exists, merge SYNC_REF into it and handle merge errors
         if ! git checkout "$MERGE_BRANCH"; then
             echo "Create new branch $MERGE_BRANCH"
             git checkout -b "$MERGE_BRANCH"
+        fi
+
+        echo "Merge $SYNC_REF into $MERGE_BRANCH"
+        # Attempt to merge SYNC_REF into the merge branch and exit if the merge fails
+        if git merge --no-edit "$SYNC_COMMIT"; then
+            echo "Merge completed successfully."
         else
-            echo "Merge main into the existing $MERGE_BRANCH"
-            # Attempt to merge main into the merge branch and exit if the merge fails
-            if git merge main; then
-                echo "Merge completed successfully."
-            else
-                echo "Merge failed. Exiting workflow."
-                exit 1
-            fi
+            echo "Merge failed. Exiting workflow."
+            exit 1
         fi
 
         # Check if there are any changes to push to the remote merge branch; if not, skip push and PR creation
@@ -70,8 +88,8 @@ jobs:
         # Attempt to create the PR and exit if the creation fails
         echo "Create merge PR"
         if gh pr create \
-            --title "Merge $MERGE_BRANCH into adsk_contrib/dev" \
-            --body "Auto-created PR to merge $MERGE_BRANCH into adsk_contrib/dev" \
+            --title "Merge $MERGE_BRANCH ($SYNC_REF) into adsk_contrib/dev" \
+            --body "Auto-created PR to merge $MERGE_BRANCH into adsk_contrib/dev (synced from \`$SYNC_REF\`)" \
             --head "$MERGE_BRANCH" \
             --base adsk_contrib/dev \
             --reviewer "ashwinbhat,zicher3d,ppenenko"
