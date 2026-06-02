@@ -19,10 +19,10 @@ jobs:
       SYNC_REF: ${{ github.event.inputs.sync_ref || 'main' }}
 
     steps:
-    - name: Checkout main branch
+    - name: Checkout adsk_contrib/dev branch
       uses: actions/checkout@v2
       with:
-        ref: main
+        ref: adsk_contrib/dev
         fetch-depth: 0
 
     - name: Create merge branch and PR
