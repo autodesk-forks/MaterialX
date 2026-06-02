@@ -20,7 +20,7 @@ jobs:
 
     steps:
     - name: Checkout adsk_contrib/dev branch
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
       with:
         ref: adsk_contrib/dev
         fetch-depth: 0
