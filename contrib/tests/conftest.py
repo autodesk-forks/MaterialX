@@ -34,6 +34,14 @@ def repo_root() -> Path:
 
 
 @pytest.fixture(scope="session")
+def output_dir(repo_root) -> Path:
+    """Derived output directory for rendered images, which is gitignored."""
+    path = repo_root / "contrib" / "renders"
+    path.mkdir(parents=True, exist_ok=True)
+    return path
+
+
+@pytest.fixture(scope="session")
 def search_path(repo_root) -> mx.FileSearchPath:
     """MaterialX search path including adsk libraries."""
     sp = mx.getDefaultDataSearchPath()
@@ -67,6 +75,21 @@ def adsklib(search_path, repo_root):
 def libraries(stdlib, adsklib):
     """Combined libraries for document creation."""
     return [stdlib, adsklib]
+
+
+@pytest.fixture(scope="session")
+def data_library(stdlib, adsklib):
+    """Combined data library (stdlib + adsklib) as a single document.
+
+    Mirrors the C++ tests' single ``dependLib`` document. Test documents
+    reference it via ``Document.setDataLibrary`` rather than merging libraries
+    in with ``importLibrary`` -- merging before upgrading old-syntax documents
+    can produce spurious "too many bindings" validation errors.
+    """
+    lib = mx.createDocument()
+    lib.importLibrary(stdlib)
+    lib.importLibrary(adsklib)
+    return lib
 
 
 def _add_stream_if_missing(mesh, name, attr_type, index, stride, fill_func):
