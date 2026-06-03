@@ -111,15 +111,8 @@ def render_material(
     if output_path:
         context = renderer.getCodeGenerator().getContext()
         target = context.getShaderGenerator().getTarget()
-        # Map target generator names to match ASWF MaterialXTest's suffix conventions
-        target_map = {
-            "genglsl": "glsl",
-            "genosl": "osl",
-            "genmsl": "msl",
-            "genslang": "slang",
-            "genmdl": "mdl"
-        }
-        suffix = target_map.get(target, target)
+        # Map target generator names to match ASWF MaterialXTest's suffix conventions (e.g., genglsl -> glsl)
+        suffix = target.removeprefix("gen") if target else target
         output_file = output_path / f"{mx.createValidName(material_name)}_{suffix}.png"
         renderer.saveCapture(str(output_file), True)
         result.output_path = output_file
