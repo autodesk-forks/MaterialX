@@ -80,10 +80,12 @@ class TestRenderStdlibMaterials:
         output_dir
     ):
         """Test all renderable elements in a stdlib material file."""
-        # Load document
+        # Load the document, then attach the standard library as referenced data.
+        # Matches the C++ tests' setDataLibrary; importing/merging the library
+        # before upgrading old-syntax docs can produce spurious validation errors.
         doc = mx.createDocument()
-        doc.importLibrary(stdlib)
         mx.readFromXmlFile(doc, str(mtlx_file))
+        doc.setDataLibrary(stdlib)
         
         valid, msg = doc.validate()
         assert valid, f"Document validation failed: {msg}"
@@ -125,16 +127,16 @@ class TestRenderAdskMaterials:
         mtlx_file: Path,
         subtests,
         renderer,
-        libraries,
+        data_library,
         search_path,
         output_dir
     ):
         """Test all renderable elements in an Autodesk material file."""
-        # Load document
+        # Load the document, then attach the combined library as referenced data
+        # (matches the C++ tests' setDataLibrary).
         doc = mx.createDocument()
-        for lib in libraries:
-            doc.importLibrary(lib)
         mx.readFromXmlFile(doc, str(mtlx_file))
+        doc.setDataLibrary(data_library)
         
         valid, msg = doc.validate()
         assert valid, f"Document validation failed: {msg}"
