@@ -45,13 +45,13 @@ def find_renderable_elements(doc):
     return elements
 
 
-def render_element(renderer, doc, elem, search_path):
+def render_element(renderer, doc, elem, search_path, output_path=None):
     """Render a single element and return (success, error_msg)."""
     result = render_material(
         renderer,
         doc,
         elem,
-        output_path=None,
+        output_path=output_path,
         search_path=search_path
     )
     
@@ -76,7 +76,8 @@ class TestRenderStdlibMaterials:
         subtests,
         renderer,
         stdlib,
-        search_path
+        search_path,
+        output_dir
     ):
         """Test all renderable elements in a stdlib material file."""
         # Load document
@@ -100,13 +101,17 @@ class TestRenderStdlibMaterials:
         materials_root = repo_root / "resources" / "Materials"
         rel_path = mtlx_file.relative_to(materials_root)
         
+        # Construct output directory for this material file
+        output_path = output_dir / mtlx_file.stem
+        output_path.mkdir(parents=True, exist_ok=True)
+        
         for elem, elem_name in elements:
             with subtests.test(msg=elem_name):
                 if should_skip_element(rel_path, elem_name):
                     pytest.skip(get_element_skip_reason(rel_path, elem_name))
                 
                 success, error = render_element(
-                    renderer, doc, elem, file_search_path
+                    renderer, doc, elem, file_search_path, output_path=output_path
                 )
                 assert success, f"Render failed: {error}"
 
@@ -121,7 +126,8 @@ class TestRenderAdskMaterials:
         subtests,
         renderer,
         libraries,
-        search_path
+        search_path,
+        output_dir
     ):
         """Test all renderable elements in an Autodesk material file."""
         # Load document
@@ -146,6 +152,10 @@ class TestRenderAdskMaterials:
         materials_dir = repo_root / "contrib" / "adsk" / "resources" / "Materials"
         rel_path = mtlx_file.relative_to(materials_dir)
         
+        # Construct output directory for this material file
+        output_path = output_dir / mtlx_file.stem
+        output_path.mkdir(parents=True, exist_ok=True)
+        
         for elem, elem_name in elements:
             with subtests.test(msg=elem_name):
                 # Skip Proceduralwood due to relative include issues
@@ -153,6 +163,6 @@ class TestRenderAdskMaterials:
                     pytest.skip("adsklib relative includes require source build layout")
                 
                 success, error = render_element(
-                    renderer, doc, elem, file_search_path
+                    renderer, doc, elem, file_search_path, output_path=output_path
                 )
                 assert success, f"Render failed: {error}"
