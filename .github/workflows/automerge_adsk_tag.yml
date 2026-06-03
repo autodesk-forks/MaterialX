@@ -1,7 +1,8 @@
 # This workflow automatically creates and pushes a new tag to the repository
 # when a pull request from 'adsk-merge-branch' is merged into 'adsk_contrib/dev'.
-# The tag is based on the latest upstream tag, the current month/year, and a custom suffix.
-# It includes error handling and tag format validation for robustness.
+# The tag is based on the latest upstream FINAL release tag, the current date
+# (YYYYMMDD), and the .dev_adsk suffix. It can also be run manually via
+# workflow_dispatch to (re)tag adsk_contrib/dev when an auto-run is missed.
 name: Create Tag on automer PR Merge
 
 on:
@@ -9,16 +10,20 @@ on:
     types: [closed]
     branches:
       - adsk_contrib/dev
+  workflow_dispatch:  # Allow manual runs, e.g. to re-tag when an auto-run was missed or failed.
 
 jobs:
   create-tag:
     env:
       # Repository and branch configuration for tag automation
       UPSTREAM_REPO: https://github.com/AcademySoftwareFoundation/MaterialX.git
-    if: |
-        github.event.pull_request.merged == true &&
-        github.event.pull_request.base.ref == 'adsk_contrib/dev' &&
-        github.event.pull_request.head.ref == 'adsk-merge-branch'
+    # Run on manual dispatch, or automatically when an automerge PR
+    # (adsk-merge-branch -> adsk_contrib/dev) is merged.
+    if: >
+        github.event_name == 'workflow_dispatch' ||
+        (github.event.pull_request.merged == true &&
+         github.event.pull_request.base.ref == 'adsk_contrib/dev' &&
+         github.event.pull_request.head.ref == 'adsk-merge-branch')
     runs-on: ubuntu-latest
 
     steps:
@@ -46,8 +51,15 @@ jobs:
             exit 1
           fi
 
-          # Get the latest tag from the ASF repo
-          latest_tag=$(git ls-remote --tags --sort=version:refname upstream | tail -n1 | sed 's/.*refs\/tags\///')
+          # Get the latest FINAL release tag from the ASF repo.
+          # --refs drops peeled annotated-tag refs (the "<tag>^{}" lines), and the
+          # grep keeps only vMAJOR.MINOR.PATCH tags so pre-releases (e.g. -rc1) are
+          # excluded. Otherwise version:refname sorts "-rc1" *after* the final tag,
+          # so tail -n1 would pick the release candidate (or the invalid "^{}" ref).
+          latest_tag=$(git ls-remote --refs --tags --sort=version:refname upstream \
+            | sed 's#.*refs/tags/##' \
+            | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' \
+            | tail -n1)
           echo "latest_tag=${latest_tag}" >> $GITHUB_OUTPUT
 
           # Validate that a valid tag was obtained.
@@ -57,6 +69,7 @@ jobs:
           fi
 
       - name: Tag the repository
+        id: tag_repo
         env:
           latest_tag: ${{ steps.get_latest_tag.outputs.latest_tag }}
         run: |
@@ -66,6 +79,7 @@ jobs:
           # Construct the new tag using the latest upstream tag and the date
           new_tag="${latest_tag}.${date_stamp}.dev_adsk"
           echo "new_tag=${new_tag}"
+          echo "new_tag=${new_tag}" >> $GITHUB_OUTPUT
 
           # Apply the new tag
           git config --global user.name "github-actions[bot]"
@@ -92,21 +106,17 @@ jobs:
             exit 1
           fi
 
+      # Only comment when triggered by a merged PR (no PR context on manual dispatch).
       - name: Comment on PR with new tag
-        if: success()
+        if: success() && github.event_name == 'pull_request'
         uses: actions/github-script@v7
         env:
-            LATEST_TAG: ${{ steps.get_latest_tag.outputs.latest_tag }}
+            NEW_TAG: ${{ steps.tag_repo.outputs.new_tag }}
         with:
             script: |
-                const pr = context.payload.pull_request;
-                const latestTag = process.env.LATEST_TAG || '${{ steps.get_latest_tag.outputs.latest_tag }}';
-                const date = new Date();
-                const dateStamp = date.toISOString().slice(0,10).replace(/-/g, '');
-                const newTag = `${latestTag}.${dateStamp}.dev_adsk`;
                 github.rest.issues.createComment({
-                    issue_number: pr.number,
+                    issue_number: context.payload.pull_request.number,
                     owner: context.repo.owner,
                     repo: context.repo.repo,
-                    body: `:tada: A new tag has been created: \`${newTag}\``
+                    body: `:tada: A new tag has been created: \`${process.env.NEW_TAG}\``
                 });
