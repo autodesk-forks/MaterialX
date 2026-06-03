@@ -101,8 +101,8 @@ class TestRenderStdlibMaterials:
         materials_root = repo_root / "resources" / "Materials"
         rel_path = mtlx_file.relative_to(materials_root)
         
-        # Construct output directory for this material file
-        output_path = output_dir / mtlx_file.stem
+        # Construct output directory for this material file to match MaterialXTest layout
+        output_path = output_dir / rel_path.parent / mtlx_file.stem
         output_path.mkdir(parents=True, exist_ok=True)
         
         for elem, elem_name in elements:
@@ -152,8 +152,8 @@ class TestRenderAdskMaterials:
         materials_dir = repo_root / "contrib" / "adsk" / "resources" / "Materials"
         rel_path = mtlx_file.relative_to(materials_dir)
         
-        # Construct output directory for this material file
-        output_path = output_dir / mtlx_file.stem
+        # Construct output directory for this material file to match MaterialXTest layout
+        output_path = output_dir / rel_path.parent / mtlx_file.stem
         output_path.mkdir(parents=True, exist_ok=True)
         
         for elem, elem_name in elements:
