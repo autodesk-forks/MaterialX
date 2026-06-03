@@ -77,6 +77,21 @@ def libraries(stdlib, adsklib):
     return [stdlib, adsklib]
 
 
+@pytest.fixture(scope="session")
+def data_library(stdlib, adsklib):
+    """Combined data library (stdlib + adsklib) as a single document.
+
+    Mirrors the C++ tests' single ``dependLib`` document. Test documents
+    reference it via ``Document.setDataLibrary`` rather than merging libraries
+    in with ``importLibrary`` -- merging before upgrading old-syntax documents
+    can produce spurious "too many bindings" validation errors.
+    """
+    lib = mx.createDocument()
+    lib.importLibrary(stdlib)
+    lib.importLibrary(adsklib)
+    return lib
+
+
 def _add_stream_if_missing(mesh, name, attr_type, index, stride, fill_func):
     """Helper to create and add a mesh stream if it doesn't exist."""
     if mesh.getStream(name):
