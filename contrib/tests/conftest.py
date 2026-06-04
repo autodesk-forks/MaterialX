@@ -284,6 +284,15 @@ def get_output_path_for_file(mtlx_file: Path, output_dir: Path) -> Path:
 
 from collections import defaultdict
 
+_pytest_config = None
+
+
+def pytest_configure(config):
+    """Store pytest config globally so we can access options in hooks."""
+    global _pytest_config
+    _pytest_config = config
+
+
 _node_funcargs = {}
 _subtest_html_extras = defaultdict(list)
 
@@ -344,11 +353,11 @@ def pytest_runtest_logreport(report):
         
         # Determine HTML report directory to compute relative paths for images
         import os
-        htmlpath_str = report.config.getoption("htmlpath")
+        htmlpath_str = _pytest_config.getoption("htmlpath") if _pytest_config else None
         html_dir = Path(htmlpath_str).parent.resolve() if htmlpath_str else None
         
         # Fall back to base64 encoding only if we are generating a self-contained HTML report
-        is_self_contained = report.config.getoption("self_contained_html") if htmlpath_str else False
+        is_self_contained = _pytest_config.getoption("self_contained_html") if _pytest_config else False
         
         def get_image_src(path: Path) -> str:
             if not path or not path.exists():
