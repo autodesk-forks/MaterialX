@@ -79,7 +79,7 @@ jobs:
           # Construct the new tag using the latest upstream tag and the date
           new_tag="${latest_tag}.${date_stamp}.dev_adsk"
           echo "new_tag=${new_tag}"
-          echo "new_tag=${new_tag}" >> $GITHUB_OUTPUT
+          echo "new_tag=${new_tag}" >> "$GITHUB_OUTPUT"
 
           # Apply the new tag
           git config --global user.name "github-actions[bot]"
