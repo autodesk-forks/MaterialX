@@ -46,7 +46,7 @@ def find_renderable_elements(doc):
 
 
 def render_element(renderer, doc, elem, search_path, output_path=None):
-    """Render a single element and return (success, error_msg)."""
+    """Render a single element and return (success, error_msg, output_file)."""
     result = render_material(
         renderer,
         doc,
@@ -56,9 +56,9 @@ def render_element(renderer, doc, elem, search_path, output_path=None):
     )
     
     if result.success:
-        return True, None
+        return True, None, getattr(result, "output_path", None)
     else:
-        return False, result.error or result.shader_errors or "Unknown error"
+        return False, result.error or result.shader_errors or "Unknown error", None
 
 
 class TestRenderStdlibMaterials:
@@ -77,7 +77,9 @@ class TestRenderStdlibMaterials:
         renderer,
         stdlib,
         search_path,
-        output_dir
+        output_dir,
+        baseline_dir,
+        flip_threshold
     ):
         """Test all renderable elements in a stdlib material file."""
         # Load document
@@ -110,10 +112,32 @@ class TestRenderStdlibMaterials:
                 if should_skip_element(rel_path, elem_name):
                     pytest.skip(get_element_skip_reason(rel_path, elem_name))
                 
-                success, error = render_element(
+                success, error, rendered_file = render_element(
                     renderer, doc, elem, file_search_path, output_path=output_path
                 )
                 assert success, f"Render failed: {error}"
+                
+                if baseline_dir and rendered_file:
+                    rel_rendered = rendered_file.relative_to(output_dir)
+                    baseline_file = baseline_dir / rel_rendered
+                    
+                    # Generate heatmap in the same directory as rendered file
+                    heatmap_file = rendered_file.parent / f"{rendered_file.stem}_diff.png"
+                    
+                    from conftest import compare_rendered_image
+                    res = compare_rendered_image(rendered_file, baseline_file, heatmap_path=heatmap_file)
+                    if not res['success']:
+                        assert False, f"Image comparison failed: {res['error']}"
+                    else:
+                        mean_flip = res['mean_flip']
+                        max_flip = res['max_flip']
+                        pct_diff = res['pct_diff_pixels']
+                        
+                        assert mean_flip < flip_threshold, (
+                            f"Image comparison failed! Mean FLIP: {mean_flip:.4f} "
+                            f"(threshold: {flip_threshold}), Max FLIP: {max_flip:.4f}, "
+                            f"{pct_diff:.1f}% pixels differ. Heatmap saved to {heatmap_file.name}"
+                        )
 
 
 class TestRenderAdskMaterials:
@@ -127,7 +151,9 @@ class TestRenderAdskMaterials:
         renderer,
         libraries,
         search_path,
-        output_dir
+        output_dir,
+        baseline_dir,
+        flip_threshold
     ):
         """Test all renderable elements in an Autodesk material file."""
         # Load document
@@ -162,7 +188,29 @@ class TestRenderAdskMaterials:
                 if "Proceduralwood" in str(rel_path):
                     pytest.skip("adsklib relative includes require source build layout")
                 
-                success, error = render_element(
+                success, error, rendered_file = render_element(
                     renderer, doc, elem, file_search_path, output_path=output_path
                 )
                 assert success, f"Render failed: {error}"
+                
+                if baseline_dir and rendered_file:
+                    rel_rendered = rendered_file.relative_to(output_dir)
+                    baseline_file = baseline_dir / rel_rendered
+                    
+                    # Generate heatmap in the same directory as rendered file
+                    heatmap_file = rendered_file.parent / f"{rendered_file.stem}_diff.png"
+                    
+                    from conftest import compare_rendered_image
+                    res = compare_rendered_image(rendered_file, baseline_file, heatmap_path=heatmap_file)
+                    if not res['success']:
+                        assert False, f"Image comparison failed: {res['error']}"
+                    else:
+                        mean_flip = res['mean_flip']
+                        max_flip = res['max_flip']
+                        pct_diff = res['pct_diff_pixels']
+                        
+                        assert mean_flip < flip_threshold, (
+                            f"Image comparison failed! Mean FLIP: {mean_flip:.4f} "
+                            f"(threshold: {flip_threshold}), Max FLIP: {max_flip:.4f}, "
+                            f"{pct_diff:.1f}% pixels differ. Heatmap saved to {heatmap_file.name}"
+                        )

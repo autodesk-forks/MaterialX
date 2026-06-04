@@ -33,10 +33,50 @@ def repo_root() -> Path:
     return get_repo_root()
 
 
+def pytest_addoption(parser):
+    """Register custom command-line options for MaterialX render tests."""
+    parser.addoption(
+        "--baseline-dir",
+        action="store",
+        default=None,
+        help="Path to directory containing baseline images for comparison."
+    )
+    parser.addoption(
+        "--flip-threshold",
+        action="store",
+        type=float,
+        default=0.05,
+        help="Mean FLIP error threshold above which a comparison fails."
+    )
+    parser.addoption(
+        "--output-dir",
+        action="store",
+        default=None,
+        help="Path to directory where rendered images will be saved."
+    )
+
+
 @pytest.fixture(scope="session")
-def output_dir(repo_root) -> Path:
+def baseline_dir(request) -> Path:
+    """Path to the baseline directory, or None if not specified."""
+    opt = request.config.getoption("--baseline-dir")
+    return Path(opt) if opt else None
+
+
+@pytest.fixture(scope="session")
+def flip_threshold(request) -> float:
+    """Mean FLIP error threshold for comparison gating."""
+    return request.config.getoption("--flip-threshold")
+
+
+@pytest.fixture(scope="session")
+def output_dir(request, repo_root) -> Path:
     """Derived output directory for rendered images, which is gitignored."""
-    path = repo_root / "contrib" / "renders"
+    opt = request.config.getoption("--output-dir")
+    if opt:
+        path = Path(opt)
+    else:
+        path = repo_root / "contrib" / "renders"
     path.mkdir(parents=True, exist_ok=True)
     return path
 
@@ -211,6 +251,159 @@ def renderer(glsl_renderer):
     return glsl_renderer
 
 
+def get_output_path_for_file(mtlx_file: Path, output_dir: Path) -> Path:
+    """Derive the output directory path for a given material file."""
+    repo_root = get_repo_root()
+    materials_root = repo_root / "resources" / "Materials"
+    materials_dir = repo_root / "contrib" / "adsk" / "resources" / "Materials"
+    
+    if mtlx_file.is_relative_to(materials_root):
+        rel_path = mtlx_file.relative_to(materials_root)
+    elif mtlx_file.is_relative_to(materials_dir):
+        rel_path = mtlx_file.relative_to(materials_dir)
+    else:
+        return None
+        
+    return output_dir / rel_path.parent / mtlx_file.stem
+
+
+from collections import defaultdict
+
+_node_funcargs = {}
+_subtest_html_extras = defaultdict(list)
+
+
+@pytest.hookimpl(hookwrapper=True)
+def pytest_runtest_makereport(item, call):
+    """Hook to capture the funcargs for each test item so we can access them in logreport."""
+    outcome = yield
+    report = outcome.get_result()
+    _node_funcargs[item.nodeid] = item.funcargs
+
+
+@pytest.hookimpl(tryfirst=True)
+def pytest_runtest_logreport(report):
+    """Hook to capture subtest failures and append their visual comparisons to the main test report."""
+    if type(report).__name__ == "SubtestReport" and report.failed:
+        try:
+            from pytest_html import extras
+        except ImportError:
+            return
+            
+        funcargs = _node_funcargs.get(report.nodeid)
+        if not funcargs:
+            return
+            
+        mtlx_file = funcargs.get("mtlx_file")
+        output_dir = funcargs.get("output_dir")
+        baseline_dir = funcargs.get("baseline_dir")
+        
+        if not mtlx_file or not output_dir:
+            return
+            
+        # Extract subtest name from report context
+        context = getattr(report, "context", None)
+        subtest_name = context.msg if context else None
+        if not subtest_name:
+            return
+            
+        output_path = get_output_path_for_file(mtlx_file, output_dir)
+        if not output_path or not output_path.exists():
+            return
+            
+        # Find the rendered file
+        import MaterialX as mx
+        valid_elem_name = mx.createValidName(subtest_name)
+        rendered_files = list(output_path.glob(f"{valid_elem_name}_*.png"))
+        rendered_files = [f for f in rendered_files if not f.name.endswith("_diff.png")]
+        
+        if not rendered_files:
+            return
+            
+        rendered_file = rendered_files[0]
+        
+        # Derive baseline and heatmap paths
+        rel_rendered = rendered_file.relative_to(output_dir)
+        baseline_file = baseline_dir / rel_rendered if baseline_dir else None
+        heatmap_file = rendered_file.parent / f"{rendered_file.stem}_diff.png"
+        
+        # Determine HTML report directory to compute relative paths for images
+        import os
+        htmlpath_str = report.config.getoption("htmlpath")
+        html_dir = Path(htmlpath_str).parent.resolve() if htmlpath_str else None
+        
+        # Fall back to base64 encoding only if we are generating a self-contained HTML report
+        is_self_contained = report.config.getoption("self_contained_html") if htmlpath_str else False
+        
+        def get_image_src(path: Path) -> str:
+            if not path or not path.exists():
+                return ""
+            if is_self_contained:
+                import base64
+                try:
+                    with open(path, "rb") as f:
+                        encoded = base64.b64encode(f.read()).decode("utf-8")
+                        return f"data:image/png;base64,{encoded}"
+                except Exception:
+                    pass
+            elif html_dir:
+                try:
+                    # Compute relative path from the HTML report to the image file
+                    return os.path.relpath(path.resolve(), html_dir).replace("\\", "/")
+                except ValueError:
+                    return path.resolve().as_uri()
+            return path.resolve().as_uri()
+            
+        rendered_src = get_image_src(rendered_file)
+        baseline_src = get_image_src(baseline_file)
+        heatmap_src = get_image_src(heatmap_file)
+        
+        if not rendered_src:
+            return
+            
+        if baseline_src:
+            baseline_img_tag = f'<img src="{baseline_src}" style="max-width: 100%; height: auto; border: 1px solid #ccc; border-radius: 4px;" />'
+        else:
+            baseline_img_tag = '<div style="padding: 50px 10px; background: #eee; border: 1px dashed #ccc; border-radius: 4px; color: #666; font-size: 12px;">Baseline image missing</div>'
+            
+        if heatmap_src:
+            heatmap_img_tag = f'<img src="{heatmap_src}" style="max-width: 100%; height: auto; border: 1px solid #ccc; border-radius: 4px;" />'
+        else:
+            heatmap_img_tag = '<div style="padding: 50px 10px; background: #eee; border: 1px dashed #ccc; border-radius: 4px; color: #666; font-size: 12px;">No heatmap (comparison passed or skipped)</div>'
+            
+        html_content = f"""
+        <div style="margin-top: 15px; padding: 15px; border: 1px solid #e74c3c; border-radius: 6px; background: #fdf2f2; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
+            <h4 style="margin: 0 0 12px 0; color: #c0392b; font-size: 14px;">Visual Comparison for {subtest_name}</h4>
+            <div style="display: flex; gap: 15px; flex-wrap: wrap;">
+                <div style="flex: 1; min-width: 220px; text-align: center;">
+                    <div style="font-weight: bold; margin-bottom: 6px; font-size: 12px; color: #555;">Baseline (Reference)</div>
+                    {baseline_img_tag}
+                </div>
+                <div style="flex: 1; min-width: 220px; text-align: center;">
+                    <div style="font-weight: bold; margin-bottom: 6px; font-size: 12px; color: #555;">Rendered (Optimized)</div>
+                    <img src="{rendered_src}" style="max-width: 100%; height: auto; border: 1px solid #ccc; border-radius: 4px;" />
+                </div>
+                <div style="flex: 1; min-width: 220px; text-align: center;">
+                    <div style="font-weight: bold; margin-bottom: 6px; font-size: 12px; color: #555;">FLIP Heatmap</div>
+                    {heatmap_img_tag}
+                </div>
+            </div>
+        </div>
+        """
+        _subtest_html_extras[report.nodeid].append(extras.html(html_content))
+
+    elif type(report).__name__ == "TestReport" and report.when == "teardown":
+        if report.nodeid in _subtest_html_extras:
+            try:
+                from pytest_html import extras
+            except ImportError:
+                return
+            extra = getattr(report, "extras", [])
+            extra.extend(_subtest_html_extras[report.nodeid])
+            report.extras = extra
+            del _subtest_html_extras[report.nodeid]
+
+
 # Element skip patterns
 _SKIP_PATTERNS = {
     "struct_texcoord": "Struct texcoord tests need special handling",
@@ -281,4 +474,83 @@ def get_adsk_files():
         files.append(pytest.param(mtlx_file, id=file_id))
     
     return files
+
+
+def compare_rendered_image(rendered_path: Path, baseline_path: Path, heatmap_path: Path = None) -> dict:
+    """
+    Compare a rendered image against a baseline image using NVIDIA FLIP.
+    
+    Returns a dictionary with comparison results:
+    {
+        'success': bool,
+        'mean_flip': float,
+        'max_flip': float,
+        'pct_diff_pixels': float,
+        'error': str or None,
+        'heatmap_path': Path or None
+    }
+    """
+    if not rendered_path.exists():
+        return {'success': False, 'error': f"Rendered image not found: {rendered_path}"}
+    if not baseline_path.exists():
+        return {'success': False, 'error': f"Baseline image not found: {baseline_path}"}
+        
+    try:
+        import flip_evaluator as flip
+        import numpy as np
+    except ImportError as e:
+        return {'success': False, 'error': f"Required packages missing: {e}"}
+
+    try:
+        # Run FLIP evaluation (LDR mode, sRGB input)
+        flip_map, mean_flip, _ = flip.evaluate(
+            str(baseline_path),
+            str(rendered_path),
+            "LDR",
+            inputsRGB=True,
+            applyMagma=False,
+            computeMeanError=True,
+            parameters={"ppd": 70.0}
+        )
+    except Exception as e:
+        return {'success': False, 'error': f"FLIP evaluation failed: {e}"}
+
+    flip_map = np.array(flip_map)
+    max_flip = float(flip_map.max())
+
+    # Percentage of pixels with perceptible difference (FLIP > 0.01)
+    diff_pixels = flip_map > 0.01
+    pct_diff_pixels = 100.0 * diff_pixels.sum() / diff_pixels.size
+
+    result = {
+        'success': True,
+        'mean_flip': float(mean_flip),
+        'max_flip': max_flip,
+        'pct_diff_pixels': pct_diff_pixels,
+        'error': None,
+        'heatmap_path': None
+    }
+
+    # Save heatmap if requested
+    if heatmap_path:
+        try:
+            heatmap_img, _, _ = flip.evaluate(
+                str(baseline_path),
+                str(rendered_path),
+                "LDR",
+                inputsRGB=True,
+                applyMagma=True,
+                computeMeanError=False,
+                parameters={"ppd": 70.0}
+            )
+            from PIL import Image
+            heatmap_arr = np.array(heatmap_img)
+            if heatmap_arr.max() <= 1.0:
+                heatmap_arr = (heatmap_arr * 255).astype(np.uint8)
+            Image.fromarray(heatmap_arr).save(heatmap_path)
+            result['heatmap_path'] = heatmap_path
+        except Exception as e:
+            result['error'] = f"Failed to save heatmap: {e}"
+
+    return result
 
