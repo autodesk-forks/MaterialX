@@ -29,7 +29,15 @@ jobs:
             | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' \
             | tail -n1)
           echo "latest_tag=${latest_tag}"
-          echo "latest_tag=${latest_tag}" >> $GITHUB_ENV
+
+          # Fail fast if no final release tag was found, so we never push a
+          # malformed tag like ".Mon_YYYY.dev_adsk".
+          if [ -z "$latest_tag" ]; then
+            echo "Failed to determine a final release tag from upstream."
+            exit 1
+          fi
+
+          echo "latest_tag=${latest_tag}" >> "$GITHUB_ENV"
 
       - name: Tag the repository
         run: |

@@ -17,10 +17,11 @@ jobs:
     env:
       # Repository and branch configuration for tag automation
       UPSTREAM_REPO: https://github.com/AcademySoftwareFoundation/MaterialX.git
-    # Run on manual dispatch, or automatically when an automerge PR
-    # (adsk-merge-branch -> adsk_contrib/dev) is merged.
+    # Run automatically when an automerge PR (adsk-merge-branch -> adsk_contrib/dev)
+    # is merged, or on manual dispatch -- but only when dispatched against
+    # adsk_contrib/dev, so a manual run can't accidentally tag another branch.
     if: >
-        github.event_name == 'workflow_dispatch' ||
+        (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/adsk_contrib/dev') ||
         (github.event.pull_request.merged == true &&
          github.event.pull_request.base.ref == 'adsk_contrib/dev' &&
          github.event.pull_request.head.ref == 'adsk-merge-branch')
@@ -118,5 +119,5 @@ jobs:
                     issue_number: context.payload.pull_request.number,
                     owner: context.repo.owner,
                     repo: context.repo.repo,
-                    body: `:tada: A new tag has been created: \`${process.env.NEW_TAG}\``
+                    body: `:bookmark: Tag for this merge: \`${process.env.NEW_TAG}\``
                 });
