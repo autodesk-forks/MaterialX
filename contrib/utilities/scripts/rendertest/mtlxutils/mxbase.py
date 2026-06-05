@@ -7,16 +7,16 @@ import MaterialX as mx
 '''
 def haveVersion(major, minor, patch):
     '''
-    Check if the current vesion matches a given version
+    Check if the current version is at least the given version (current >= given)
     ''' 
     imajor, iminor, ipatch = mx.getVersionIntegers()
 
-    if major >= imajor:
-        if  major > imajor:
-            return True        
-        if iminor >= minor:
-            if iminor > minor:
-                return True 
-            if  ipatch >= patch:
+    if imajor > major:
+        return True
+    if imajor == major:
+        if iminor > minor:
+            return True
+        if iminor == minor:
+            if ipatch >= patch:
                 return True
     return False
