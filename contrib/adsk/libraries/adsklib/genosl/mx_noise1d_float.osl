@@ -1,4 +1,4 @@
-void mx_noise2d_float(float amplitude, float pivot, float p, output float result)
+void mx_noise1d_float(float amplitude, float pivot, float p, output float result)
 {
     float value = noise("perlin", p);
     result = value * amplitude + pivot;
