@@ -404,7 +404,7 @@ def pytest_runtest_logreport(report):
                     {baseline_img_tag}
                 </div>
                 <div style="flex: 1; min-width: 220px; text-align: center;">
-                    <div style="font-weight: bold; margin-bottom: 6px; font-size: 12px; color: #555;">Rendered (Optimized)</div>
+                    <div style="font-weight: bold; margin-bottom: 6px; font-size: 12px; color: #555;">Rendered (Current)</div>
                     <img src="{rendered_src}" style="max-width: 100%; height: auto; border: 1px solid #ccc; border-radius: 4px;" />
                 </div>
                 <div style="flex: 1; min-width: 220px; text-align: center;">
