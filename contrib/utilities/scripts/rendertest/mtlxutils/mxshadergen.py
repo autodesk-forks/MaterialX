@@ -32,7 +32,7 @@ class MtlxShaderGen:
         self.stdlib = stdlib
 
     def setup(self):
-        self.implmentations = self.stdlib.getImplementations()
+        self.implementations = self.stdlib.getImplementations()
         self.targets = self.getTargetDefs(self.stdlib)
 
         # Set up generators
@@ -53,7 +53,7 @@ class MtlxShaderGen:
         for target in self.targets:
             self.implcount = 0
             # Find out how many implementations we have 
-            for impl in self.implmentations:
+            for impl in self.implementations:
                 gentarget = target
                 if target == 'essl':
                     gentarget = 'genglsl'
@@ -109,7 +109,7 @@ class MtlxShaderGen:
         return self.context
 
     def registerSourceCodeSearchPath(self, searchPath):
-        # Register a path to where implmentations can be found.
+        # Register a path to where implementations can be found.
         if self.context:
             self.context.registerSourceCodeSearchPath(searchPath)
 
