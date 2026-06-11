@@ -7,7 +7,7 @@ pytest test cases (parametrized tests).
 import MaterialX as mx
 from pathlib import Path
 from dataclasses import dataclass
-from typing import Optional, List, Tuple
+from typing import Optional, List
 
 
 @dataclass
@@ -118,65 +118,3 @@ def render_material(
         result.output_path = output_file
     
     return result
-
-
-def render_file(
-    renderer,
-    mtlx_file: Path,
-    libraries: List,
-    search_path,
-    output_path: Optional[Path] = None
-) -> List[RenderResult]:
-    """
-    Render all materials in a single .mtlx file.
-    
-    Args:
-        renderer: Initialized GlslRenderer instance
-        mtlx_file: Path to the .mtlx file
-        libraries: List of loaded library documents
-        search_path: MaterialX search path
-        output_path: Directory to save output images (optional)
-        
-    Returns:
-        List of RenderResult for each material in the file
-    """
-    results = []
-    
-    # Create working document with libraries
-    doc = mx.createDocument()
-    for lib in libraries:
-        doc.importLibrary(lib)
-    
-    # Load the material file
-    try:
-        mx.readFromXmlFile(doc, str(mtlx_file))
-        valid, msg = doc.validate()
-        if not valid:
-            return [RenderResult(
-                success=False,
-                material_name=str(mtlx_file),
-                error=f"Validation failed: {msg}"
-            )]
-    except mx.Exception as err:
-        return [RenderResult(
-            success=False,
-            material_name=str(mtlx_file),
-            error=str(err)
-        )]
-    
-    # Update search path with file's directory
-    file_dir = mtlx_file.parent.resolve()
-    full_search_path = mx.FileSearchPath(search_path)
-    full_search_path.append(str(file_dir))
-    
-    # Update image handler search path
-    image_handler = renderer.getImageHandler()
-    image_handler.setSearchPath(full_search_path)
-    
-    # Find and render all materials
-    render_nodes = renderer.findRenderableElements(doc)
-    for node in render_nodes:
-        result = render_material(renderer, doc, node, output_path)
-        results.append(result)
-    
-    return results
