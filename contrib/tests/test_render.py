@@ -78,8 +78,7 @@ class TestRenderStdlibMaterials:
         stdlib,
         search_path,
         output_dir,
-        baseline_dir,
-        flip_threshold
+        assert_image_matches_baseline
     ):
         """Test all renderable elements in a stdlib material file."""
         # Load the document, then attach the standard library as referenced data.
@@ -119,27 +118,7 @@ class TestRenderStdlibMaterials:
                 )
                 assert success, f"Render failed: {error}"
                 
-                if baseline_dir and rendered_file:
-                    rel_rendered = rendered_file.relative_to(output_dir)
-                    baseline_file = baseline_dir / rel_rendered
-                    
-                    # Generate heatmap in the same directory as rendered file
-                    heatmap_file = rendered_file.parent / f"{rendered_file.stem}_diff.png"
-                    
-                    from conftest import compare_rendered_image
-                    res = compare_rendered_image(rendered_file, baseline_file, heatmap_path=heatmap_file)
-                    if not res['success']:
-                        assert False, f"Image comparison failed: {res['error']}"
-                    else:
-                        mean_flip = res['mean_flip']
-                        max_flip = res['max_flip']
-                        pct_diff = res['pct_diff_pixels']
-                        
-                        assert mean_flip < flip_threshold, (
-                            f"Image comparison failed! Mean FLIP: {mean_flip:.4f} "
-                            f"(threshold: {flip_threshold}), Max FLIP: {max_flip:.4f}, "
-                            f"{pct_diff:.1f}% pixels differ. Heatmap saved to {heatmap_file.name}"
-                        )
+                assert_image_matches_baseline(rendered_file)
 
 
 class TestRenderAdskMaterials:
@@ -154,8 +133,7 @@ class TestRenderAdskMaterials:
         data_library,
         search_path,
         output_dir,
-        baseline_dir,
-        flip_threshold
+        assert_image_matches_baseline
     ):
         """Test all renderable elements in an Autodesk material file."""
         # Load the document, then attach the combined library as referenced data
@@ -195,24 +173,4 @@ class TestRenderAdskMaterials:
                 )
                 assert success, f"Render failed: {error}"
                 
-                if baseline_dir and rendered_file:
-                    rel_rendered = rendered_file.relative_to(output_dir)
-                    baseline_file = baseline_dir / rel_rendered
-                    
-                    # Generate heatmap in the same directory as rendered file
-                    heatmap_file = rendered_file.parent / f"{rendered_file.stem}_diff.png"
-                    
-                    from conftest import compare_rendered_image
-                    res = compare_rendered_image(rendered_file, baseline_file, heatmap_path=heatmap_file)
-                    if not res['success']:
-                        assert False, f"Image comparison failed: {res['error']}"
-                    else:
-                        mean_flip = res['mean_flip']
-                        max_flip = res['max_flip']
-                        pct_diff = res['pct_diff_pixels']
-                        
-                        assert mean_flip < flip_threshold, (
-                            f"Image comparison failed! Mean FLIP: {mean_flip:.4f} "
-                            f"(threshold: {flip_threshold}), Max FLIP: {max_flip:.4f}, "
-                            f"{pct_diff:.1f}% pixels differ. Heatmap saved to {heatmap_file.name}"
-                        )
+                assert_image_matches_baseline(rendered_file)

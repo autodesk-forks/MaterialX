@@ -578,3 +578,35 @@ def compare_rendered_image(rendered_path: Path, baseline_path: Path, heatmap_pat
 
     return result
 
+
+@pytest.fixture(scope="session")
+def assert_image_matches_baseline(baseline_dir, flip_threshold, output_dir):
+    """
+    Fixture that returns a function to assert a rendered image matches its baseline.
+    """
+    def _assert(rendered_file: Path):
+        if not (baseline_dir and rendered_file):
+            return
+            
+        rel_rendered = rendered_file.relative_to(output_dir)
+        baseline_file = baseline_dir / rel_rendered
+        
+        # Generate heatmap in the same directory as rendered file
+        heatmap_file = rendered_file.parent / f"{rendered_file.stem}_diff.png"
+        
+        res = compare_rendered_image(rendered_file, baseline_file, heatmap_path=heatmap_file)
+        if not res['success']:
+            assert False, f"Image comparison failed: {res['error']}"
+            
+        mean_flip = res['mean_flip']
+        max_flip = res['max_flip']
+        pct_diff = res['pct_diff_pixels']
+        
+        assert mean_flip < flip_threshold, (
+            f"Image comparison failed! Mean FLIP: {mean_flip:.4f} "
+            f"(threshold: {flip_threshold}), Max FLIP: {max_flip:.4f}, "
+            f"{pct_diff:.1f}% pixels differ. Heatmap saved to {heatmap_file.name}"
+        )
+    return _assert
+
+
