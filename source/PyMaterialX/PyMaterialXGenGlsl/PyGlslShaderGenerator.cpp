@@ -7,9 +7,9 @@
 
 #include <MaterialXGenGlsl/GlslShaderGenerator.h>
 #include <MaterialXGenGlsl/GlslResourceBindingContext.h>
-#include <MaterialXGenGlsl/EsslShaderGenerator.h>
-#include <MaterialXGenGlsl/VkShaderGenerator.h>
-#include <MaterialXGenGlsl/WgslShaderGenerator.h>
+#include <MaterialXGenGlsl/essl/EsslShaderGenerator.h>
+#include <MaterialXGenGlsl/vk/VkShaderGenerator.h>
+#include <MaterialXGenGlsl/wgsl/WgslShaderGenerator.h>
 #include <MaterialXGenShader/Shader.h>
 #include <MaterialXGenShader/ShaderGenerator.h>
 
@@ -87,5 +87,6 @@ void bindPyWgslShaderGenerator(py::module& mod)
         .def_static("create", &WgslShaderGenerator_create)
         .def("generate", &mx::WgslShaderGenerator::generate)
         .def("getTarget", &mx::WgslShaderGenerator::getTarget)
-        .def("getVersion", &mx::WgslShaderGenerator::getVersion);
+        .def("getVersion", &mx::WgslShaderGenerator::getVersion)
+        .def("getGeneratedManifest", &mx::WgslShaderGenerator::getGeneratedManifest);
 }
