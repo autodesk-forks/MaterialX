@@ -408,6 +408,7 @@
     </divide>
     <modulo name="specular_rotation_value" type="float">
       <input name="in1" type="float" nodename="div_rotation0" />
+      <input name="in2" type="float" value="1.0" />
     </modulo>
 
     <!-- map values to standard surface -->
@@ -465,6 +466,7 @@
     </divide>
     <modulo name="specular_rotation_value" type="float" >
       <input name="in1" type="float" nodename="div_rotation0" />
+      <input name="in2" type="float" value="1.0" />
     </modulo>
 
 
@@ -576,6 +578,7 @@
     </divide>
     <modulo name="specular_rotation_value" type="float" >
       <input name="in1" type="float" nodename="div_rotation0" />
+      <input name="in2" type="float" value="1.0" />
     </modulo>
 
     <!-- map values to standard surface -->
@@ -720,6 +723,7 @@
     </divide>
     <modulo name="specular_rotation_value" type="float" >
       <input name="in1" type="float" nodename="div_rotation1" />
+      <input name="in2" type="float" value="1.0" />
     </modulo>
 
     <constant name="layered_fraction_param" type="float">
@@ -853,6 +857,7 @@
     </divide>
     <modulo name="specular_rotation_value" type="float" >
       <input name="in1" type="float" nodename="div_rotation0" />
+      <input name="in2" type="float" value="1.0" />
     </modulo>
 
     <!-- specular_IOR = (1.0 + sqrt(x)) / (1.0 - sqrt(x)), where x = luminance(glazing_f0) -->
