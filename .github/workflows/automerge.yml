@@ -31,10 +31,14 @@ jobs:
         fi
 
         # Check if adsk_contrib/dev is already up to date with main; if so, automerge is not needed
-        if git diff --quiet origin/main adsk_contrib/dev; then
+        if git rev-parse --verify --quiet origin/adsk_contrib/dev >/dev/null && git diff --quiet origin/main origin/adsk_contrib/dev; then
             echo "adsk_contrib/dev is updated with main, automerge not required"
             exit 0
         fi
+
+        # Configure Git identity for merge commits that may be created in CI
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
 
         # Try to checkout the merge branch; if it doesn't exist, create it. If it exists, merge main into it and handle merge errors
         if ! git checkout "$MERGE_BRANCH"; then
