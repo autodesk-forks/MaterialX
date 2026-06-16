@@ -5,7 +5,10 @@
   "main": "source/index.js",
   "scripts": {
     "start": "webpack serve",
-    "build": "webpack"
+    "build": "webpack",
+    "verify:wgsl": "node test/wgsl/verify.mjs",
+    "verify:wgsl-assembly": "node test/wgsl/verify-assembly.mjs",
+    "verify": "npm run verify:wgsl && npm run verify:wgsl-assembly"
   },
   "author": "",
   "license": "ISC",
