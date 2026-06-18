@@ -88,7 +88,9 @@ TEST_CASE("GenReference: OSL Reference", "[genreference]")
                 mx::NodePtr node = datalib->addNodeInstance(nodedef, nodeName + "_" + nodeOutput->getType() + "_" + nodeInput->getType());
                 REQUIRE(node);
 
-                const std::string filename = nodeName + ".osl";
+                std::string safeNodeName = nodeName;
+                generator->getSyntax().makeValidName(safeNodeName);
+                const std::string filename = safeNodeName + ".osl";
                 try
                 {
                     mx::ShaderPtr shader = generator->generate(node->getName(), node, context);
