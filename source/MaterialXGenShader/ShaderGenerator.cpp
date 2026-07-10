@@ -344,11 +344,10 @@ ShaderNodeImplPtr ShaderGenerator::getImplementation(const NodeDef& nodedef, Gen
             permutation = context.getNodeGraphTopologyCache().createPermutation(
                 graph, *parentNodes.back());
 
-            const string& key = permutation->getKey();
-            if (permutation && !key.empty())
+            if (permutation && !permutation->getKey().empty())
             {
                 name += "_";
-                name += key;
+                name += permutation->getKey();
             }
         }
     }
