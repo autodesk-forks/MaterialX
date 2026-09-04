@@ -37,7 +37,8 @@ ShaderRenderer::ShaderRenderer(unsigned int width, unsigned int height, Image::B
     _camera = Camera::create();
     _camera->setViewMatrix(Camera::createViewMatrix(DEFAULT_EYE_POSITION, DEFAULT_TARGET_POSITION, DEFAULT_UP_VECTOR));
 
-    if (_matrixConvention == ShaderRenderer::MatrixConvention::Metal)
+    if (_matrixConvention == ShaderRenderer::MatrixConvention::Metal ||
+        _matrixConvention == ShaderRenderer::MatrixConvention::Vulkan)
     {
         _camera->setProjectionMatrix(Camera::createPerspectiveMatrixZP(-fW, fW, -fH, fH, DEFAULT_NEAR_PLANE, DEFAULT_FAR_PLANE));
     }

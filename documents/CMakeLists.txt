@@ -15,7 +15,8 @@ set(MATERIALX_DOXYGEN_SOURCE_FOLDERS
     ${PROJECT_SOURCE_DIR}/source/MaterialXRender
     ${PROJECT_SOURCE_DIR}/source/MaterialXRenderHw
     ${PROJECT_SOURCE_DIR}/source/MaterialXRenderGlsl
-    ${PROJECT_SOURCE_DIR}/source/MaterialXRenderOsl)
+    ${PROJECT_SOURCE_DIR}/source/MaterialXRenderOsl
+    ${PROJECT_SOURCE_DIR}/source/MaterialXRenderVk)
 
 find_package(Doxygen REQUIRED)
 

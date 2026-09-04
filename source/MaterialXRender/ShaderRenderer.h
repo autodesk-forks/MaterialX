@@ -34,7 +34,8 @@ class MX_RENDER_API ShaderRenderer
     enum class MatrixConvention
     {
         OpenGL = 0,
-        Metal = 1
+        Metal = 1,
+        Vulkan = 2
     };
     /// A map with name and source code for each shader stage.
     using StageMap = StringMap;
