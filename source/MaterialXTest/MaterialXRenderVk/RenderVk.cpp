@@ -8,6 +8,9 @@
 #include <MaterialXRenderVk/VkContext.h>
 #include <MaterialXRenderVk/VkRenderer.h>
 #include <MaterialXRenderVk/VkProgram.h>
+#include <MaterialXRenderVk/VkFramebuffer.h>
+#include <MaterialXRenderVk/VkMaterial.h>
+#include <MaterialXRenderVk/TextureBaker.h>
 
 #include <MaterialXGenGlsl/VkShaderGenerator.h>
 #include <MaterialXGenShader/GenContext.h>
@@ -372,6 +375,51 @@ TEST_CASE("Render: Vulkan Render", "[rendervk]")
     mx::FilePath outDir = "vulkan_render_output";
     outDir.createDirectory(true);
     imageHandler->saveImage(outDir / mx::FilePath("standard_surface_default_vk.png"), image, true);
+}
+
+//
+// Phase 4: bake a material's textures using TextureBakerVk.
+//
+TEST_CASE("Render: Vulkan Bake", "[rendervk]")
+{
+    if (!mx::VkContext::isDeviceAvailable())
+    {
+        std::cerr << "No Vulkan device available. Skip Vulkan bake test." << std::endl;
+        return;
+    }
+
+    mx::FileSearchPath searchPath = mx::getDefaultDataSearchPath();
+
+    mx::DocumentPtr stdlib = mx::createDocument();
+    mx::loadLibraries({ "libraries" }, searchPath, stdlib);
+
+    mx::DocumentPtr doc = mx::createDocument();
+    doc->setDataLibrary(stdlib);
+
+    mx::FilePath materialFile = searchPath.find(
+        "resources/Materials/Examples/StandardSurface/standard_surface_marble_solid.mtlx");
+    REQUIRE(!materialFile.isEmpty());
+    mx::readFromXmlFile(doc, materialFile, searchPath);
+
+    // Set up the baker. The constructor creates the VkShaderGenerator and
+    // initializes the renderer (VkContext + framebuffer + image handler).
+    mx::TextureBakerVkPtr baker = mx::TextureBakerVk::create(256, 256, mx::Image::BaseType::UINT8);
+    baker->getImageHandler()->setSearchPath(searchPath);
+
+    // Bake.
+    mx::FilePath outDir = "vulkan_bake_output";
+    outDir.createDirectory(true);
+    mx::FilePath outputFile = outDir / mx::FilePath("marble_baked.mtlx");
+
+    REQUIRE_NOTHROW(baker->bakeAllMaterials(doc, searchPath, outputFile));
+
+    // Verify the baked document was written.
+    CHECK(outputFile.exists());
+
+    // Verify the baked document loads and has textures.
+    mx::DocumentPtr bakedDoc = mx::createDocument();
+    mx::readFromXmlFile(bakedDoc, outputFile, searchPath);
+    CHECK(bakedDoc->getNodes().size() > 0);
 }
 
 
