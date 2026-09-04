@@ -108,11 +108,14 @@ class MX_RENDERVK_API VkProgram
         int offset = -1;
         /// Element count (matches GlslProgram::Input::size).
         int size = 0;
+        /// GL type enum from glslang reflection (e.g. 0x8b5c=mat4, 0x8b5e=sampler2D).
+        /// Used for type dispatch since glslang's internal TType is not installed by vcpkg.
+        int glType = INVALID_VK_TYPE;
         /// Whether this input is a sampler. NOTE: GlslProgram::Input has NO isSampler
         /// field — GL detects samplers at bind time by range-checking `gltype` against
-        /// GL_SAMPLER_1D..GL_SAMPLER_CUBE (GlslProgram.cpp:547). VkProgram drops `gltype`
-        /// (no GL type integer), so `isSampler` MUST be populated during
-        /// updateUniformsList() from glslang reflection.
+        /// GL_SAMPLER_1D..GL_SAMPLER_CUBE (GlslProgram.cpp:547). VkProgram populates
+        /// `isSampler` during updateUniformsList() from glslang reflection (glType in
+        /// the GL_SAMPLER_* range).
         bool isSampler = false;
         /// Whether this input is a constant.
         bool isConstant = false;
@@ -209,6 +212,26 @@ class MX_RENDERVK_API VkProgram
     void printAttributes(std::ostream& outputStream);
 
     /// @}
+    /// @name Test access
+    /// @{
+
+    /// A uniform block with its Vulkan buffer and host shadow.
+    struct UniformBlock
+    {
+        string name;
+        uint32_t binding = 0;
+        size_t size = 0;
+        VkBuffer buffer = VK_NULL_HANDLE;
+        VkDeviceMemory memory = VK_NULL_HANDLE;
+        void* mapped = nullptr;
+        std::vector<uint8_t> shadow; // zero-initialized; seeded by bindUniformDefaults()
+        bool dirty = true;
+    };
+
+    /// Return the uniform blocks (for test verification of UBO shadow contents).
+    const std::vector<UniformBlock>& getUniformBlocks() const { return _blocks; }
+
+    /// @}
 
   public:
     static unsigned int UNDEFINED_VK_RESOURCE_ID;
@@ -223,6 +246,10 @@ class MX_RENDERVK_API VkProgram
 
     // Update a list of program input attributes.
     const InputMap& updateAttributesList();
+
+    // Decorate the reflection-derived uniform list with MaterialX metadata
+    // (path/unit/colorspace/value/typeString) from the Shader's VariableBlocks.
+    void decorateFromShader();
 
     // Utility to find a uniform value in a uniform list.
     ConstValuePtr findUniformValue(const string& uniformName, const InputMap& uniformList);
@@ -246,20 +273,12 @@ class MX_RENDERVK_API VkProgram
     // Create the descriptor set layout and pipeline layout from reflected bindings.
     void createDescriptorLayout();
 
+    // Create per-block UBOs: host-visible + coherent VkBuffer + VkDeviceMemory,
+    // persistently mapped, with a zero-initialized shadow buffer.
+    void createUniformBuffers();
+
     // Create the graphics pipeline.
     void createPipeline(const VkFramebufferPtr& framebuffer);
-
-    struct UniformBlock
-    {
-        string name;
-        uint32_t binding = 0;
-        size_t size = 0;
-        VkBuffer buffer = VK_NULL_HANDLE;
-        VkDeviceMemory memory = VK_NULL_HANDLE;
-        void* mapped = nullptr;
-        std::vector<uint8_t> shadow; // zero-initialized; seeded by bindUniformDefaults()
-        bool dirty = true;
-    };
 
     struct VertexBinding // one interleaved buffer per mesh
     {

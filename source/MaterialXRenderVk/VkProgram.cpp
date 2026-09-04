@@ -130,10 +130,63 @@ namespace
 {
 
 // Compile both stages into a single glslang TProgram, link, reflect, and emit SPIR-V.
+// Captured reflection data for a single uniform variable.
+struct ReflectedUniform
+{
+    std::string name;
+    int glType = 0;
+    int offset = -1;
+    int binding = -1;
+    int blockIndex = -1;
+    int size = 0;
+    int arrayStride = 0;
+};
+
+// Captured reflection data for a uniform block.
+struct ReflectedBlock
+{
+    std::string name;
+    int binding = 0;
+    int size = 0;
+    int numMembers = 0;
+};
+
+// Captured reflection data for a pipe input (vertex attribute).
+struct ReflectedPipeInput
+{
+    std::string name;
+    int glType = 0;
+    int location = -1;
+};
+
+// GL type-enum constants used for sampler detection and type dispatch.
+// (These are the GL_ACTIVE_UNIFORM enum values glslang reports via glDefineType.)
+constexpr int GL_FLOAT = 0x1406;
+constexpr int GL_INT = 0x1404;
+constexpr int GL_BOOL = 0x8B56;
+constexpr int GL_FLOAT_VEC2 = 0x8B50;
+constexpr int GL_FLOAT_VEC3 = 0x8B51;
+constexpr int GL_FLOAT_VEC4 = 0x8B52;
+constexpr int GL_FLOAT_MAT3 = 0x8B5B;
+constexpr int GL_FLOAT_MAT4 = 0x8B5C;
+constexpr int GL_SAMPLER_2D = 0x8B5E;
+constexpr int GL_SAMPLER_CUBE = 0x8B60;
+
+// True if a GL type enum is a sampler (combined image sampler).
+bool isSamplerType(int glType)
+{
+    return glType == GL_SAMPLER_2D || glType == GL_SAMPLER_CUBE ||
+           glType == 0x9055 /*GL_SAMPLER_2D_ARRAY*/ || glType == 0x8DC1 /*GL_SAMPLER_2D_RECT*/;
+}
+
+// Compile both stages into a single glslang TProgram, link, reflect, and emit SPIR-V.
 // This fixes the old branch's per-stage TProgram mistake: a fresh TProgram per stage
 // prevents cross-stage reflection with the unified binding numbering the generator emits.
 bool compileToSpvInternal(const string& vertexSource, const string& fragmentSource,
                           std::vector<uint32_t>& vertexSpv, std::vector<uint32_t>& fragmentSpv,
+                          std::vector<ReflectedBlock>& blocks,
+                          std::vector<ReflectedUniform>& uniforms,
+                          std::vector<ReflectedPipeInput>& pipeInputs,
                           StringVec& errors)
 {
     // glslang is not thread-safe; guard the global initialization.
@@ -205,6 +258,48 @@ bool compileToSpvInternal(const string& vertexSource, const string& fragmentSour
                             EShReflectionAllIOVariables |
                             EShReflectionSharedStd140UBO);
 
+    // Capture uniform blocks. (glslang 16's reflection API is not per-stage —
+    // these aggregate across all linked stages.)
+    int numBlocks = program.getNumUniformBlocks();
+    for (int i = 0; i < numBlocks; i++)
+    {
+        const glslang::TObjectReflection& block = program.getUniformBlock(i);
+        ReflectedBlock rb;
+        rb.name = block.name;
+        rb.binding = block.getBinding();
+        rb.size = block.size;
+        rb.numMembers = block.numMembers;
+        blocks.push_back(std::move(rb));
+    }
+
+    // Capture uniform variables (block members + loose samplers).
+    int numUniforms = program.getNumUniformVariables();
+    for (int i = 0; i < numUniforms; i++)
+    {
+        const glslang::TObjectReflection& u = program.getUniform(i);
+        ReflectedUniform ru;
+        ru.name = u.name;
+        ru.glType = u.glDefineType;
+        ru.offset = u.offset;
+        ru.binding = u.getBinding();
+        ru.blockIndex = u.index; // owning block index, -1 if loose
+        ru.size = u.size;
+        ru.arrayStride = u.arrayStride;
+        uniforms.push_back(std::move(ru));
+    }
+
+    // Capture pipe inputs (vertex attributes).
+    int numInputs = program.getNumPipeInputs();
+    for (int i = 0; i < numInputs; i++)
+    {
+        const glslang::TObjectReflection& p = program.getPipeInput(i);
+        ReflectedPipeInput rpi;
+        rpi.name = p.name;
+        rpi.glType = p.glDefineType;
+        rpi.location = static_cast<int>(p.layoutLocation());
+        pipeInputs.push_back(std::move(rpi));
+    }
+
     glslang::GlslangToSpv(*program.getIntermediate(EShLangVertex), vertexSpv);
     glslang::GlslangToSpv(*program.getIntermediate(EShLangFragment), fragmentSpv);
 
@@ -224,13 +319,76 @@ bool VkProgram::compileToSpirv(StringVec& errors)
     }
 
     std::vector<uint32_t> vertexSpv, fragmentSpv;
-    if (!compileToSpvInternal(vsIt->second, fsIt->second, vertexSpv, fragmentSpv, errors))
+    std::vector<ReflectedBlock> blocks;
+    std::vector<ReflectedUniform> uniforms;
+    std::vector<ReflectedPipeInput> pipeInputs;
+    if (!compileToSpvInternal(vsIt->second, fsIt->second, vertexSpv, fragmentSpv,
+                              blocks, uniforms, pipeInputs, errors))
     {
         return false;
     }
 
     _spirv[Stage::VERTEX] = std::move(vertexSpv);
     _spirv[Stage::PIXEL] = std::move(fragmentSpv);
+
+    // Populate UBO blocks from reflection.
+    _blocks.clear();
+    for (const auto& rb : blocks)
+    {
+        UniformBlock block;
+        block.name = rb.name;
+        block.binding = static_cast<uint32_t>(rb.binding);
+        block.size = static_cast<size_t>(rb.size);
+        block.shadow.resize(rb.size, 0);
+        _blocks.push_back(std::move(block));
+    }
+
+    // Populate the uniform list from reflection, then decorate from the Shader.
+    _uniformList.clear();
+    for (const auto& ru : uniforms)
+    {
+        // Skip the unindexed light-data aliases (u_lightData.direction) — keep only
+        // the indexed forms (u_lightData[0].direction) which is what bindLighting uses.
+        // glslang reflects both; the unindexed form duplicates [0]'s offset.
+        if (ru.blockIndex >= 0 && ru.name.find('[') == string::npos)
+        {
+            // This is a block member without an index. Keep it only if no indexed
+            // variant exists (i.e. it's not an array-of-struct member).
+            // Heuristic: LightData members come in both forms; skip the bare form
+            // when the name starts with "u_lightData.".
+            if (ru.name.rfind("u_lightData.", 0) == 0)
+                continue;
+        }
+
+        auto input = std::make_shared<Input>(
+            UNDEFINED_VK_PROGRAM_LOCATION,
+            ru.binding,
+            ru.size > 0 ? ru.size : 1,
+            EMPTY_STRING);
+        input->glType = ru.glType;
+        input->offset = ru.offset;
+        input->blockIndex = ru.blockIndex;
+        input->binding = ru.binding;
+        input->isSampler = isSamplerType(ru.glType);
+        _uniformList[ru.name] = input;
+    }
+
+    // Decorate from the Shader's VariableBlocks (path/unit/colorspace/value/typeString).
+    decorateFromShader();
+
+    // Populate the attribute list from reflection.
+    _attributeList.clear();
+    for (const auto& rpi : pipeInputs)
+    {
+        auto input = std::make_shared<Input>(
+            rpi.location,
+            UNDEFINED_VK_PROGRAM_LOCATION,
+            1,
+            EMPTY_STRING);
+        input->glType = rpi.glType;
+        _attributeList[rpi.name] = input;
+    }
+
     return true;
 }
 
@@ -260,14 +418,16 @@ void VkProgram::build(const VkFramebufferPtr& framebuffer)
     _vertexModule = createModule(_spirv[Stage::VERTEX]);
     _fragmentModule = createModule(_spirv[Stage::PIXEL]);
 
-    // Introspect uniforms and attributes from the Shader (decoration source).
-    // Full glslang reflection is wired in Phase 2; for Phase 1 we populate from
-    // the Shader's VariableBlocks so the module builds and links.
-    updateUniformsList();
-    updateAttributesList();
+    // Create the descriptor set layout + pipeline layout from reflected bindings.
+    createDescriptorLayout();
 
-    // Phase 2 will add: createDescriptorLayout(), UBO staging, bindUniformDefaults(),
-    // createPipeline(framebuffer). For Phase 1, build() succeeds once SPIR-V compiles.
+    // Create per-block UBOs (host-visible + coherent, mapped, with shadow buffers).
+    createUniformBuffers();
+
+    // Seed every UBO shadow from the Shader's VariableBlock defaults (trap #1).
+    bindUniformDefaults();
+
+    // Phase 3 will add: createPipeline(framebuffer).
     (void)framebuffer;
 
     _built = true;
@@ -293,12 +453,40 @@ const VkProgram::InputMap& VkProgram::getAttributesList()
 
 const VkProgram::InputMap& VkProgram::updateUniformsList()
 {
-    _uniformList.clear();
-    if (!_shader)
-        return _uniformList;
+    // Reflection populates _uniformList during compileToSpirv(). If we haven't
+    // compiled yet but have a Shader, fall back to Shader-only decoration.
+    if (_uniformList.empty() && _shader)
+    {
+        StringVec errors;
+        if (!compileToSpirv(errors))
+        {
+            throw ExceptionRenderError("Failed to compile Vulkan shader for introspection", errors);
+        }
+    }
+    return _uniformList;
+}
 
-    // Decorate from the Shader's uniform blocks. Phase 2 replaces this with
-    // glslang reflection as the source of truth, decorated from the Shader.
+const VkProgram::InputMap& VkProgram::updateAttributesList()
+{
+    if (_attributeList.empty() && _shader)
+    {
+        StringVec errors;
+        if (!compileToSpirv(errors))
+        {
+            throw ExceptionRenderError("Failed to compile Vulkan shader for introspection", errors);
+        }
+    }
+    return _attributeList;
+}
+
+void VkProgram::decorateFromShader()
+{
+    if (!_shader)
+        return;
+
+    // Build a lookup of Shader ports by variable name so we can decorate the
+    // reflection-derived uniform list with MaterialX metadata.
+    std::unordered_map<string, const ShaderPort*> portByName;
     for (size_t i = 0; i < _shader->numStages(); i++)
     {
         const ShaderStage& stage = _shader->getStage(i);
@@ -308,57 +496,39 @@ const VkProgram::InputMap& VkProgram::updateUniformsList()
             for (size_t j = 0; j < block.size(); j++)
             {
                 const ShaderPort* port = block[j];
-                if (!port)
-                    continue;
-                const string& name = port->getVariable();
-                if (_uniformList.find(name) == _uniformList.end())
-                {
-                    auto input = std::make_shared<Input>(
-                        UNDEFINED_VK_PROGRAM_LOCATION, UNDEFINED_VK_PROGRAM_LOCATION,
-                        1, port->getPath());
-                    input->typeString = port->getType().getName();
-                    input->value = port->getValue();
-                    input->unit = port->getUnit();
-                    input->colorspace = port->getColorSpace();
-                    _uniformList[name] = input;
-                }
+                if (port)
+                    portByName[port->getVariable()] = port;
             }
         }
     }
-    return _uniformList;
-}
 
-const VkProgram::InputMap& VkProgram::updateAttributesList()
-{
-    _attributeList.clear();
-    if (!_shader)
-        return _attributeList;
-
-    // Decorate from the Shader's vertex attributes.
-    for (size_t i = 0; i < _shader->numStages(); i++)
+    // Decorate each reflected uniform with metadata from the matching Shader port.
+    // The reflected name may be a composed form like "u_lightData[0].direction";
+    // match the base variable (before '[' or '.') to the Shader port.
+    for (auto& kv : _uniformList)
     {
-        const ShaderStage& stage = _shader->getStage(i);
-        for (const auto& blockPair : stage.getInputBlocks())
+        const string& name = kv.first;
+        Input& input = *kv.second;
+
+        // Extract the base variable name: everything before '[' or '.'.
+        string baseName = name;
+        size_t cut = name.find_first_of("[.");
+        if (cut != string::npos)
+            baseName = name.substr(0, cut);
+
+        auto it = portByName.find(baseName);
+        if (it != portByName.end())
         {
-            const VariableBlock& block = *blockPair.second;
-            for (size_t j = 0; j < block.size(); j++)
-            {
-                const ShaderPort* port = block[j];
-                if (!port)
-                    continue;
-                const string& name = port->getVariable();
-                if (_attributeList.find(name) == _attributeList.end())
-                {
-                    auto input = std::make_shared<Input>(
-                        UNDEFINED_VK_PROGRAM_LOCATION, UNDEFINED_VK_PROGRAM_LOCATION,
-                        1, port->getPath());
-                    input->typeString = port->getType().getName();
-                    _attributeList[name] = input;
-                }
-            }
+            const ShaderPort* port = it->second;
+            input.typeString = port->getType().getName();
+            if (!port->getValue())
+                input.value = port->getValue();
+            input.unit = port->getUnit();
+            input.colorspace = port->getColorSpace();
+            if (input.path.empty())
+                input.path = port->getPath();
         }
     }
-    return _attributeList;
 }
 
 ConstValuePtr VkProgram::findUniformValue(const string& uniformName, const InputMap& uniformList)
@@ -427,8 +597,103 @@ void VkProgram::bindUniform(const string& name, ConstValuePtr value, bool errorI
         }
         return;
     }
-    it->second->value = value;
-    // Phase 2: write into _blocks[input->blockIndex].shadow at input->offset, mark dirty.
+
+    Input& input = *it->second;
+    input.value = value;
+
+    // Samplers have no UBO backing — their binding is written via descriptor writes
+    // in bindTextures()/bindLighting(), not here.
+    if (input.isSampler || input.blockIndex < 0 || input.offset < 0)
+        return;
+
+    if (input.blockIndex >= static_cast<int>(_blocks.size()))
+    {
+        if (errorIfMissing)
+            throw ExceptionRenderError("Uniform block index out of range for: " + name);
+        return;
+    }
+
+    UniformBlock& block = _blocks[input.blockIndex];
+    std::vector<uint8_t>& shadow = block.shadow;
+    size_t offset = static_cast<size_t>(input.offset);
+
+    if (!value)
+        return;
+
+    // Write the value into the shadow buffer at the std140 offset, with type-specific
+    // layout. The mat3 case (trap #2) is the critical one: std140 lays out mat3 as
+    // 3 columns of vec4 (48 bytes), but Matrix33::data() is 9 tightly-packed floats
+    // (36 bytes). A naive memcpy would corrupt everything after it in the block.
+    const string& typeStr = value->getTypeString();
+    if (typeStr == "matrix33" || typeStr == "Matrix33")
+    {
+        Matrix33 m = value->asA<Matrix33>();
+        const float* data = m.data();
+        // Write 3 rows, each padded to 16 bytes (vec4) in std140.
+        for (int row = 0; row < 3; row++)
+        {
+            if (offset + row * 16 + 12 > shadow.size())
+                break;
+            std::memcpy(&shadow[offset + row * 16], &data[row * 3], sizeof(float) * 3);
+        }
+    }
+    else if (typeStr == "matrix44" || typeStr == "Matrix44")
+    {
+        Matrix44 m = value->asA<Matrix44>();
+        if (offset + 64 <= shadow.size())
+            std::memcpy(&shadow[offset], m.data(), 64);
+    }
+    else if (typeStr == "color3" || typeStr == "Color3")
+    {
+        Color3 v = value->asA<Color3>();
+        if (offset + 12 <= shadow.size())
+            std::memcpy(&shadow[offset], v.data(), 12);
+    }
+    else if (typeStr == "color4" || typeStr == "Color4")
+    {
+        Color4 v = value->asA<Color4>();
+        if (offset + 16 <= shadow.size())
+            std::memcpy(&shadow[offset], v.data(), 16);
+    }
+    else if (typeStr == "vector3" || typeStr == "Vector3")
+    {
+        Vector3 v = value->asA<Vector3>();
+        if (offset + 12 <= shadow.size())
+            std::memcpy(&shadow[offset], v.data(), 12);
+    }
+    else if (typeStr == "vector4" || typeStr == "Vector4")
+    {
+        Vector4 v = value->asA<Vector4>();
+        if (offset + 16 <= shadow.size())
+            std::memcpy(&shadow[offset], v.data(), 16);
+    }
+    else if (typeStr == "vector2" || typeStr == "Vector2")
+    {
+        Vector2 v = value->asA<Vector2>();
+        if (offset + 8 <= shadow.size())
+            std::memcpy(&shadow[offset], v.data(), 8);
+    }
+    else if (typeStr == "float")
+    {
+        float v = value->asA<float>();
+        if (offset + 4 <= shadow.size())
+            std::memcpy(&shadow[offset], &v, 4);
+    }
+    else if (typeStr == "integer" || typeStr == "int")
+    {
+        int v = value->asA<int>();
+        if (offset + 4 <= shadow.size())
+            std::memcpy(&shadow[offset], &v, 4);
+    }
+    else if (typeStr == "boolean" || typeStr == "bool")
+    {
+        bool v = value->asA<bool>();
+        int b = v ? 1 : 0;
+        if (offset + 4 <= shadow.size())
+            std::memcpy(&shadow[offset], &b, 4);
+    }
+
+    block.dirty = true;
 }
 
 void VkProgram::bindPartition(MeshPartitionPtr partition)
@@ -493,12 +758,71 @@ void VkProgram::bindTimeAndFrame(float time, float frame)
 
 void VkProgram::bindUniformDefaults()
 {
-    // Phase 2: seed every UBO shadow buffer from the Shader's VariableBlocks.
+    // Seed every UBO shadow buffer from the Shader's VariableBlock defaults.
+    // MANDATORY under Vulkan: device memory is uninitialized at allocation,
+    // unlike D3D11 constant buffers (zeroed) or GL default uniform values.
+    // Without this, materials render as garbage, not black.
+    if (!_shader)
+        return;
+
+    // Build a lookup of Shader ports by variable name.
+    std::unordered_map<string, const ShaderPort*> portByName;
+    for (size_t i = 0; i < _shader->numStages(); i++)
+    {
+        const ShaderStage& stage = _shader->getStage(i);
+        for (const auto& blockPair : stage.getUniformBlocks())
+        {
+            const VariableBlock& block = *blockPair.second;
+            for (size_t j = 0; j < block.size(); j++)
+            {
+                const ShaderPort* port = block[j];
+                if (port)
+                    portByName[port->getVariable()] = port;
+            }
+        }
+    }
+
+    // For each reflected uniform that has a default value in the Shader, write it
+    // into the shadow buffer (non-throwing — missing uniforms are skipped).
+    for (auto& kv : _uniformList)
+    {
+        const string& name = kv.first;
+        Input& input = *kv.second;
+        if (input.isSampler || input.blockIndex < 0 || input.offset < 0)
+            continue;
+
+        // Match the base variable name (before '[' or '.').
+        string baseName = name;
+        size_t cut = name.find_first_of("[.");
+        if (cut != string::npos)
+            baseName = name.substr(0, cut);
+
+        auto it = portByName.find(baseName);
+        if (it == portByName.end())
+            continue;
+
+        const ShaderPort* port = it->second;
+        if (!port->getValue())
+            continue;
+
+        // Write the default value into the shadow (suppress errors for missing).
+        bindUniform(name, port->getValue(), false);
+    }
+
+    // Flush the seeded defaults into the mapped UBO memory.
+    flushUniforms();
 }
 
 void VkProgram::flushUniforms()
 {
-    // Phase 2: memcpy dirty shadows into mapped coherent memory.
+    // memcpy dirty shadow buffers into mapped coherent memory.
+    for (auto& block : _blocks)
+    {
+        if (!block.dirty || !block.mapped || block.shadow.empty())
+            continue;
+        std::memcpy(block.mapped, block.shadow.data(), block.shadow.size());
+        block.dirty = false;
+    }
 }
 
 void VkProgram::writeUnboundSamplersWithZeroImage(ImageHandlerPtr imageHandler)
@@ -509,7 +833,152 @@ void VkProgram::writeUnboundSamplersWithZeroImage(ImageHandlerPtr imageHandler)
 
 void VkProgram::createDescriptorLayout()
 {
-    // Phase 2.
+    // Build one descriptor set layout (set 0) with:
+    //  - one UBO binding per reflected block (VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER),
+    //  - one sampler binding per reflected sampler (VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER).
+    // All bindings use vk::ShaderStageFlagBits::eAllGraphics since the generator emits
+    // unique bindings across both stages with no set= qualifier (Background B).
+    std::vector<VkDescriptorSetLayoutBinding> bindings;
+
+    // UBO bindings.
+    for (const auto& block : _blocks)
+    {
+        VkDescriptorSetLayoutBinding uboBinding{};
+        uboBinding.binding = block.binding;
+        uboBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        uboBinding.descriptorCount = 1;
+        uboBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+        uboBinding.pImmutableSamplers = nullptr;
+        bindings.push_back(uboBinding);
+    }
+
+    // Sampler bindings (loose uniforms with blockIndex == -1 and isSampler).
+    for (const auto& kv : _uniformList)
+    {
+        const Input& input = *kv.second;
+        if (!input.isSampler || input.binding < 0)
+            continue;
+        VkDescriptorSetLayoutBinding samplerBinding{};
+        samplerBinding.binding = static_cast<uint32_t>(input.binding);
+        samplerBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        samplerBinding.descriptorCount = 1;
+        samplerBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT;
+        samplerBinding.pImmutableSamplers = nullptr;
+        bindings.push_back(samplerBinding);
+    }
+
+    VkDescriptorSetLayoutCreateInfo layoutInfo{};
+    layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+    layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
+    layoutInfo.pBindings = bindings.data();
+
+    VK_CHECK(vkCreateDescriptorSetLayout(_context->getDevice(), &layoutInfo, nullptr,
+                                         &_descriptorSetLayout),
+             "Failed to create Vulkan descriptor set layout");
+
+    // Create a descriptor pool large enough for the UBOs + samplers.
+    uint32_t uboCount = static_cast<uint32_t>(_blocks.size());
+    uint32_t samplerCount = 0;
+    for (const auto& kv : _uniformList)
+        if (kv.second->isSampler)
+            samplerCount++;
+
+    std::vector<VkDescriptorPoolSize> poolSizes;
+    if (uboCount > 0)
+    {
+        VkDescriptorPoolSize uboPoolSize{};
+        uboPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        uboPoolSize.descriptorCount = uboCount;
+        poolSizes.push_back(uboPoolSize);
+    }
+    if (samplerCount > 0)
+    {
+        VkDescriptorPoolSize samplerPoolSize{};
+        samplerPoolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+        samplerPoolSize.descriptorCount = samplerCount;
+        poolSizes.push_back(samplerPoolSize);
+    }
+
+    VkDescriptorPoolCreateInfo poolInfo{};
+    poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+    poolInfo.maxSets = 1;
+    poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
+    poolInfo.pPoolSizes = poolSizes.data();
+    poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+
+    VK_CHECK(vkCreateDescriptorPool(_context->getDevice(), &poolInfo, nullptr, &_descriptorPool),
+             "Failed to create Vulkan descriptor pool");
+
+    // Allocate the descriptor set.
+    VkDescriptorSetLayout layouts[] = { _descriptorSetLayout };
+    VkDescriptorSetAllocateInfo setAllocInfo{};
+    setAllocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+    setAllocInfo.descriptorPool = _descriptorPool;
+    setAllocInfo.descriptorSetCount = 1;
+    setAllocInfo.pSetLayouts = layouts;
+
+    VK_CHECK(vkAllocateDescriptorSets(_context->getDevice(), &setAllocInfo, &_descriptorSet),
+             "Failed to allocate Vulkan descriptor set");
+
+    // Create the pipeline layout (empty push-constant range for now).
+    VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
+    pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    pipelineLayoutInfo.setLayoutCount = 1;
+    pipelineLayoutInfo.pSetLayouts = &_descriptorSetLayout;
+    pipelineLayoutInfo.pushConstantRangeCount = 0;
+
+    VK_CHECK(vkCreatePipelineLayout(_context->getDevice(), &pipelineLayoutInfo, nullptr,
+                                    &_pipelineLayout),
+             "Failed to create Vulkan pipeline layout");
+}
+
+void VkProgram::createUniformBuffers()
+{
+    VkDevice device = _context->getDevice();
+
+    for (auto& block : _blocks)
+    {
+        if (block.size == 0)
+            continue;
+
+        VkBufferCreateInfo bufferInfo{};
+        bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+        bufferInfo.size = block.size;
+        bufferInfo.usage = VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+        bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+        VK_CHECK(vkCreateBuffer(device, &bufferInfo, nullptr, &block.buffer),
+                 "Failed to create Vulkan UBO buffer");
+
+        VkMemoryRequirements memRequirements;
+        vkGetBufferMemoryRequirements(device, block.buffer, &memRequirements);
+
+        VkMemoryAllocateInfo allocInfo{};
+        allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+        allocInfo.allocationSize = memRequirements.size;
+        allocInfo.memoryTypeIndex = _context->findMemoryType(
+            memRequirements.memoryTypeBits,
+            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+        if (allocInfo.memoryTypeIndex == UINT32_MAX)
+        {
+            throw ExceptionRenderError("Failed to find host-visible memory type for UBO");
+        }
+
+        VK_CHECK(vkAllocateMemory(device, &allocInfo, nullptr, &block.memory),
+                 "Failed to allocate Vulkan UBO memory");
+
+        vkBindBufferMemory(device, block.buffer, block.memory, 0);
+
+        // Persistently map the UBO.
+        VK_CHECK(vkMapMemory(device, block.memory, 0, block.size, 0, &block.mapped),
+                 "Failed to map Vulkan UBO memory");
+
+        // Zero the shadow + mapped memory so uninitialized uniforms are deterministic.
+        std::fill(block.shadow.begin(), block.shadow.end(), 0);
+        std::memset(block.mapped, 0, block.size);
+        block.dirty = true;
+    }
 }
 
 void VkProgram::createPipeline(const VkFramebufferPtr& framebuffer)
