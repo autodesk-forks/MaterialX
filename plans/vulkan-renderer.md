@@ -3,8 +3,7 @@
 ## Context
 
 MaterialX ships hardware render backends for OpenGL (`MaterialXRenderGlsl`) and Metal
-(`MaterialXRenderMsl`), plus a Slang/slang-rhi backend in this fork
-(`MaterialXRenderSlang`). There is no native Vulkan renderer.
+(`MaterialXRenderMsl`). There is no native Vulkan renderer.
 
 The gap is narrower than it looks, and lopsided:
 
@@ -37,12 +36,12 @@ MaterialXView — giving the already-shipping Vulkan shader generator real rende
 
 | Decision | Choice |
 |---|---|
-| Approach | Fresh native rewrite (`vulkan.hpp`); `vulkan/vkRenderer_old` referenced for plumbing only; keep current repo coding style and API contracts |
-| Branch | Archive `origin/vulkan/vkRenderer` → `vulkan/vkRenderer_old`; cut a new `vulkan/vkRenderer` from `adsk_contrib/dev` |
+| Approach | Fresh native rewrite (`vulkan.hpp`); `vulkan/vkRenderer_old` referenced for plumbing only; keep current repo coding style and API contracts. **No Slang** — modeled on the GLSL and Metal backends only, never `MaterialXRenderSlang`/slang-rhi |
+| Branch | Archive `origin/vulkan/vkRenderer` → `vulkan/vkRenderer_old`; cut a new `vulkan/vkRenderer` from `origin/main` |
 | Plan location | Committed to `C:\source\MaterialX-adsk\plans\vulkan-renderer.md` |
 | Scope | Renderer + `TextureBakerVk` + render tests + MaterialXView backend |
 | Platforms | Windows and Linux only |
-| Build | `find_package(Vulkan)` non-`REQUIRED`; `MATERIALX_BUILD_RENDER_VK` auto-ON when found; glslang from the Vulkan SDK |
+| Build | `find_package(Vulkan)` + `find_package(glslang CONFIG)` (via vcpkg); `MATERIALX_BUILD_RENDER_VK` auto-ON when both found; no LunarG SDK dependency |
 | Viewer | `VulkanRenderPipeline` renders offscreen, blitted into the existing GL-backed NanoGUI window; NanoGUI **not** forked |
 | Clip space | Add `MatrixConvention::Vulkan` to `source/MaterialXRender/ShaderRenderer.h` |
 | Naming | `source/MaterialXRenderVk`, `MATERIALX_BUILD_RENDER_VK`, `MX_RENDERVK_API` / `MATERIALX_RENDERVK_EXPORTS`; classes `VkContext`, `VkRenderer`, `VkProgram`, `VkMaterial`, `VkFramebuffer`, `VkTextureHandler`, `TextureBakerVk` |
@@ -54,8 +53,7 @@ MaterialXView — giving the already-shipping Vulkan shader generator real rende
 ## 1. Branch setup — archive the old WIP, start a fresh `vulkan/vkRenderer`
 
 `origin/vulkan/vkRenderer` holds the Aug 2025 WIP described in Context. We keep it for
-reference but do the new work on a clean branch of the same name, cut from
-`adsk_contrib/dev`.
+reference but do the new work on a clean branch of the same name, cut from `origin/main`.
 
 > **This deletes a remote branch.** Create the archive copy and verify it *before* deleting
 > anything. Anyone with `vulkan/vkRenderer` checked out will need to re-point afterwards, so
@@ -80,33 +78,51 @@ git rev-parse origin/vulkan/vkRenderer_old   # must equal the SHA from above
 # 3. Only now delete the original.
 git push origin --delete vulkan/vkRenderer
 
-# 4. Create the new branch from adsk_contrib/dev and publish it.
-git checkout -b vulkan/vkRenderer origin/adsk_contrib/dev
+# 4. Create the new branch from origin/main and publish it.
+git checkout -b vulkan/vkRenderer origin/main
 git push -u origin vulkan/vkRenderer
 ```
 
-Note the starting point matters: `git rev-parse --abbrev-ref HEAD` currently reports `main`,
-but PRs target `adsk_contrib/dev`. The two differ by ~1,800 lines across 61 files, *including
-`source/MaterialXTest/MaterialXRender/RenderUtil.h`* — a file this plan modifies.
+Note the starting point matters: the new branch is cut from `origin/main` (d23766bc), which
+differs from `adsk_contrib/dev` (2fd9a017) by ~1,800 lines across 61 files, *including
+`source/MaterialXTest/MaterialXRender/RenderUtil.h`* — a file this plan modifies. The plan's
+line-number references and the `RenderUtil.h` edit were verified against `adsk_contrib/dev`,
+so when applying them on `main`, **re-verify each modified file's line numbers against `main`
+before editing** — they may have drifted. The `getTestSuiteName()` virtual addition and the
+`RenderUtil.cpp:76` change in particular should be re-located by content, not line number.
 
 Throughout the plan, reference the old code as
 `git show origin/vulkan/vkRenderer_old:source/MaterialXRenderVk/<file>`.
 
-## 2. Install the LunarG Vulkan SDK (≥ 1.3.2xx). `$env:VULKAN_SDK` is currently empty and
-`C:\VulkanSDK` does not exist on this machine. You need the SDK rather than just
-`libvulkan-dev` because you need the `glslang` **libraries and headers**, not just the
-`glslangValidator` executable that CI already uses.
+## 2. Provide glslang via vcpkg. The Vulkan *loader* is already present on this machine
+(`vulkaninfo` reports 1.4.313), but there is no LunarG SDK — no glslang headers or libraries.
+The renderer needs glslang **libraries and headers** (for GLSL→SPIR-V compile + reflection),
+not just the `glslangValidator` executable CI uses. We get these from vcpkg rather than
+installing the full ~3 GB LunarG SDK.
 
-- Windows: <https://vulkan.lunarg.com/sdk/home#windows> — install with the default components.
-- Linux: `sudo apt install vulkan-sdk` from the LunarG apt repo (the distro `libglslang-dev`
-  package often does **not** register CMake's `Vulkan::glslang` component).
+Bootstrap vcpkg and install the glslang port:
 
-Verify: `echo $env:VULKAN_SDK` is non-empty and `vulkaninfo --summary` lists a device.
+```powershell
+git clone https://github.com/microsoft/vcpkg.git C:\vcpkg
+C:\vcpkg\bootstrap-vcpkg.bat
+C:\vcpkg\vcpkg install glslang:x64-windows
+# Optional, for a Linux build host:  vcpkg install glslang:x64-linux
+```
+
+This produces a CMake `glslang` config package exposing `glslang::glslang`,
+`glslang::SPIRV`, `glslang::MachineIndependent`, `glslang::GenericCodeGen`,
+`glslang::OSDependent`, and `glslang::glslang-default-resource-limits` as imported targets.
+The module's CMake uses `find_package(glslang CONFIG REQUIRED)` (see "CMake edits") rather
+than the LunarG-layout `Vulkan::glslang` component, so **no `VULKAN_SDK` env var is required**.
+
+Verify: `vulkaninfo --summary` lists a device (loader already works), and
+`C:\vcpkg\installed\x64-windows\include\glslang\Public\ResourceLimits.h` exists.
 
 ## 3. CMake version is fine
 
-`cmake_minimum_required(VERSION 3.26)` (`CMakeLists.txt:8`) is
-above the 3.24 needed for the `Vulkan::glslang` imported target, so you can rely on it.
+`cmake_minimum_required(VERSION 3.26)` (`CMakeLists.txt:8`) is above the 3.24 needed for
+`find_package(Vulkan)`'s component support, and `find_package(glslang CONFIG)` is a standard
+config-package lookup with no minimum-version constraint. CMake 3.31 is installed.
 
 ---
 
@@ -148,9 +164,11 @@ Consequences you can rely on:
   correct and sufficient.** You do not need per-stage sets.
 - UBOs are `layout(std140, ...)` (`VkResourceBindingContext.cpp:65`).
 
-Latent hazard, worth a code comment: `VkShaderGenerator::_resourceBindingCtx` is a mutable
-member, so two threads calling `generate()` on one generator instance would corrupt the
-counter. Not a regression, but don't parallelize the Vk tester without cloning the generator.
+Latent hazard, worth a code comment: `VkShaderGenerator::_resourceBindingCtx` is a
+`shared_ptr` member, and `generate()` is `const` — the binding counter lives in the *pointee*,
+so it is mutated through indirection from a const method. Two threads calling `generate()`
+on one generator instance would corrupt the counter. Not a regression, but don't parallelize
+the Vk tester without cloning the generator.
 
 ## C. Clip space — the counter-intuitive part, get this right once
 
@@ -174,8 +192,9 @@ They already agree. Therefore:
 - Keep `vk::FrontFace::eCounterClockwise` — there is no handedness change, so winding is
   unaffected.
 - Raw readback byte order matches `GLFramebuffer::getColorImage()`
-  (`source/MaterialXRenderGlsl/GLFramebuffer.cpp:168`), so the Vk render test saves with
-  `verticalFlip = true` exactly like GLSL (`RenderGlsl.cpp:372`) and Metal.
+  (`source/MaterialXRenderGlsl/GLFramebuffer.cpp:154-172`, the `glReadPixels` at `:168`), so
+  the Vk render test saves with `verticalFlip = true` exactly like GLSL
+  (`source/MaterialXTest/MaterialXRenderGlsl/RenderGlsl.cpp:372`) and Metal.
 
 If your first rendered image comes out upside-down, the bug is somewhere else — resist the
 urge to "fix" it with a flip.
@@ -192,7 +211,7 @@ first two:
 
 | | SPIRV-Reflect / spirv-cross | **glslang `buildReflection()`** | Replay the binding counter yourself |
 |---|---|---|---|
-| New dependency | Yes (~9k LOC vendored; `FindVulkan` exposes no target for either) | **None** — `Vulkan::glslang` is already needed for GLSL→SPIR-V | None |
+| New dependency | Yes (~9k LOC vendored) | **None** — glslang (via vcpkg) is already needed for GLSL→SPIR-V | None |
 | Works for `createProgram(const StageMap&)` (raw source, no `Shader`) | Yes | **Yes** | **No** — breaks `loadSource()` and the viewer's shader-reload |
 | std140 offsets | Yes | **Yes** (`TObjectReflection::offset`) | You'd re-derive std140 by hand |
 | Survives genglsl emission changes | Yes | **Yes** | No — silently desyncs |
@@ -200,7 +219,7 @@ first two:
 **Use glslang reflection** as the source of truth for layout, then decorate each entry with
 MaterialX metadata from the `Shader`'s `VariableBlock`s. This is structurally the same
 "introspect the API, then decorate from the Shader" merge that
-`GlslProgram::updateUniformsList()` (`GlslProgram.cpp:900-1060`) already does — you are
+`GlslProgram::updateUniformsList()` (`GlslProgram.cpp:876-1109`) already does — you are
 following an existing repo pattern, not inventing one.
 
 One important detail that makes this work cleanly: `VkResourceBindingContext.cpp:65-66` emits
@@ -208,6 +227,14 @@ UBOs **without an instance name** (`uniform PublicUniforms_pixel { ... };`), so 
 reflects members under their bare names (`u_worldMatrix`, not
 `PublicUniforms_pixel.u_worldMatrix`). That preserves the `getUniformsList()` key naming
 contract with `GlslProgram` exactly, so downstream code needs no changes.
+
+**Caveat for the raw-source (`StageMap`) path:** glslang reflection populates the uniform list
+without a `Shader` object, so `createProgram(const StageMap&)` produces a working
+introspected layout — but `bindTextures()` and `bindLighting()` unconditionally dereference
+`_shader->getStage(...)` (cf. `GlslProgram.cpp:541, 841`), which is null on this path. So the
+`StageMap` path supports compile + introspect only, **not** full `bind()`. `VkProgram::bind()`
+must guard these (skip texture/lighting binding when `_shader` is null) or the viewer's
+shader-reload feature — which the plan cites as a consumer of this path — will crash.
 
 ### Fix the branch's per-stage `TProgram` mistake
 
@@ -257,8 +284,9 @@ These are the bugs that will cost you days if you don't plan for them.
 GL has default uniform values and D3D11 zero-initializes constant buffers — Vulkan does
 neither. If you don't seed every `std140` block from the `Shader`'s `VariableBlock` defaults
 before the first draw, materials render as *garbage*, not as an obvious black. Do this inside
-`VkProgram::build()`, before any external `bindUniform()` call. Model it on
-`SlangProgram::bindUniformDefaults()` (`SlangProgram.h:225`).
+`VkProgram::build()`, before any external `bindUniform()` call. Model it on the
+`Shader`'s `VariableBlock` defaults — the same source `GlslProgram::updateUniformsList()`
+decorates from (`GlslProgram.cpp:908-1031`).
 
 **2. `mat3` in std140 is 48 bytes, not 36.** A `mat3` is laid out as 3 × `vec4`. GL's
 `glUniformMatrix3fv(loc, 1, GL_FALSE, m.data())` (`GlslProgram.cpp:781`) takes tightly-packed
@@ -315,6 +343,38 @@ Write a scratch `main.cpp` **outside the repo** that:
 
 **Deliverable:** a one-page note attached to the PR recording the answers.
 
+### Answers (resolved 2026-09-04 via the spike)
+
+The spike (`scratch/vk_reflection_spike/`, throwaway) generated `standard_surface_default`
+with `light_rig_test_1.mtlx` bound, compiled both stages into one `TProgram`, linked, and
+called `buildReflection()`. Results:
+
+- **Q1 — YES, composed names are exposed.** glslang reflects every array element's members
+  under composed names: `u_lightData[0].direction`, `u_lightData[0].color`, …,
+  `u_lightData[7].pad2` (88 members across 8 light slots, all `blockIndex=2`). It *also*
+  reflects the unindexed form `u_lightData.direction` etc. at the same offsets as `[0]`.
+  **The `bindLighting()` light-sources code can use `HW::LIGHT_DATA_INSTANCE + "[i]." +
+  inputName` exactly as `GlslProgram` does — no fallback needed. Risk R2 is resolved; the
+  fallback is unnecessary.**
+- **Q2 — YES, offsets match std140.** `mat4` (`u_worldMatrix`) at offset 0, next mat4 at 64
+  → 64-byte stride, 16-byte alignment. The `LightData` struct confirms vec3→16-byte padding
+  (direction@0, color@16, position@32, type@44, intensity@48) and 80 bytes/light (640/8)
+  with trailing `pad0/pad1/pad2`. The `mat3` trap (48 bytes, row-expanded write) still
+  applies when a material uses `Matrix33` — keep the Phase 2 round-trip test.
+- **Q3 — YES.** Samplers report via `getBinding()` and match the counter: `u_envRadiance`
+  binding=2, `u_envIrradiance` binding=3 (both `blockIndex=-1`, loose). UBO bindings: vertex
+  UBO=0, pixel UBO=1, `PublicUniforms_pixel`=4, `LightData_pixel`=5 — the counter is shared
+  across UBOs and samplers, so UBO bindings skip the sampler slots.
+
+**API note for Phase 2:** glslang 16's reflection API is **not per-stage** —
+`getNumUniformBlocks()`, `getUniform(i)`, `getNumUniformVariables()`, `getNumPipeInputs()`,
+`getPipeInput(i)` take no `EShLanguage` argument; they aggregate across all linked stages.
+`TObjectReflection` exposes `name`, `offset`, `glDefineType` (the GL enum, e.g. 0x8b5c for
+mat4, 0x8b5e for sampler2D), `getBinding()`, `index` (owning block index, -1 if loose),
+`size`, `arrayStride`, `numMembers`, and `layoutLocation()`. The internal `TType` is not
+installed by vcpkg's glslang port, so use `glDefineType` for type dispatch (sampler detection
+= `glDefineType` in the `GL_SAMPLER_*` range), not `getType()->isSampler()`.
+
 ## Phase 1 — Module skeleton, CMake, SPIR-V compile (2–3 days)
 
 Goal: `MaterialXRenderVk` builds on Windows and Linux; a `VkRenderer` can be constructed,
@@ -361,8 +421,9 @@ Complete `VkProgram` (grows to ~330 / ~1400):
 
 - `build()` → glslang link + reflect + SPIR-V + two `vk::ShaderModule`s.
 - `updateUniformsList()` — reflection first, then decorate from the `Shader`'s uniform blocks,
-  mirroring `GlslProgram.cpp:908-1060` **including** the recursive struct-member expansion at
-  `:1010-1030`.
+  mirroring `GlslProgram.cpp:876-1109` (the `populateUniformInput_impl` lambda at `:962-1027`
+  does the recursive struct-member expansion). Note the actual line range is wider than a naive
+  read of GL's `900-1060` suggests.
 - `bindUniformDefaults()` — see trap #1 above. Mandatory.
 - `bindUniform(name, value, errorIfMissing)` — find in `_uniformList`, write into
   `_blocks[input->blockIndex].shadow` at `input->offset`, mark dirty. Type dispatch mirrors
@@ -433,7 +494,7 @@ and compare the emitted textures against `TextureBakerGlsl` output.
 ## Phase 5 — Render test harness (2 days)
 
 **Create:** `source/MaterialXTest/MaterialXRenderVk/CMakeLists.txt` (7 lines, byte-identical
-to the RenderGlsl one) and `RenderVk.cpp` (~420, a copy of `RenderSlang.cpp` with the
+to the RenderGlsl one) and `RenderVk.cpp` (~420, modeled on `RenderGlsl.cpp` with the
 substitutions below).
 
 **Modify:** `RenderUtil.{h,cpp}` (the `getTestSuiteName()` virtual),
@@ -463,12 +524,14 @@ Change `RenderUtil.cpp:76` to `const std::string target = getTestSuiteName();` (
 `targets` gate keeps working unchanged.
 
 In `RenderVk.cpp`: `std::string getTestSuiteName() const override { return "genglsl_vulkan"; }`
-— consistent with `GenGlsl.cpp:180`'s existing `"glsl_vulkan"` convention.
+— a name distinct from the GLSL tester's `"genglsl"`. (Note: `GenGlsl.cpp:180` maps the Vulkan
+GLSL type to `"glsl_vulkan"`, and `:183` builds log names as `"genglsl_" + type`, which would
+yield `"genglsl_glsl_vulkan"`; we deliberately use the shorter `"genglsl_vulkan"` for the test
+suite since it only needs to be distinct, not convention-matched.)
 
 Image files do **not** collide: `RenderUtil.cpp:583-593` gives both testers the same
 per-material directory (which is what you want for side-by-side comparison) and filenames are
-per-tester literals — `_glsl.png` at `RenderGlsl.cpp:364`, `_slang.png` at
-`RenderSlang.cpp:354`. Use `_vk.png`. Dump generated code as `_vs.vk.glsl` / `_ps.vk.glsl`
+per-tester literals — `_glsl.png` at `RenderGlsl.cpp:364`. Use `_vk.png`. Dump generated code as `_vs.vk.glsl` / `_ps.vk.glsl`
 (vs `_vs.glsl` / `_ps.glsl` at `RenderGlsl.cpp:234-237`).
 
 ### Headless skip
@@ -653,8 +716,7 @@ UI texture baking matches the GL viewer's output.
 - `.github/workflows/main.yml` — a **build-only** Vulkan job on Windows and Linux.
 - `CHANGELOG.md` and a note in `documents/DeveloperGuide/` about the SDK requirement.
 
-**Python bindings: defer to a follow-up PR.** `MaterialXRenderSlang` — the most recent backend
-and the closest analogue in maturity — ships none, and `source/PyMaterialX/` has only
+**Python bindings: defer to a follow-up PR.** `source/PyMaterialX/` has only
 `PyMaterialXRenderGlsl`, `PyMaterialXRenderMsl`, `PyMaterialXRenderOsl`. Adding
 `PyMaterialXRenderVk` here means ~5 files plus a `source/PyMaterialX/CMakeLists.txt:60-67, 90-91`
 edit purely to expose `TextureBakerVk`, with no consumer yet. Ship it separately once the
@@ -667,7 +729,7 @@ renderer is proven. (Noting the divergence: PR #2897 *did* ship bindings for HLS
 Each class mirrors a specific existing counterpart. Where the Vulkan shape must diverge, it is
 called out.
 
-## `VkContext` — mirrors `SlangContext`, **not** `MetalState`
+## `VkContext` — mirrors `GLContext`, **not** `MetalState`
 
 Decision: **per-instance, `shared_ptr`-owned, no global singleton.** `MetalState` is global
 because `MTLDevice` is process-wide and NanoGUI hands it to you. Vulkan has no such
@@ -814,7 +876,8 @@ class MX_RENDERVK_API VkProgram
     void setStages(ShaderPtr shader);
     void addStage(const string& stage, const string& sourceCode);
     const string& getStageSourceCode(const string& stage) const;
-    void clearStages();
+    void clearStages();   // NOTE: not on GlslProgram (only MslProgram/SlangProgram); added here
+                          // because VkProgram, like those, needs an explicit stage reset.
     ShaderPtr getShader() const { return _shader; }
 
     // --- Program building ---
@@ -833,7 +896,12 @@ class MX_RENDERVK_API VkProgram
         int   blockIndex = -1;   // index into _blocks for UBO members, or -1
         int   offset     = -1;   // std140 byte offset within the block
         int   size       = 0;    // element count (matches GlslProgram::Input::size)
-        bool  isSampler  = false;
+        bool  isSampler  = false; // NOTE: GlslProgram::Input has NO isSampler field — GL detects
+                                  // samplers at bind time by range-checking `gltype` against
+                                  // GL_SAMPLER_1D..GL_SAMPLER_CUBE (GlslProgram.cpp:547). VkProgram
+                                  // drops `gltype` (no GL type integer), so `isSampler` MUST be
+                                  // populated during updateUniformsList() from glslang reflection
+                                  // (getType()->isSampler() / getBinding() for samplers).
         bool  isConstant = false;
         string typeString;                 // from the Shader, if present
         MaterialX::ConstValuePtr value;    // from the Shader, if present
@@ -856,7 +924,9 @@ class MX_RENDERVK_API VkProgram
 
     void bindMesh(MeshPtr mesh);
     void bindPartition(MeshPartitionPtr partition);
-    void drawPartition(vk::CommandBuffer cmd, MeshPartitionPtr partition);
+    void drawPartition(vk::CommandBuffer cmd, MeshPartitionPtr partition);  // DIVERGENCE: not on
+        // GlslProgram (drawPartition lives on GlslMaterial/GlslRenderer there). Vulkan needs the
+        // command buffer at draw time, so it lives on the program here.
     void unbindGeometry();
 
     void bindTextures(ImageHandlerPtr imageHandler);
@@ -864,7 +934,9 @@ class MX_RENDERVK_API VkProgram
     void bindViewInformation(CameraPtr camera);
     void bindTimeAndFrame(float time = 0.0f, float frame = 1.0f);
 
-    bool isTransparent() const { return _alphaBlendingEnabled; }
+    bool isTransparent() const { return _alphaBlendingEnabled; }  // DIVERGENCE: not on
+        // GlslProgram (transparency is detected in GlslRenderer via
+        // getShader()->hasAttribute(HW::ATTR_TRANSPARENT)). Kept here for the viewer's pass logic.
     void printUniforms(std::ostream& outputStream);
     void printAttributes(std::ostream& outputStream);
 
@@ -935,10 +1007,15 @@ layout is dictated by `getAttributesList()` locations. Cache on the raw `Mesh*` 
 `_indexBufferIds`, `GlslProgram.h:259`).
 
 **Pipeline caching.** One pipeline per program suffices for the render tests and the baker. For
-the viewer, add the `PipelineKind`/format-keyed map that `SlangProgram` uses
-(`SlangProgram.h:185-196, 235-244`) in Phase 6 — you need it for the transparent (alpha-blend,
-cull-front-then-back) and wireframe passes that `RenderPipelineGL::renderFrame`
-(`RenderPipelineGL.cpp:424-477`) gets from mutable GL state.
+the viewer, add a `PipelineKind`/format-keyed map in Phase 6 — you need it for the transparent
+(alpha-blend) and wireframe passes that `RenderPipelineGL::renderFrame`
+(`RenderPipelineGL.cpp:423-477`) gets from mutable GL state. The GL viewer toggles these via
+`glEnable(GL_BLEND)`/`glBlendFunc` (`:426-427`, restored `:451`) and
+`glPolygonMode(GL_FRONT_AND_BACK, GL_LINE)` (`:466`, restored `:471`); Vulkan fixes these at
+pipeline-creation time, so each variant needs its own `vk::Pipeline`. (Note: the GL viewer does
+**not** do a cull-front-then-back toggle in the transparent pass — culling is set once at
+`:391-396` and disabled at `:454-457`. The pipeline variants you need are: default, alpha-blend,
+and wireframe.)
 
 ### The five binding routines
 
@@ -986,8 +1063,7 @@ class MX_RENDERVK_API VkTextureHandler : public ImageHandler
 };
 ```
 
-- Reuse `ImageSamplingKeyHasher` from `MaterialXRender/ImageHandler.h` — `SlangTextureHandler.h:91`
-  already does.
+- Reuse `ImageSamplingKeyHasher` from `MaterialXRender/ImageHandler.h` (`:91-103`).
 - `bindImage()` has no "texture unit" to occupy in Vulkan; it just ensures the resource exists
   and records sampling properties. **Do not add `getBoundTextureLocation()`** — it has no
   Vulkan analogue. (`RenderPipelineGL.cpp:169, 281` use it; the Vulkan pipeline uses
@@ -996,7 +1072,7 @@ class MX_RENDERVK_API VkTextureHandler : public ImageHandler
   `R32G32B32_SFLOAT` are optional and usually unsupported for sampled images on desktop
   drivers. This is a real GL divergence and a likely cause of mysteriously black textures.
 
-## `VkRenderer` — mirrors `GlslRenderer` and `SlangRenderer`
+## `VkRenderer` — mirrors `GlslRenderer`
 
 ```cpp
 class MX_RENDERVK_API VkRenderer : public ShaderRenderer
@@ -1091,25 +1167,29 @@ The `.cpp` is ~12 lines delegating to
 **After line 47** (`MATERIALX_BUILD_RENDER_PLATFORMS`):
 
 ```cmake
-# Vulkan render back-end. Auto-enabled when a Vulkan SDK is found.
+# Vulkan render back-end. Auto-enabled when both the Vulkan loader and glslang are found.
 # Windows and Linux only; MoltenVK is not supported.
+# glslang is provided by vcpkg (find_package(glslang CONFIG)), not the LunarG SDK.
 set(__build_render_vk OFF)
 if(MATERIALX_BUILD_RENDER AND MATERIALX_BUILD_RENDER_PLATFORMS AND
    MATERIALX_BUILD_GEN_GLSL AND (WIN32 OR (UNIX AND NOT APPLE)))
-    find_package(Vulkan QUIET COMPONENTS glslang)
-    if(Vulkan_FOUND AND TARGET Vulkan::glslang)
+    find_package(Vulkan QUIET)
+    find_package(glslang CONFIG QUIET)
+    if(Vulkan_FOUND AND TARGET glslang::glslang)
         set(__build_render_vk ON)
-        message(STATUS "Vulkan found at ${Vulkan_LIBRARY}; enabling MATERIALX_BUILD_RENDER_VK.")
+        message(STATUS "Vulkan + glslang found; enabling MATERIALX_BUILD_RENDER_VK.")
     elseif(Vulkan_FOUND)
-        message(STATUS "Vulkan found but the glslang component is missing; "
-                       "MATERIALX_BUILD_RENDER_VK is off. Install the LunarG SDK to enable it.")
+        message(STATUS "Vulkan loader found but glslang is missing; "
+                       "MATERIALX_BUILD_RENDER_VK is off. Install glslang via vcpkg to enable it.")
     endif()
 endif()
 option(MATERIALX_BUILD_RENDER_VK "Build the native Vulkan render back-end." ${__build_render_vk})
 ```
 
-`find_package` is called at the root rather than in the module because the option's default
-must be known before the option is declared.
+Both `find_package` calls are at the root rather than in the module because the option's
+default must be known before the option is declared. Pass vcpkg's toolchain
+(`-DCMAKE_TOOLCHAIN_FILE=<vcpkg>/scripts/buildsystems/vcpkg.cmake`) at configure time so
+`find_package(glslang CONFIG)` resolves.
 
 **After line 63:**
 ```cmake
@@ -1132,7 +1212,8 @@ Do **not** set `MATERIALX_BUILD_RENDER_HW ON` here.
 file(GLOB materialx_source  "${CMAKE_CURRENT_SOURCE_DIR}/*.cpp")
 file(GLOB materialx_headers "${CMAKE_CURRENT_SOURCE_DIR}/*.h*")
 
-find_package(Vulkan REQUIRED COMPONENTS glslang)
+find_package(Vulkan REQUIRED)
+find_package(glslang CONFIG REQUIRED)
 
 mx_add_library(MaterialXRenderVk
     SOURCE_FILES
@@ -1147,7 +1228,9 @@ mx_add_library(MaterialXRenderVk
 
 target_link_libraries(${TARGET_NAME}
     PUBLIC  Vulkan::Vulkan
-    PRIVATE Vulkan::glslang)
+    PRIVATE glslang::glslang
+            glslang::SPIRV
+            glslang::glslang-default-resource-limits)
 
 target_compile_definitions(${TARGET_NAME}
     PUBLIC  VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1
@@ -1157,11 +1240,13 @@ target_compile_definitions(${TARGET_NAME}
 
 Portability decisions vs the branch, and why:
 
-- `Vulkan::glslang` is an imported interface target from CMake's `FindVulkan` that already
-  propagates `SPIRV`, `SPIRV-Tools`, `SPIRV-Tools-opt`, `MachineIndependent`, `OSDependent`,
-  `GenericCodeGen` and `glslang-default-resource-limits`. **Do not** replicate the branch's
-  `debug ${Vulkan_LIB_PATH}/SPIRV-Tools-optd.lib / optimized ...opt.lib` hack — that is
-  MSVC + LunarG-layout specific and will not link on Linux.
+- glslang comes from vcpkg as a CMake config package exposing `glslang::glslang`,
+  `glslang::SPIRV`, `glslang::MachineIndependent`, `glslang::GenericCodeGen`,
+  `glslang::OSDependent`, and `glslang::glslang-default-resource-limits` as imported targets.
+  Link the three you use directly (`glslang::glslang`, `glslang::SPIRV`,
+  `glslang::glslang-default-resource-limits`); the rest propagate transitively. **Do not**
+  replicate the branch's `debug ${Vulkan_LIB_PATH}/SPIRV-Tools-optd.lib / optimized ...opt.lib`
+  hack — that is MSVC + LunarG-layout specific and will not link on Linux.
 - No `find_package(OpenGL)`, no `find_package(X11)`, no `Opengl32`, no
   `-DVK_USE_PLATFORM_WIN32_KHR`. The branch has all four and needs none.
 - `VULKAN_HPP_DISPATCH_LOADER_DYNAMIC=1` must be `PUBLIC` because headers are installed and
@@ -1169,8 +1254,8 @@ Portability decisions vs the branch, and why:
 - No explicit `install()` / `set_target_properties()` / `target_include_directories()` —
   `mx_add_library` (`CMakeLists.txt:397-506`) handles all of it, including monolithic aliasing
   and the `mxHeaders` FILE_SET.
-- Do **not** pass `SKIP_INSTALL`. Slang does because slang-rhi isn't installable; Vulkan is a
-  system dependency and this module should install normally.
+- Do **not** pass `SKIP_INSTALL`. Vulkan is a system dependency and this module should install
+  normally.
 
 ## `source/MaterialXTest/CMakeLists.txt` — after line 82
 
@@ -1190,6 +1275,7 @@ Windows + Linux:
 ```cmake
 if(@MATERIALX_BUILD_RENDER_VK@ AND "RenderVk" IN_LIST MaterialX_FIND_COMPONENTS)
     find_dependency(Vulkan)
+    find_dependency(glslang CONFIG)
     set(MaterialX_RenderVk_FOUND TRUE)
 endif()
 ```
@@ -1206,10 +1292,12 @@ endif()
 The existing Vulkan touchpoints (lines 277, 288-293) are **shader-generation validation only**
 and need no change.
 
-Add a **build-only** job on Windows and Linux: install the SDK
-(`humbletim/setup-vulkan-sdk@v1.2.0`, or `apt install vulkan-sdk`), configure with
+Add a **build-only** job on Windows and Linux: install glslang via vcpkg
+(`lucapotter/gha-setup-vcpkg@v1` or the built-in `lukka/run-vcpkg` action, then
+`vcpkg install glslang:<triplet>`), configure with the vcpkg toolchain file and
 `-DMATERIALX_BUILD_RENDER_VK=ON`, build the `MaterialXRenderVk` target. Cheap, catches compile
-breaks.
+breaks. (The Vulkan *loader* is already present on GitHub-hosted Windows/Linux runners, so
+only glslang needs installing.)
 
 **Do not run the Vulkan render tests in CI initially.** GitHub-hosted runners have no GPU. A
 software ICD (lavapipe / SwiftShader) is possible on Linux via `VK_ICD_FILENAMES`, but it is
@@ -1265,7 +1353,7 @@ Per Background C, no Y handling is needed here or in `Camera`.
 
 `source/MaterialXView/`: `RenderPipelineVulkan.{h,cpp}` (60/700).
 
-For scale: `MaterialXRenderGlsl` is ~3,000 lines and `MaterialXRenderSlang` ~3,700.
+For scale: `MaterialXRenderGlsl` is ~3,000 lines and `MaterialXRenderMsl` ~2,800.
 
 ## Modified (13 files)
 
@@ -1313,11 +1401,12 @@ For scale: `MaterialXRenderGlsl` is ~3,000 lines and `MaterialXRenderSlang` ~3,7
 # Verification
 
 ```powershell
-# Configure (Windows, Vulkan SDK present)
+# Configure (Windows, glslang installed via vcpkg)
 cmake -S . -B build -G "Visual Studio 17 2022" -A x64 `
+      -DCMAKE_TOOLCHAIN_FILE=C:/vcpkg/scripts/buildsystems/vcpkg.cmake `
       -DMATERIALX_BUILD_TESTS=ON -DMATERIALX_TEST_RENDER=ON `
       -DMATERIALX_BUILD_VIEWER=ON -DMATERIALXVIEW_BACKEND=Vulkan
-# Confirm: "Vulkan found at ...; enabling MATERIALX_BUILD_RENDER_VK."
+# Confirm: "Vulkan + glslang found; enabling MATERIALX_BUILD_RENDER_VK."
 
 cmake --build build --config Release -j
 
@@ -1333,7 +1422,8 @@ ctest --test-dir build -C Release -R Render --output-on-failure
 
 Also confirm:
 
-- Configuring **without** the Vulkan SDK succeeds, `MATERIALX_BUILD_RENDER_VK` auto-OFF, no warnings.
+- Configuring **without** glslang (no vcpkg toolchain) succeeds, `MATERIALX_BUILD_RENDER_VK`
+  auto-OFF, no warnings.
 - `-DMATERIALX_BUILD_MONOLITHIC=ON -DMATERIALX_BUILD_RENDER_VK=ON` configures and builds.
 - `[rendervk]` tests **skip, not fail**, when no device is present
   (`VK_ICD_FILENAMES=/nonexistent`).
@@ -1352,13 +1442,11 @@ samplers. One unwritten `combined_image_sampler` is UB and faults on some driver
 *Mitigation:* `writeUnboundSamplersWithZeroImage()`, plus zero validation errors as the Phase 3
 gate.
 
-**R2 — glslang reflection of `u_lightData[i].member` (high; resolved in Phase 0).** If
-composed names aren't exposed, all direct lighting silently produces garbage. *Mitigation:*
-Phase 0 Q1 answers this before code is written. Fallback: synthesize offsets from the
-`LightData` `VariableBlock` using the sorted member order that
-`VkResourceBindingContext.cpp:143-147` emits (largest alignment first) plus the trailing `padN`
-floats — deterministic, but coupled to that function, so add a unit test asserting the computed
-struct size equals the reflected block size / `MAX_LIGHT_SOURCES`.
+**R2 — glslang reflection of `u_lightData[i].member` (high; RESOLVED in Phase 0).** Composed
+names ARE exposed by glslang reflection (`u_lightData[0].direction`, etc.), so the
+`bindLighting()` light-sources code uses `HW::LIGHT_DATA_INSTANCE + "[i]." + inputName` exactly
+as `GlslProgram` does. No fallback needed. (Original concern: if composed names weren't
+exposed, all direct lighting would silently produce garbage.)
 
 **R3 — std140 `mat3` layout (high; easy to miss).** See trap #2. *Mitigation:* row-expanded
 write plus the Phase 2 round-trip unit test.
@@ -1387,9 +1475,9 @@ caught locally only until a GPU runner exists. The same limitation already appli
 render tests.
 
 **R9 — Generator statefulness (low, latent).** `VkShaderGenerator::_resourceBindingCtx` is a
-shared mutable counter; concurrent `generate()` on one instance corrupts bindings. Not a
-regression, but note it in `RenderVk.cpp` next to any future parallelization of
-`ShaderRenderTester`.
+`shared_ptr` whose pointee counter is mutated from the const `generate()`; concurrent
+`generate()` on one instance corrupts bindings. Not a regression, but note it in `RenderVk.cpp`
+next to any future parallelization of `ShaderRenderTester`.
 
 **R10 — `vulkan.hpp` in public headers (low).** Pulls a large header into anything including
 `VkRenderer.h`. Keep `vk::` types out of the public surface where practical, as
