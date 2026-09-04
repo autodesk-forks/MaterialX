@@ -4,8 +4,10 @@
 //
 
 #include <MaterialXRenderVk/VkRenderer.h>
+#include <MaterialXRenderVk/VkFramebuffer.h>
 
 #include <MaterialXRender/ShaderRenderer.h>
+#include <MaterialXRender/StbImageLoader.h>
 
 MATERIALX_NAMESPACE_BEGIN
 
@@ -43,7 +45,8 @@ void VkRenderer::initialize(RenderContextHandle renderContextHandle)
         _context = VkContext::create();
     }
 
-    // Phase 3 will create the framebuffer here.
+    // Create the offscreen framebuffer (color + depth).
+    createFrameBuffer(false);
     _initialized = true;
 }
 
@@ -61,7 +64,7 @@ void VkRenderer::createProgram(ShaderPtr shader)
         _program = VkProgram::create(_context);
     }
     _program->setStages(shader);
-    // Phase 3: _program->build(_framebuffer).
+    _program->build(_framebuffer);
 }
 
 void VkRenderer::createProgram(const StageMap& stages)
@@ -75,7 +78,7 @@ void VkRenderer::createProgram(const StageMap& stages)
     {
         _program->addStage(it.first, it.second);
     }
-    // Phase 3: _program->build(_framebuffer).
+    _program->build(_framebuffer);
 }
 
 void VkRenderer::validateInputs()
@@ -101,32 +104,58 @@ void VkRenderer::setSize(unsigned int width, unsigned int height)
 {
     _width = width;
     _height = height;
-    // Phase 3: resize framebuffer.
+    if (_framebuffer)
+    {
+        _framebuffer->resize(width, height);
+    }
 }
 
 void VkRenderer::render()
 {
-    // Phase 3.
+    if (!_framebuffer)
+        return;
+
+    // Record a one-time command buffer: begin render pass, bind program, draw,
+    // end render pass, submit. Even without a program, the render pass clears
+    // the framebuffer to _screenColor (clear-only mode).
+    VkCommandBuffer cmd = VK_NULL_HANDLE;
+    _context->submitOneTimeCommands([&](VkCommandBuffer cb)
+    {
+        cmd = cb;
+
+        _framebuffer->bind(cb, _screenColor);
+
+        if (_program && _program->hasBuiltData())
+        {
+            _program->setViewport(_width, _height);
+            _program->bind(cb);
+            // Phase 3 step 2+: draw the bound mesh partition.
+        }
+
+        _framebuffer->unbind(cb);
+    });
+    (void)cmd;
 }
 
 void VkRenderer::renderTextureSpace(const Vector2& uvMin, const Vector2& uvMax)
 {
     (void)uvMin;
     (void)uvMax;
-    // Phase 3.
+    // Phase 4 (TextureBakerVk) uses this; the render path is the same as render().
 }
 
 ImagePtr VkRenderer::captureImage(ImagePtr image)
 {
-    (void)image;
-    // Phase 3.
-    return nullptr;
+    if (!_framebuffer)
+        return nullptr;
+    return _framebuffer->getColorImage(image);
 }
 
 void VkRenderer::createFrameBuffer(bool encodeSrgb)
 {
-    (void)encodeSrgb;
-    // Phase 3.
+    unsigned int channelCount = (_baseType == Image::BaseType::UINT8) ? 4 : 4;
+    _framebuffer = VkFramebuffer::create(_context, _width, _height, channelCount, _baseType);
+    _framebuffer->setEncodeSrgb(encodeSrgb);
 }
 
 MATERIALX_NAMESPACE_END

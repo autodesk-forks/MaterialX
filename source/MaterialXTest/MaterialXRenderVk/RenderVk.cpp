@@ -190,3 +190,44 @@ TEST_CASE("Render: Vulkan Reflection", "[rendervk]")
         CHECK(pad2 == beforePad2);
     }
 }
+
+//
+// Phase 3 step 1: clear-only render. captureImage() returns a solid _screenColor
+// PNG. Proves framebuffer + readback + row order.
+//
+TEST_CASE("Render: Vulkan Clear", "[rendervk]")
+{
+    if (!mx::VkContext::isDeviceAvailable())
+    {
+        std::cerr << "No Vulkan device available. Skip Vulkan clear test." << std::endl;
+        return;
+    }
+
+    mx::VkRendererPtr renderer = mx::VkRenderer::create(64, 64, mx::Image::BaseType::UINT8);
+    renderer->initialize();
+
+    // Set a distinctive screen color.
+    mx::Color3 screenColor(0.2f, 0.4f, 0.6f);
+    renderer->setScreenColor(screenColor);
+
+    // Render (clear-only, no program bound).
+    renderer->render();
+
+    // Capture and verify the color.
+    mx::ImagePtr image = renderer->captureImage();
+    REQUIRE(image != nullptr);
+    REQUIRE(image->getWidth() == 64);
+    REQUIRE(image->getHeight() == 64);
+
+    // Sample the center pixel — it should match the screen color.
+    // (The image is RGBA8; sampling may need vertical flip handling, but the
+    // center pixel is flip-invariant.)
+    unsigned int cx = image->getWidth() / 2;
+    unsigned int cy = image->getHeight() / 2;
+    mx::Color4 color = image->getTexelColor(cx, cy);
+    CHECK(color[0] == Approx(screenColor[0]).margin(0.01f));
+    CHECK(color[1] == Approx(screenColor[1]).margin(0.01f));
+    CHECK(color[2] == Approx(screenColor[2]).margin(0.01f));
+    CHECK(color[3] == Approx(1.0f).margin(0.01f));
+}
+

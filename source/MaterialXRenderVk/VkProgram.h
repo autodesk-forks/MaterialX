@@ -158,6 +158,13 @@ class MX_RENDERVK_API VkProgram
     /// Returns false if failed.
     bool bind(VkCommandBuffer cmd);
 
+    /// Set the viewport dimensions (for dynamic viewport/scissor state).
+    void setViewport(unsigned int width, unsigned int height)
+    {
+        _viewportWidth = width;
+        _viewportHeight = height;
+    }
+
     /// Return true if the program has active attributes.
     bool hasActiveAttributes() const;
 
@@ -318,6 +325,10 @@ class MX_RENDERVK_API VkProgram
     MeshPtr _boundMesh;
     bool _alphaBlendingEnabled = false;
     bool _built = false;
+
+    // Viewport dimensions for dynamic viewport/scissor state.
+    uint32_t _viewportWidth = 512;
+    uint32_t _viewportHeight = 512;
 };
 
 MATERIALX_NAMESPACE_END
