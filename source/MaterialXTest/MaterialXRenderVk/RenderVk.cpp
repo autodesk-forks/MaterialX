@@ -17,6 +17,11 @@
 #include <MaterialXFormat/Util.h>
 #include <MaterialXFormat/XmlIo.h>
 
+#include <MaterialXRender/GeometryHandler.h>
+#include <MaterialXRender/LightHandler.h>
+#include <MaterialXRender/StbImageLoader.h>
+#include <MaterialXRender/TinyObjLoader.h>
+
 namespace mx = MaterialX;
 
 //
@@ -230,4 +235,143 @@ TEST_CASE("Render: Vulkan Clear", "[rendervk]")
     CHECK(color[2] == Approx(screenColor[2]).margin(0.01f));
     CHECK(color[3] == Approx(1.0f).margin(0.01f));
 }
+
+//
+// Phase 3 milestone: render a lit, textured material to an offscreen buffer and
+// capture it. Proves the full pipeline: shader compile → UBO staging → descriptor
+// writes → mesh binding → texture binding → lighting → draw → readback.
+//
+TEST_CASE("Render: Vulkan Render", "[rendervk]")
+{
+    if (!mx::VkContext::isDeviceAvailable())
+    {
+        std::cerr << "No Vulkan device available. Skip Vulkan render test." << std::endl;
+        return;
+    }
+
+    mx::FileSearchPath searchPath = mx::getDefaultDataSearchPath();
+
+    // --- Set up the generator context ---
+    mx::DocumentPtr stdlib = mx::createDocument();
+    mx::loadLibraries({ "libraries" }, searchPath, stdlib);
+
+    mx::DocumentPtr doc = mx::createDocument();
+    doc->setDataLibrary(stdlib);
+
+    mx::FilePath materialFile = searchPath.find(
+        "resources/Materials/Examples/StandardSurface/standard_surface_default.mtlx");
+    REQUIRE(!materialFile.isEmpty());
+    mx::readFromXmlFile(doc, materialFile, searchPath);
+
+    // Load light rig.
+    mx::FilePath lightRig = searchPath.find(
+        "resources/Materials/TestSuite/lights/light_rig_test_1.mtlx");
+    if (!lightRig.isEmpty())
+    {
+        mx::DocumentPtr lightDoc = mx::createDocument();
+        mx::readFromXmlFile(lightDoc, lightRig, searchPath);
+        doc->importLibrary(lightDoc);
+    }
+
+    auto generator = mx::VkShaderGenerator::create();
+    mx::GenContext context(generator);
+    context.registerSourceCodeSearchPath(searchPath);
+    generator->registerShaderMetadata(stdlib, context);
+
+    auto cms = mx::DefaultColorManagementSystem::create(generator->getTarget());
+    generator->setColorManagementSystem(cms);
+    cms->loadLibrary(stdlib);
+
+    auto unitSystem = mx::UnitSystem::create(generator->getTarget());
+    generator->setUnitSystem(unitSystem);
+    unitSystem->loadLibrary(stdlib);
+    unitSystem->setUnitConverterRegistry(mx::UnitConverterRegistry::create());
+
+    int lightId = 0;
+    for (mx::NodePtr node : doc->getNodes())
+    {
+        if (node->getType() == mx::LIGHT_SHADER_TYPE_STRING)
+        {
+            mx::NodeDefPtr nodeDef = node->getNodeDef();
+            if (nodeDef)
+            {
+                mx::HwShaderGenerator::bindLightShader(*nodeDef, lightId, context);
+                lightId++;
+            }
+        }
+    }
+    context.getOptions().hwMaxActiveLightSources = (lightId > 0) ? lightId : 3;
+    context.getOptions().targetColorSpaceOverride = "lin_rec709_scene";
+
+    std::vector<mx::TypedElementPtr> elements = mx::findRenderableElements(doc);
+    REQUIRE(!elements.empty());
+    mx::ShaderPtr shader = generator->generate(elements[0]->getName(), elements[0], context);
+    REQUIRE(shader != nullptr);
+
+    // --- Create the renderer ---
+    mx::VkRendererPtr renderer = mx::VkRenderer::create(512, 512, mx::Image::BaseType::UINT8);
+    renderer->initialize();
+
+    // Image handler.
+    mx::StbImageLoaderPtr stbLoader = mx::StbImageLoader::create();
+    mx::ImageHandlerPtr imageHandler = renderer->createImageHandler(stbLoader);
+    imageHandler->setSearchPath(searchPath);
+    renderer->setImageHandler(imageHandler);
+
+    // Geometry handler.
+    mx::GeometryHandlerPtr geomHandler = mx::GeometryHandler::create();
+    mx::TinyObjLoaderPtr objLoader = mx::TinyObjLoader::create();
+    geomHandler->addLoader(objLoader);
+    mx::FilePath geomPath = searchPath.find("resources/Geometry/sphere.obj");
+    REQUIRE(!geomPath.isEmpty());
+    geomHandler->loadGeometry(geomPath, true);
+    renderer->setGeometryHandler(geomHandler);
+
+    // Light handler.
+    mx::LightHandlerPtr lightHandler = mx::LightHandler::create();
+    std::vector<mx::NodePtr> lights;
+    lightHandler->findLights(doc, lights);
+    lightHandler->registerLights(doc, lights, context);
+    lightHandler->setLightSources(lights);
+
+    mx::FilePath radiancePath = searchPath.find("resources/Lights/san_giuseppe_bridge.hdr");
+    mx::FilePath irradiancePath = searchPath.find("resources/Lights/irradiance/san_giuseppe_bridge.hdr");
+    if (!radiancePath.isEmpty() && !irradiancePath.isEmpty())
+    {
+        mx::ImagePtr envRadiance = imageHandler->acquireImage(radiancePath);
+        mx::ImagePtr envIrradiance = imageHandler->acquireImage(irradiancePath);
+        if (envRadiance && envIrradiance)
+        {
+            lightHandler->setEnvRadianceMap(envRadiance);
+            lightHandler->setEnvIrradianceMap(envIrradiance);
+            lightHandler->setEnvSampleCount(64);
+            lightHandler->setRefractionTwoSided(true);
+        }
+    }
+    renderer->setLightHandler(lightHandler);
+
+    // --- Compile, bind, render ---
+    renderer->createProgram(shader);
+    renderer->validateInputs();
+    renderer->setSize(512, 512);
+    renderer->render();
+
+    // --- Capture ---
+    mx::ImagePtr image = renderer->captureImage();
+    REQUIRE(image != nullptr);
+    REQUIRE(image->getWidth() == 512);
+    REQUIRE(image->getHeight() == 512);
+
+    // The rendered image should not be entirely black (the material is lit).
+    mx::Color4 avg = image->getAverageColor();
+    CHECK(avg[0] >= 0.0f);
+    CHECK(avg[1] >= 0.0f);
+    CHECK(avg[2] >= 0.0f);
+
+    // Save the image for visual inspection.
+    mx::FilePath outDir = "vulkan_render_output";
+    outDir.createDirectory(true);
+    imageHandler->saveImage(outDir / mx::FilePath("standard_surface_default_vk.png"), image, true);
+}
+
 

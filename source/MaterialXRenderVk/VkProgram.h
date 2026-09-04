@@ -273,6 +273,15 @@ class MX_RENDERVK_API VkProgram
     // Sampling an unwritten Vulkan descriptor is undefined behaviour.
     void writeUnboundSamplersWithZeroImage(ImageHandlerPtr imageHandler);
 
+    // Bind environment images (radiance/irradiance) as sampler descriptors.
+    void bindLightingEnvironment(LightHandlerPtr lightHandler, ImageHandlerPtr imageHandler);
+
+    // Bind lighting scalar uniforms (env matrix, samples, intensity, etc.).
+    void bindLightingScalars(LightHandlerPtr lightHandler);
+
+    // Bind direct light sources (u_lightData[i].member).
+    void bindLightSources(LightHandlerPtr lightHandler, ImageHandlerPtr imageHandler);
+
     // Compile both stages to SPIR-V via glslang (single TProgram, link, reflect).
     // Populates _spirv and the reflection-derived uniform/attribute lists.
     bool compileToSpirv(StringVec& errors);

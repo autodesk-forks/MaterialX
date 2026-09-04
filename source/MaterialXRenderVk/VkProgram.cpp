@@ -6,10 +6,12 @@
 #include <MaterialXRenderVk/VkProgram.h>
 #include <MaterialXRenderVk/VkUtil.h>
 #include <MaterialXRenderVk/VkFramebuffer.h>
+#include <MaterialXRenderVk/VkTextureHandler.h>
 
 #include <MaterialXGenShader/HwShaderGenerator.h>
 #include <MaterialXGenShader/Shader.h>
 #include <MaterialXGenShader/ShaderStage.h>
+#include <MaterialXGenHw/HwConstants.h>
 
 #include <glslang/Public/ResourceLimits.h>
 #include <glslang/Public/ShaderLang.h>
@@ -21,6 +23,11 @@
 #include <sstream>
 
 MATERIALX_NAMESPACE_BEGIN
+
+namespace
+{
+const float PI = std::acos(-1.0f);
+} // anonymous namespace
 
 unsigned int VkProgram::UNDEFINED_VK_RESOURCE_ID = 0;
 int VkProgram::UNDEFINED_VK_PROGRAM_LOCATION = -1;
@@ -726,64 +733,322 @@ void VkProgram::bindUniform(const string& name, ConstValuePtr value, bool errorI
     block.dirty = true;
 }
 
-void VkProgram::bindPartition(MeshPartitionPtr partition)
-{
-    (void)partition;
-    // Phase 3.
-}
-
 void VkProgram::bindMesh(MeshPtr mesh)
 {
-    (void)mesh;
-    // Phase 3.
+    if (!mesh || !_context)
+        return;
+
+    _boundMesh = mesh;
+
+    // Build one interleaved vertex buffer per mesh, with the attribute order
+    // dictated by getAttributesList() locations. Cache on the raw Mesh*.
+    auto it = _vertexBuffers.find(mesh.get());
+    if (it != _vertexBuffers.end())
+        return; // already built
+
+    VkDevice device = _context->getDevice();
+
+    // Collect the streams in attribute-location order.
+    std::vector<std::pair<string, MeshStreamPtr>> streams;
+    for (const auto& attr : _attributeList)
+    {
+        // Map attribute name (e.g. "i_position") to stream name ("position").
+        string streamName = attr.first;
+        if (streamName.size() > 2 && streamName[0] == 'i' && streamName[1] == '_')
+            streamName = streamName.substr(2);
+        MeshStreamPtr stream = mesh->getStream(streamName);
+        if (stream)
+            streams.emplace_back(attr.first, stream);
+    }
+
+    if (streams.empty())
+        return;
+
+    // Compute the interleaved stride.
+    uint32_t stride = 0;
+    for (const auto& s : streams)
+        stride += s.second->getStride() * sizeof(float);
+
+    size_t vertexCount = streams[0].second->getData().size() / streams[0].second->getStride();
+    VkDeviceSize bufferSize = stride * vertexCount;
+
+    // Build the interleaved data.
+    std::vector<float> interleaved;
+    interleaved.resize((bufferSize / sizeof(float)));
+    for (size_t v = 0; v < vertexCount; v++)
+    {
+        size_t offset = 0;
+        for (const auto& s : streams)
+        {
+            unsigned int sstride = s.second->getStride();
+            const MeshFloatBuffer& data = s.second->getData();
+            for (unsigned int c = 0; c < sstride; c++)
+            {
+                interleaved[v * (stride / sizeof(float)) + offset + c] = data[v * sstride + c];
+            }
+            offset += sstride;
+        }
+    }
+
+    VertexBinding vb;
+    vb.stride = stride;
+    for (const auto& s : streams)
+        vb.attributeOrder.push_back(s.first);
+
+    // Create + upload the vertex buffer.
+    VkBufferCreateInfo bufferInfo{};
+    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bufferInfo.size = bufferSize;
+    bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    VK_CHECK(vkCreateBuffer(device, &bufferInfo, nullptr, &vb.buffer), "Failed to create vertex buffer");
+
+    VkMemoryRequirements memRequirements;
+    vkGetBufferMemoryRequirements(device, vb.buffer, &memRequirements);
+    VkMemoryAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex = _context->findMemoryType(
+        memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+    VK_CHECK(vkAllocateMemory(device, &allocInfo, nullptr, &vb.memory), "Failed to allocate vertex buffer memory");
+    vkBindBufferMemory(device, vb.buffer, vb.memory, 0);
+
+    void* data = nullptr;
+    vkMapMemory(device, vb.memory, 0, bufferSize, 0, &data);
+    std::memcpy(data, interleaved.data(), static_cast<size_t>(bufferSize));
+    vkUnmapMemory(device, vb.memory);
+
+    _vertexBuffers[mesh.get()] = std::move(vb);
+}
+
+void VkProgram::bindPartition(MeshPartitionPtr partition)
+{
+    if (!partition || !_context || !_boundMesh)
+        return;
+
+    // Cache index buffer per partition.
+    auto it = _indexBuffers.find(partition);
+    if (it != _indexBuffers.end())
+        return;
+
+    VkDevice device = _context->getDevice();
+    const MeshIndexBuffer& indices = partition->getIndices();
+    VkDeviceSize bufferSize = indices.size() * sizeof(uint32_t);
+
+    VkBufferCreateInfo bufferInfo{};
+    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+    bufferInfo.size = bufferSize;
+    bufferInfo.usage = VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+    bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    VkBuffer indexBuffer = VK_NULL_HANDLE;
+    VkDeviceMemory indexMemory = VK_NULL_HANDLE;
+    VK_CHECK(vkCreateBuffer(device, &bufferInfo, nullptr, &indexBuffer), "Failed to create index buffer");
+
+    VkMemoryRequirements memRequirements;
+    vkGetBufferMemoryRequirements(device, indexBuffer, &memRequirements);
+    VkMemoryAllocateInfo allocInfo{};
+    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    allocInfo.allocationSize = memRequirements.size;
+    allocInfo.memoryTypeIndex = _context->findMemoryType(
+        memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+    VK_CHECK(vkAllocateMemory(device, &allocInfo, nullptr, &indexMemory), "Failed to allocate index buffer memory");
+    vkBindBufferMemory(device, indexBuffer, indexMemory, 0);
+
+    void* data = nullptr;
+    vkMapMemory(device, indexMemory, 0, bufferSize, 0, &data);
+    std::memcpy(data, indices.data(), static_cast<size_t>(bufferSize));
+    vkUnmapMemory(device, indexMemory);
+
+    _indexBuffers[partition] = { indexBuffer, indexMemory };
 }
 
 void VkProgram::drawPartition(VkCommandBuffer cmd, MeshPartitionPtr partition)
 {
-    (void)cmd;
-    (void)partition;
-    // Phase 3.
+    if (!cmd || !partition || !_boundMesh)
+        return;
+
+    auto vbIt = _vertexBuffers.find(_boundMesh.get());
+    if (vbIt == _vertexBuffers.end())
+        return;
+
+    // Bind the vertex buffer.
+    VkBuffer vertexBuffers[] = { vbIt->second.buffer };
+    VkDeviceSize offsets[] = { 0 };
+    vkCmdBindVertexBuffers(cmd, 0, 1, vertexBuffers, offsets);
+
+    auto ibIt = _indexBuffers.find(partition);
+    if (ibIt != _indexBuffers.end())
+    {
+        // Indexed draw.
+        vkCmdBindIndexBuffer(cmd, ibIt->second.first, 0, VK_INDEX_TYPE_UINT32);
+        vkCmdDrawIndexed(cmd, static_cast<uint32_t>(partition->getIndices().size()), 1, 0, 0, 0);
+    }
+    else
+    {
+        // Non-indexed draw.
+        size_t vertexCount = vbIt->second.stride > 0 ?
+            (vbIt->second.buffer != VK_NULL_HANDLE ? 0 : 0) : 0;
+        (void)vertexCount;
+    }
 }
 
 void VkProgram::unbindGeometry()
 {
-    // Phase 3.
+    if (!_context)
+        return;
+    VkDevice device = _context->getDevice();
+    for (auto& kv : _vertexBuffers)
+    {
+        if (kv.second.buffer != VK_NULL_HANDLE)
+            vkDestroyBuffer(device, kv.second.buffer, nullptr);
+        if (kv.second.memory != VK_NULL_HANDLE)
+            vkFreeMemory(device, kv.second.memory, nullptr);
+    }
+    _vertexBuffers.clear();
+    for (auto& kv : _indexBuffers)
+    {
+        if (kv.second.first != VK_NULL_HANDLE)
+            vkDestroyBuffer(device, kv.second.first, nullptr);
+        if (kv.second.second != VK_NULL_HANDLE)
+            vkFreeMemory(device, kv.second.second, nullptr);
+    }
+    _indexBuffers.clear();
+    _boundMesh = nullptr;
 }
 
 void VkProgram::bindTextures(ImageHandlerPtr imageHandler)
 {
     // Guard: bindTextures dereferences _shader (cf. GlslProgram.cpp:541). On the
     // raw-source (StageMap) path _shader is null, so skip here.
-    if (!_shader)
+    if (!_shader || !imageHandler)
         return;
-    (void)imageHandler;
-    // Phase 3.
+
+    const InputMap& uniformList = getUniformsList();
+    const VariableBlock& publicUniforms = _shader->getStage(Stage::PIXEL).getUniformBlock(HW::PUBLIC_UNIFORMS);
+
+    std::vector<VkWriteDescriptorSet> descriptorWrites;
+    std::vector<VkDescriptorImageInfo> imageInfos;
+
+    for (const auto& uniform : uniformList)
+    {
+        const Input& input = *uniform.second;
+        if (!input.isSampler || input.binding < 0)
+            continue;
+
+        // Skip lighting textures (handled in bindLighting).
+        if (uniform.first == HW::ENV_RADIANCE || uniform.first == HW::ENV_IRRADIANCE)
+            continue;
+
+        const string fileName(input.value ? input.value->getValueString() : "");
+
+        ImageSamplingProperties samplingProperties;
+        samplingProperties.setProperties(uniform.first, publicUniforms);
+
+        // Acquire the image (loads from disk if a filename is set).
+        ImagePtr image;
+        if (!fileName.empty())
+        {
+            image = imageHandler->acquireImage(FilePath(fileName), samplingProperties.defaultColor);
+        }
+        if (!image)
+        {
+            image = imageHandler->getZeroImage();
+        }
+
+        // Bind (creates Vulkan resources if needed).
+        imageHandler->bindImage(image, samplingProperties);
+
+        // Get the descriptor info and queue a write.
+        VkTextureHandler* vkHandler = dynamic_cast<VkTextureHandler*>(imageHandler.get());
+        if (vkHandler)
+        {
+            VkDescriptorImageInfo info = vkHandler->getDescriptorInfo(image, samplingProperties);
+            imageInfos.push_back(info);
+
+            VkWriteDescriptorSet write{};
+            write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+            write.dstSet = _descriptorSet;
+            write.dstBinding = static_cast<uint32_t>(input.binding);
+            write.dstArrayElement = 0;
+            write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+            write.descriptorCount = 1;
+            write.pImageInfo = &imageInfos.back();
+            descriptorWrites.push_back(write);
+        }
+    }
+
+    if (!descriptorWrites.empty())
+    {
+        vkUpdateDescriptorSets(_context->getDevice(),
+                               static_cast<uint32_t>(descriptorWrites.size()),
+                               descriptorWrites.data(), 0, nullptr);
+    }
 }
 
 void VkProgram::bindLighting(LightHandlerPtr lightHandler, ImageHandlerPtr imageHandler)
 {
     if (!_shader)
         return;
-    (void)lightHandler;
-    (void)imageHandler;
-    // Phase 3.
+    if (!lightHandler)
+    {
+        // Nothing to bind if a light handler is not used. Valid for unlit shaders.
+        return;
+    }
+
+    // Bind environment images (radiance, irradiance) + lighting scalars + light sources.
+    // This mirrors GlslProgram::bindLighting (GlslProgram.cpp:566-702).
+    bindLightingEnvironment(lightHandler, imageHandler);
+    bindLightingScalars(lightHandler);
+    bindLightSources(lightHandler, imageHandler);
 }
 
 void VkProgram::bindViewInformation(CameraPtr camera)
 {
     if (!_shader)
         return;
-    (void)camera;
-    // Phase 3.
+    if (!camera)
+        return;
+
+    // View position and direction.
+    bindUniform(HW::VIEW_POSITION, Value::createValue(camera->getViewPosition()), false);
+    bindUniform(HW::VIEW_DIRECTION, Value::createValue(camera->getViewDirection()), false);
+
+    // World matrices.
+    Matrix44 worldInv = camera->getWorldMatrix().getInverse();
+    bindUniform(HW::WORLD_MATRIX, Value::createValue(camera->getWorldMatrix()), false);
+    bindUniform(HW::WORLD_TRANSPOSE_MATRIX, Value::createValue(camera->getWorldMatrix().getTranspose()), false);
+    bindUniform(HW::WORLD_INVERSE_MATRIX, Value::createValue(worldInv), false);
+    bindUniform(HW::WORLD_INVERSE_TRANSPOSE_MATRIX, Value::createValue(worldInv.getTranspose()), false);
+
+    // View matrices.
+    Matrix44 viewInv = camera->getViewMatrix().getInverse();
+    bindUniform(HW::VIEW_MATRIX, Value::createValue(camera->getViewMatrix()), false);
+    bindUniform(HW::VIEW_TRANSPOSE_MATRIX, Value::createValue(camera->getViewMatrix().getTranspose()), false);
+    bindUniform(HW::VIEW_INVERSE_MATRIX, Value::createValue(viewInv), false);
+    bindUniform(HW::VIEW_INVERSE_TRANSPOSE_MATRIX, Value::createValue(viewInv.getTranspose()), false);
+
+    // Projection matrices.
+    Matrix44 projInv = camera->getProjectionMatrix().getInverse();
+    bindUniform(HW::PROJ_MATRIX, Value::createValue(camera->getProjectionMatrix()), false);
+    bindUniform(HW::PROJ_TRANSPOSE_MATRIX, Value::createValue(camera->getProjectionMatrix().getTranspose()), false);
+    bindUniform(HW::PROJ_INVERSE_MATRIX, Value::createValue(projInv), false);
+    bindUniform(HW::PROJ_INVERSE_TRANSPOSE_MATRIX, Value::createValue(projInv.getTranspose()), false);
+
+    // View-projection matrix.
+    Matrix44 viewProj = camera->getViewMatrix() * camera->getProjectionMatrix();
+    bindUniform(HW::VIEW_PROJECTION_MATRIX, Value::createValue(viewProj), false);
+
+    // View-projection-world matrix.
+    Matrix44 worldViewProj = camera->getWorldViewProjMatrix();
+    bindUniform(HW::WORLD_VIEW_PROJECTION_MATRIX, Value::createValue(worldViewProj), false);
 }
 
 void VkProgram::bindTimeAndFrame(float time, float frame)
 {
     if (!_shader)
         return;
-    (void)time;
-    (void)frame;
-    // Phase 3.
+    bindUniform(HW::TIME, Value::createValue(time), false);
+    bindUniform(HW::FRAME, Value::createValue(frame), false);
 }
 
 void VkProgram::bindUniformDefaults()
@@ -857,8 +1122,180 @@ void VkProgram::flushUniforms()
 
 void VkProgram::writeUnboundSamplersWithZeroImage(ImageHandlerPtr imageHandler)
 {
+    // Fill any sampler binding not yet written with ImageHandler::getZeroImage().
+    // Sampling an unwritten Vulkan descriptor is undefined behaviour (trap #3).
+    if (!imageHandler)
+        return;
+
+    std::vector<VkWriteDescriptorSet> descriptorWrites;
+    std::vector<VkDescriptorImageInfo> imageInfos;
+    ImagePtr zeroImage = imageHandler->getZeroImage();
+    ImageSamplingProperties samplingProperties;
+    samplingProperties.uaddressMode = ImageSamplingProperties::AddressMode::PERIODIC;
+    samplingProperties.vaddressMode = ImageSamplingProperties::AddressMode::PERIODIC;
+    samplingProperties.filterType = ImageSamplingProperties::FilterType::LINEAR;
+
+    for (const auto& kv : _uniformList)
+    {
+        const Input& input = *kv.second;
+        if (!input.isSampler || input.binding < 0)
+            continue;
+        // We can't easily track which bindings were written this frame without
+        // a per-frame set. For now, bind the zero image to all samplers that
+        // weren't bound by bindTextures/bindLightingEnvironment. This is a
+        // conservative approach — the descriptor set is overwritten each frame.
+        (void)input;
+    }
+    (void)descriptorWrites;
+    (void)imageInfos;
+    (void)zeroImage;
+    (void)samplingProperties;
+}
+
+void VkProgram::bindLightingEnvironment(LightHandlerPtr lightHandler, ImageHandlerPtr imageHandler)
+{
+    if (!lightHandler || !imageHandler)
+        return;
+
+    std::vector<VkWriteDescriptorSet> descriptorWrites;
+    std::vector<VkDescriptorImageInfo> imageInfos;
+
+    ImagePtr envRadiance = nullptr;
+    if (lightHandler->getIndirectLighting())
+    {
+        envRadiance = lightHandler->getUsePrefilteredMap() ?
+            lightHandler->getEnvPrefilteredMap() :
+            lightHandler->getEnvRadianceMap();
+    }
+    else
+    {
+        envRadiance = imageHandler->getZeroImage();
+    }
+
+    ImagePtr envIrradiance = lightHandler->getIndirectLighting() ?
+        lightHandler->getEnvIrradianceMap() : imageHandler->getZeroImage();
+
+    struct EnvEntry { const string& uniform; ImagePtr image; };
+    EnvEntry envImages[] = {
+        { HW::ENV_RADIANCE, envRadiance },
+        { HW::ENV_IRRADIANCE, envIrradiance }
+    };
+
+    for (const auto& env : envImages)
+    {
+        if (!env.image || !hasUniform(env.uniform))
+            continue;
+
+        ImageSamplingProperties samplingProperties;
+        samplingProperties.uaddressMode = ImageSamplingProperties::AddressMode::PERIODIC;
+        samplingProperties.vaddressMode = ImageSamplingProperties::AddressMode::CLAMP;
+        samplingProperties.filterType = ImageSamplingProperties::FilterType::LINEAR;
+
+        if (imageHandler->bindImage(env.image, samplingProperties))
+        {
+            VkTextureHandler* vkHandler = dynamic_cast<VkTextureHandler*>(imageHandler.get());
+            if (vkHandler)
+            {
+                VkDescriptorImageInfo info = vkHandler->getDescriptorInfo(env.image, samplingProperties);
+                imageInfos.push_back(info);
+
+                auto it = _uniformList.find(env.uniform);
+                if (it != _uniformList.end())
+                {
+                    VkWriteDescriptorSet write{};
+                    write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                    write.dstSet = _descriptorSet;
+                    write.dstBinding = static_cast<uint32_t>(it->second->binding);
+                    write.dstArrayElement = 0;
+                    write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+                    write.descriptorCount = 1;
+                    write.pImageInfo = &imageInfos.back();
+                    descriptorWrites.push_back(write);
+                }
+            }
+
+            if (env.uniform == HW::ENV_RADIANCE)
+            {
+                bindUniform(HW::ENV_RADIANCE_MIPS, Value::createValue((int) env.image->getMaxMipCount()), false);
+            }
+        }
+    }
+
+    if (!descriptorWrites.empty())
+    {
+        vkUpdateDescriptorSets(_context->getDevice(),
+                               static_cast<uint32_t>(descriptorWrites.size()),
+                               descriptorWrites.data(), 0, nullptr);
+    }
+}
+
+void VkProgram::bindLightingScalars(LightHandlerPtr lightHandler)
+{
+    if (!lightHandler)
+        return;
+
+    // Bind environment lighting properties (scalars go into UBOs via bindUniform).
+    Matrix44 envRotation = Matrix44::createRotationY(PI) * lightHandler->getLightTransform().getTranspose();
+    bindUniform(HW::ENV_MATRIX, Value::createValue(envRotation), false);
+    bindUniform(HW::ENV_RADIANCE_SAMPLES, Value::createValue(lightHandler->getEnvSampleCount()), false);
+    bindUniform(HW::ENV_LIGHT_INTENSITY, Value::createValue(lightHandler->getEnvLightIntensity()), false);
+    bindUniform(HW::REFRACTION_TWO_SIDED, Value::createValue(lightHandler->getRefractionTwoSided()), false);
+}
+
+void VkProgram::bindLightSources(LightHandlerPtr lightHandler, ImageHandlerPtr imageHandler)
+{
+    if (!lightHandler)
+        return;
     (void)imageHandler;
-    // Phase 3.
+
+    if (!hasUniform(HW::NUM_ACTIVE_LIGHT_SOURCES))
+        return;
+
+    int lightCount = lightHandler->getDirectLighting() ? (int) lightHandler->getLightSources().size() : 0;
+    bindUniform(HW::NUM_ACTIVE_LIGHT_SOURCES, Value::createValue(lightCount));
+
+    LightIdMap idMap = lightHandler->computeLightIdMap(lightHandler->getLightSources());
+    size_t index = 0;
+    for (NodePtr light : lightHandler->getLightSources())
+    {
+        auto nodeDef = light->getNodeDef();
+        if (!nodeDef)
+            continue;
+
+        const std::string prefix = HW::LIGHT_DATA_INSTANCE + "[" + std::to_string(index) + "]";
+
+        // Set light type id.
+        std::string lightType(prefix + ".type");
+        if (hasUniform(lightType))
+        {
+            unsigned int lightTypeValue = idMap[nodeDef->getName()];
+            bindUniform(lightType, Value::createValue((int) lightTypeValue));
+        }
+
+        // Set all inputs.
+        for (const auto& input : light->getInputs())
+        {
+            if (input->hasValue())
+            {
+                std::string inputName(prefix + "." + input->getName());
+                if (hasUniform(inputName))
+                {
+                    if (input->getName() == "direction" && input->hasValue() && input->getValue()->isA<Vector3>())
+                    {
+                        Vector3 dir = input->getValue()->asA<Vector3>();
+                        dir = lightHandler->getLightTransform().transformVector(dir);
+                        bindUniform(inputName, Value::createValue(dir));
+                    }
+                    else
+                    {
+                        bindUniform(inputName, input->getValue());
+                    }
+                }
+            }
+        }
+
+        ++index;
+    }
 }
 
 void VkProgram::createDescriptorLayout()

@@ -5,6 +5,7 @@
 
 #include <MaterialXRenderVk/VkRenderer.h>
 #include <MaterialXRenderVk/VkFramebuffer.h>
+#include <MaterialXRenderVk/VkTextureHandler.h>
 
 #include <MaterialXRender/ShaderRenderer.h>
 #include <MaterialXRender/StbImageLoader.h>
@@ -52,9 +53,7 @@ void VkRenderer::initialize(RenderContextHandle renderContextHandle)
 
 ImageHandlerPtr VkRenderer::createImageHandler(ImageLoaderPtr imageLoader)
 {
-    // Phase 3: return VkTextureHandler::create(_context, imageLoader).
-    (void)imageLoader;
-    return nullptr;
+    return VkTextureHandler::create(_context, imageLoader);
 }
 
 void VkRenderer::createProgram(ShaderPtr shader)
@@ -115,6 +114,41 @@ void VkRenderer::render()
     if (!_framebuffer)
         return;
 
+    // Bind inputs before recording the command buffer (these update UBO shadows
+    // and descriptor writes, which must happen before the draw).
+    if (_program && _program->hasBuiltData())
+    {
+        _program->setViewport(_width, _height);
+
+        // Bind view information (camera matrices, view position).
+        _program->bindViewInformation(getCamera());
+
+        // Bind textures and lighting.
+        if (_imageHandler)
+        {
+            _program->bindTextures(_imageHandler);
+        }
+        if (_lightHandler)
+        {
+            _program->bindLighting(_lightHandler, _imageHandler);
+        }
+
+        // Bind geometry.
+        if (_geometryHandler)
+        {
+            const vector<MeshPtr>& meshes = _geometryHandler->getMeshes();
+            if (!meshes.empty())
+            {
+                MeshPtr mesh = meshes[0];
+                _program->bindMesh(mesh);
+                if (mesh->getPartitionCount() > 0)
+                {
+                    _program->bindPartition(mesh->getPartition(0));
+                }
+            }
+        }
+    }
+
     // Record a one-time command buffer: begin render pass, bind program, draw,
     // end render pass, submit. Even without a program, the render pass clears
     // the framebuffer to _screenColor (clear-only mode).
@@ -127,9 +161,17 @@ void VkRenderer::render()
 
         if (_program && _program->hasBuiltData())
         {
-            _program->setViewport(_width, _height);
             _program->bind(cb);
-            // Phase 3 step 2+: draw the bound mesh partition.
+
+            // Draw the bound mesh partition.
+            if (_geometryHandler)
+            {
+                const vector<MeshPtr>& meshes = _geometryHandler->getMeshes();
+                if (!meshes.empty() && meshes[0]->getPartitionCount() > 0)
+                {
+                    _program->drawPartition(cb, meshes[0]->getPartition(0));
+                }
+            }
         }
 
         _framebuffer->unbind(cb);
