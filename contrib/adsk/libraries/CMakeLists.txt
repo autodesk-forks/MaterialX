@@ -6,6 +6,11 @@ add_custom_command(TARGET Contrib_libraries
         POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_directory
         ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/libraries)
 
+# Serialize with MaterialXTestData to avoid concurrent writes to build/bin/libraries.
+if(TARGET MaterialXTestData)
+    add_dependencies(MaterialXTestData Contrib_libraries)
+endif()
+
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/
         DESTINATION "${MATERIALX_INSTALL_STDLIB_PATH}" MESSAGE_NEVER
         PATTERN "CMakeLists.txt" EXCLUDE)
